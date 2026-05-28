@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baibesik Hırdavat Marketplace</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+        }
+        /* Üst Bar */
+        .navbar {
+            background-color: #212529;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-weight: bold;
+            font-size: 20px;
+            color: #ffc107;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn-profile {
+            background-color: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        /* Ana Gövde */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .welcome-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .welcome-box h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        /* Dükkan Listesi */
+        .vendor-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        @media(min-width: 600px) {
+            .vendor-grid { grid-template-columns: 1fr 1fr; }
+        }
+        .vendor-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-top: 4px solid #ffc107;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .vendor-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .vendor-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .vendor-meta {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .btn-visit {
+            background-color: #e9ecef;
+            color: #333;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 13px;
+        }
+        .vendor-card:hover .btn-visit {
+            background-color: #ffc107;
+            color: #212529;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Üst Gezinme Çubuğu -->
+    <div class="navbar">
+        <div class="logo">🏗️ Baibesik Hırdavat</div>
+        <div class="nav-buttons">
+            <!-- Giriş yapıldığında simüle etmek için profil butonu -->
+            <a href="login.html" class="btn-profile" id="btn-user-space">Войти / Кіру / Giriş</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Karşılama Alanı -->
+        <div class="welcome-box">
+            <h1 id="txt-greeting">Қош келдіңіз! / Добро пожаловать!</h1>
+            <p style="color: #666; font-size: 14px;">Baibesik mahallesindeki 20 güvenilir hırdavat esnafı tek çatıda.</p>
+        </div>
+
+        <!-- Dükkanlar Başlığı -->
+        <h2 style="font-size: 18px; margin-bottom: 15px; color: #495057;">Дүкендер / Магазины (Baibesik)</h2>
+
+        <!-- Esnaf Kartları Grubu -->
+        <div class="vendor-grid">
+            
+            <!-- Kart 1 -->
+            <div class="vendor-card" onclick="alert('Yakında: Ürün listesi ve sepet dinamikleri eklenecek!')">
+                <div>
+                    <div class="vendor-name">Ahmet Hırdavat (No: 5)</div>
+                    <div class="vendor-meta">📍 Ақжол көшесі • ⭐️ 4.9 (120+ тапсырыс)</div>
+                </div>
+                <div class="btn-visit">Дүкенге кіру / Войти в магазин</div>
+            </div>
+
+            <!-- Kart 2 -->
+            <div class="vendor-card" onclick="alert('Yakında: Ürün listesi ve sepet dinamikleri eklenecek!')">
+                <div>
+                    <div class="vendor-name">Eldar Stroy</div>
+                    <div class="vendor-meta">📍 Байтерек көшесі • ⭐️ 4.7 (85 тапсырыс)</div>
+                </div>
+                <div class="btn-visit">Дүкенге кіру / Войти в магазин</div>
+            </div>
+
+            <!-- Kart 3 -->
+            <div class="vendor-card" onclick="alert('Yakında: Ürün listesi ve sepet dinamikleri eklenecek!')">
+                <div>
+                    <div class="vendor-name">Almaty Yapı Market</div>
+                    <div class="vendor-meta">📍 Орталық көшесі • ⭐️ 4.8 (210+ тапсырыс)</div>
+                </div>
+                <div class="btn-visit">Дүкенге кіру / Войти в магазин</div>
+            </div>
+
+            <!-- Kart 4 -->
+            <div class="vendor-card" onclick="alert('Yakında: Ürün listesi ve sepet dinamikleri eklenecek!')">
+                <div>
+                    <div class="vendor-name">Kairat İnşaat</div>
+                    <div class="vendor-meta">📍 Жібек Жолы көшесі • ⭐️ 4.5 (40 тапсырыс)</div>
+                </div>
+                <div class="btn-visit">Дүкенге кіру / Войти в магазин</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Giriş yapmış kullanıcı simülasyonu kontrolü (Local Storage'dan bakabiliriz)
+        window.onload = function() {
+            // Küçük bir yapay zeka dokunuşu: Eğer daha önce sisteme rol kaydettiysek yönlendirmeyi güncelleyelim
+            const mockRole = localStorage.getItem('userRole'); 
+            const profileBtn = document.getElementById('btn-user-space');
+            
+            if(mockRole) {
+                if(mockRole === 'vendor') {
+                    profileBtn.innerText = "🏪 Esnaf Paneli";
+                    profileBtn.href = "vendor.html";
+                } else if(mockRole === 'courier') {
+                    profileBtn.innerText = "🏍️ Kurye Paneli";
+                    profileBtn.href = "courier.html";
+                } else {
+                    profileBtn.innerText = "👤 Profilim";
+                    profileBtn.href = "#";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

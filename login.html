@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baibesik Hırdavat - Кіру / Вход</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+        }
+        
+        /* Dil Seçimi */
+        .lang-switcher {
+            display: flex;
+            justify-content: flex-end;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        .lang-btn {
+            background: #e4e6eb;
+            color: #333;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .lang-btn.active {
+            background: #ff6b00;
+            color: white;
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .logo-area h1 {
+            color: #ff6b00;
+            font-size: 26px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .logo-area p {
+            color: #777;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #444;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            border-color: #ff6b00;
+        }
+        
+        /* Şifre Alanı Görünürlük Ayarı */
+        .password-wrapper {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        .forgot-password a {
+            color: #ff6b00;
+            text-decoration: none;
+        }
+
+        .btn-login {
+            background-color: #ff6b00;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .btn-login:hover {
+            background-color: #e56000;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        .register-link a {
+            color: #ff6b00;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <!-- Dil Butonları -->
+        <div class="lang-switcher">
+            <button class="lang-btn active" onclick="switchLanguage('kk')">KK</button>
+            <button class="lang-btn" onclick="switchLanguage('ru')">RU</button>
+            <button class="lang-btn" onclick="switchLanguage('tr')">TR</button>
+        </div>
+
+        <!-- Logo ve Başlık -->
+        <div class="logo-area">
+            <h1>BAIBESIK</h1>
+            <p id="txt-subtitle">Қош келдіңіз! Жүйеге кіру</p>
+        </div>
+
+        <!-- Giriş Formu -->
+        <form onsubmit="handleLogin(event)">
+            <!-- Telefon Numarası -->
+            <div class="form-group">
+                <label id="lbl-phone">Телефон нөмірі</label>
+                <input type="tel" id="user-phone" placeholder="+7 (707) 123-45-67" value="+7 " required>
+            </div>
+
+            <!-- Şifre -->
+            <div class="form-group">
+                <label id="lbl-pass">Құпия сөз</label>
+                <div class="password-wrapper">
+                    <input type="password" id="user-password" required>
+                    <span class="toggle-password" onclick="togglePass()">👁️</span>
+                </div>
+            </div>
+
+            <!-- Şifremi Unuttum -->
+            <div class="forgot-password">
+                <a href="#" id="lnk-forgot">Құпия сөзді ұмыттыңыз ба?</a>
+            </div>
+
+            <!-- Giriş Butonu -->
+            <button type="submit" id="btn-submit" class="btn-login">Кіру</button>
+        </form>
+
+        <!-- Kayıt Ol Bağlantısı -->
+        <div class="register-link" id="txt-footer">
+            Тіркелген жоқсыз ба? <a href="register.html">Тіркелу</a>
+        </div>
+    </div>
+
+    <script>
+        // Üç Dilli Sözlük Verisi
+        const dictionary = {
+            kk: {
+                subtitle: "Қош келдіңіз! Жүйеге кіру",
+                phone: "Телефон нөмірі",
+                pass: "Құпия сөз",
+                forgot: "Құпия сөзді ұмыттыңыз ба?",
+                submit: "Кіру",
+                footer: "Тіркелген жоқсыз ба? <a href='register.html'>Тіркелу</a>",
+                alertSuccess: "Жүйеге кіру сәтті орындалды!"
+            },
+            ru: {
+                subtitle: "Добро пожаловать! Вход в систему",
+                phone: "Номер телефона",
+                pass: "Пароль",
+                forgot: "Забыли пароль?",
+                submit: "Войти",
+                footer: "Еще не зарегистрированы? <a href='register.html'>Регистрация</a>",
+                alertSuccess: "Вход в систему успешно выполнен!"
+            },
+            tr: {
+                subtitle: "Hoş Geldiniz! Giriş Yapın",
+                phone: "Telefon Numaranız",
+                pass: "Şifre",
+                forgot: "Şifremi Unuttum?",
+                submit: "Giriş Yap",
+                footer: "Hesabınız yok mu? <a href='register.html'>Kayıt Ol</a>",
+                alertSuccess: "Sisteme giriş başarıyla sağlandı!"
+            }
+        };
+
+        let currentLang = 'kk';
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            
+            // Aktif dil butonunun görsel stilini güncelle
+            const buttons = document.querySelectorAll('.lang-btn');
+            buttons.forEach(btn => {
+                if(btn.innerText.toLowerCase() === lang) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Form metinlerini dile göre eşitle
+            document.getElementById('txt-subtitle').innerText = dictionary[lang].subtitle;
+            document.getElementById('lbl-phone').innerText = dictionary[lang].phone;
+            document.getElementById('lbl-pass').innerText = dictionary[lang].pass;
+            document.getElementById('lnk-forgot').innerText = dictionary[lang].forgot;
+            document.getElementById('btn-submit').innerText = dictionary[lang].submit;
+            document.getElementById('txt-footer').innerHTML = dictionary[lang].footer;
+        }
+
+        // Şifre Göster/Gizle
+        function togglePass() {
+            const passInput = document.getElementById('user-password');
+            const toggleIcon = document.querySelector('.toggle-password');
+            if (passInput.type === "password") {
+                passInput.type = "text";
+                toggleIcon.innerText = "🔒";
+            } else {
+                passInput.type = "password";
+                toggleIcon.innerText = "👁️";
+            }
+        }
+
+        // Giriş Yapıldığında Çalışacak Kod
+        function handleLogin(e) {
+            e.preventDefault();
+            const phone = document.getElementById('user-phone').value;
+            
+            // Başarılı Giriş Bildirimi
+            alert(`${dictionary[currentLang].alertSuccess}\n\n📞: ${phone}`);
+            
+            // Gerçek senaryoda ana sayfaya yönlendirme yapılır
+        }
+
+        // Sayfa ilk yüklendiğinde varsayılan dili (Kazakça) otomatik çalıştır
+        window.onload = function() {
+            switchLanguage('kk');
+        };
+    </script>
+</body>
+</html>

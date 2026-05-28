@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baibesik Hırdavat - Тапсырыс және Курьер Бақылауы</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #f59e0b;
+            --bg: #f8fafc;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: '-apple-system', sans-serif; }
+        body { background-color: var(--bg); padding: 15px; color: #0f172a; }
+        .container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .card-title { font-size: 14px; font-weight: 800; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: var(--primary); display: flex; justify-content: space-between; }
+        
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 5px; color: #475569; }
+        .form-control, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600; background: #fff; }
+        
+        /* ÖDEME VE TESLİMAT SEÇENEKLERİ */
+        .radio-tile-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .radio-tile { border: 2px solid #e2e8f0; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
+        .radio-tile input { position: absolute; opacity: 0; }
+        .radio-tile .label { font-size: 12px; font-weight: 700; color: #475569; }
+        .radio-tile.selected { border-color: var(--accent); background: #fffbeb; }
+        .radio-tile.disabled { background: #f1f5f9; border-color: #e2e8f0; opacity: 0.5; cursor: not-allowed; }
+
+        /* UYARI KUTUSU */
+        .rule-alert { background: #fee2e2; border: 1px solid #fca5a5; color: var(--danger); padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 700; margin-top: 10px; display: none; }
+        
+        .btn-order { width: 100%; background: var(--primary); color: var(--accent); border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
+
+        /* ESNAF PANELİ SİMÜLASYONU */
+        .shop-order-box { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+        .shop-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 12px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px dashed #cbd5e1; }
+        .order-item { font-size: 12px; font-weight: 600; color: #334155; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+        .badge-cash { background: #ef4444; color: white; }
+        .badge-kaspi { background: #10b981; color: white; }
+        .badge-delivery { background: #3b82f6; color: white; }
+        .badge-pickup { background: #64748b; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- SOL TARAF: MÜŞTERİ SATIN ALMA EKRANI (CHECKOUT) -->
+        <div class="card">
+            <div class="card-title"><span>🛒 Оформление заказа / Сатып алу</span> <span style="color: var(--accent);">Baibesik Basket</span></div>
+            
+            <!-- Örnek Sepet Özeti -->
+            <div style="background: #fffbeb; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; font-weight: 700; border: 1px solid #fef3c7;">
+                📦 Сабеттегі тауарлар (Тест):<br>
+                <span style="color: #475569;">- [Alik Hırdavat] Blum Петля х2 (2,900 ₸)<br>
+                - [Serikcan Market] Направляющие Boyard х1 (1,600 ₸)</span>
+            </div>
+
+            <!-- 1. ÖDEME YÖNTEMİ SEÇİMİ -->
+            <div class="form-group">
+                <label>Төлем түрі / Способ оплаты:</label>
+                <div class="radio-tile-group">
+                    <div class="radio-tile selected" id="pay-kaspi" onclick="selectPayment('kaspi')">
+                        <span class="label">📱 Kaspi QR / Тез төлем</span>
+                    </div>
+                    <div class="radio-tile" id="pay-cash" onclick="selectPayment('cash')">
+                        <span class="label">💵 Нақшалай (Nakit Ödeme)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. TESLİMAT YÖNTEMİ SEÇİMİ (KRİTİK BÖLGE) -->
+            <div class="form-group">
+                <label>Жеткізу түрі / Способ доставки:</label>
+                <div class="radio-tile-group">
+                    <div class="radio-tile selected" id="ship-courier" onclick="selectShipping('courier')">
+                        <span class="label">🛵 Курьермен жеткізу</span>
+                    </div>
+                    <div class="radio-tile" id="ship-pickup" onclick="selectShipping('pickup')">
+                        <span class="label">🏃‍♂️ Дүкеннен алып кету</span>
+                    </div>
+                </div>
+                
+                <!-- Usta'nın özel kural uyarısı -->
+                <div class="rule-alert" id="courier-rule-alert">
+                    ⚠️ Нақшалай төлем жасалса, курьермен жеткізу қолжетімсіз! Жүйе автоматты түрде 'Дүкеннен алып кету' режиміне ауыстырылды.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Аты-жөні / Имя клиента:</label>
+                <input type="text" class="form-control" value="Фараби Мұғалім" id="client-name">
+            </div>
+
+            <div class="form-group">
+                <label>Телефон:</label>
+                <input type="text" class="form-control" value="+7 707 123 4567" id="client-phone">
+            </div>
+
+            <button class="btn-order" onclick="processOrder()">Тапсырысты аяқтау 🚀</button>
+        </div>
+
+
+        <!-- SAĞ TARAF: ESNAF / ADMIN SİPARİŞ TAKİP PANELİ -->
+        <div class="card">
+            <div class="card-title"><span>🏪 Дүкенші Панелі / Панель Магазинов</span> <span style="font-size: 11px; background:#1e293b; color:#fff; padding:3px 6px; border-radius:4px;">REAL-TIME</span></div>
+            
+            <p style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 12px;">
+                Мұнда тапсырыстар дүкендерге автоматты түрде бөлініп түседі:
+            </p>
+
+            <div id="shop-orders-container">
+                <!-- Siparişler JavaScript ile buraya düşecek -->
+                <p style="text-align: center; color: #94a3b8; font-size: 12px; font-weight: 700; padding: 4px 0;">Әзірге тапсырыс жоқ. Сол жақтан басып көріңіз.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let selectedPayment = 'kaspi'; // Default Kaspi
+        let selectedShipping = 'courier'; // Default Courier
+
+        // 1. ÖDEME SEÇİM MANTIĞI VE USTA KURALI (COURIER DISABLE LOGIC)
+        function selectPayment(type) {
+            selectedPayment = type;
+            
+            // UI Güncelleme
+            document.getElementById('pay-kaspi').classList.remove('selected');
+            document.getElementById('pay-cash').classList.remove('selected');
+            document.getElementById(`pay-${type}`).classList.add('selected');
+
+            const courierBtn = document.getElementById('ship-courier');
+            const alertBox = document.getElementById('courier-rule-alert');
+
+            if (type === 'cash') {
+                // !!! USTA KURALI: Nakit ise kuryeyi kapat ve seçimi 'gel al' yap
+                courierBtn.classList.add('disabled');
+                courierBtn.classList.remove('selected');
+                document.getElementById('ship-pickup').classList.add('selected');
+                selectedShipping = 'pickup';
+                alertBox.style.display = 'block'; // Uyarıyı göster
+            } else {
+                // Kaspi ise kuryeyi tekrar aç
+                courierBtn.classList.remove('disabled');
+                alertBox.style.display = 'none';
+            }
+        }
+
+        // 2. TESLİMAT SEÇİM MANTIĞI
+        function selectShipping(type) {
+            if (selectedPayment === 'cash' && type === 'courier') {
+                // Eğer nakit seçiliyse ve kuryeye basmaya çalışıyorsa engelle
+                return;
+            }
+            
+            selectedShipping = type;
+            document.getElementById('ship-courier').classList.remove('selected');
+            document.getElementById('ship-pickup').classList.remove('selected');
+            document.getElementById(`ship-${type}`).classList.add('selected');
+        }
+
+        // 3. SİPARİŞİ BÖLME VE ESNAFA GÖNDERME SİMÜLASYONU
+        function processOrder() {
+            const name = document.getElementById('client-name').value;
+            const phone = document.getElementById('client-phone').value;
+            const container = document.getElementById('shop-orders-container');
+            
+            container.innerHTML = ""; // Temizle
+
+            // Sepetteki malların dükkan verisi (Veritabanından bölünüyor gibi)
+            const simulatedOrders = [
+                {
+                    shopId: "Alik Hırdavat",
+                    color: "#f59e0b",
+                    items: [{ name: "Blum Clip Top Петля", qty: 2, price: "2,900 ₸" }]
+                },
+                {
+                    shopId: "Serikcan Market",
+                    color: "#3b82f6",
+                    items: [{ name: "Boyard Направляющие H45", qty: 1, price: "1,600 ₸" }]
+                }
+            ];
+
+            // Rozet hazırlıkları
+            const payBadge = selectedPayment === 'cash' 
+                ? '<span class="badge badge-cash">💵 НАҚТЫ (CASH)</span>' 
+                : '<span class="badge badge-success">📱 KASPI QR</span>';
+                
+            const shipBadge = selectedShipping === 'courier' 
+                ? '<span class="badge badge-delivery">🛵 КУРЬЕР</span>' 
+                : '<span class="badge badge-pickup">🏃‍♂️ САМОВЫВОЗ</span>';
+
+            // Her esnafa kendi malını paketleyip gönderiyoruz  
+            simulatedOrders.forEach(order => {
+                let itemsHtml = "";
+                order.items.forEach(item => {
+                    itemsHtml += `<div class="order-item"><span>${item.name} x${item.qty}</span> <strong>${item.price}</strong></div>`;
+                });
+
+                const html = `
+                    <div class="shop-order-box" style="border-left: 4px solid ${order.color}">
+                        <div class="shop-header">
+                            <span style="color:${order.color}">${order.shopId}</span>
+                            <div>${payBadge} ${shipBadge}</div>
+                        </div>
+                        ${itemsHtml}
+                        <div style="font-size:10px; color:#64748b; margin-top:8px; text-align:right;">
+                            Клиент: ${name} (${phone})
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+
+            alert("Тапсырыс қабылданды! Дүкендерге сәтті бөлінді. / Заказ оформлен и разделен по магазинам!");
+        }
+    </script>
+</body>
+</html>
