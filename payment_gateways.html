@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baibesik Market - Интеграция Банк және QR</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #f59e0b;
+            --bg: #f8fafc;
+            --kaspi: #f14635;
+            --halyk: #00be64;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: '-apple-system', sans-serif; }
+        body { background-color: var(--bg); padding: 15px; color: #0f172a; }
+        .container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+        
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .card-title { font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: var(--primary); display: flex; justify-content: space-between; }
+        
+        /* DÜKKAN MATRIX KARTLARI */
+        .shop-info-tile { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px; margin-bottom: 10px; font-size: 12px; }
+        .shop-name { font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* BANKA ROZETLERİ */
+        .bank-badge { font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; color: white; }
+        .bg-kaspi { background-color: var(--kaspi); }
+        .bg-halyk { background-color: var(--halyk); }
+
+        /* SEÇİM KUTULARI */
+        .radio-box { border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; font-weight: 700; font-size: 12px; }
+        .radio-box.selected { border-color: var(--accent); background: #fffbeb; }
+        .radio-box.disabled { background: #f1f5f9; opacity: 0.5; cursor: not-allowed; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 5px; color: #475569; }
+
+        /* DEEPLINK BUTONU */
+        .btn-pay-gateway { width: 100%; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; text-transform: uppercase; margin-top: 10px; transition: all 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-default { background: var(--primary); color: var(--accent); }
+
+        .rule-alert { background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 700; margin-top: 10px; display: none; }
+        
+        .receipt-line { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 6px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- SOL TARAF: AKILLI ÖDEME GEÇİDİ (GATEWAY MASTER) -->
+        <div class="card">
+            <div class="card-title"><span>💳 Төлем Орталығы / Центр Оплаты</span></div>
+            
+            <!-- Seçilen Dükkan Detay Özeti -->
+            <div class="form-group">
+                <label>Сатып алатын дүкен / Выберите магазин продавца:</label>
+                <select class="radio-box" style="width: 100%; text-align: left;" id="selected-shop-select" onchange="onShopChange()">
+                    <option value="alik">Alik Hırdavat (Kaspi QR Есепшот)</option>
+                    <option value="serikcan">Serikcan Market (Halyk Bank QR Есепшот)</option>
+                    <option value="ahmet">Ahmet Elite (Kaspi QR Есепшот)</option>
+                </select>
+            </div>
+
+            <!-- ÖDEME TÜRÜ SİMÜLASYONU -->
+            <div class="form-group">
+                <label>Төлем әдісі / Способ оплаты:</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="radio-box selected" id="method-bank" onclick="switchMethod('bank')">📱 Банк Қосымшасы (QR)</div>
+                    <div class="radio-box" id="method-cash" onclick="switchMethod('cash')">💵 Нақшалай (Nakit)</div>
+                </div>
+            </div>
+
+            <!-- TESLİMAT (USTA KURALI BAĞLANTISI) -->
+            <div class="form-group">
+                <label>Жеткізу түрі / Доставка:</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="radio-box selected" id="ship-courier" onclick="switchShip('courier')">🛵 Курьер</div>
+                    <div class="radio-box" id="ship-pickup" onclick="switchShip('pickup')">🏃‍♂️ Алып кету</div>
+                </div>
+                <div class="rule-alert" id="cash-courier-warning">
+                    ⚠️ Нақшалай төлем таңдалды! Курьер бұғатталды, тек дүкеннен алып кетуге болады!
+                </div>
+            </div>
+
+            <!-- ДИНАМИК БАНК БАТЫРМАСЫ (DEEPLINK ENGINE) -->
+            <div id="dynamic-payment-button-area">
+                <!-- JavaScript dükkanın bankasına göre burayı Kaspi veya Halyk butonuna çevirecek -->
+            </div>
+        </div>
+
+        <!-- SAĞ TARAF: ESNAF BANKA AYARLARI MATRIXI -->
+        <div class="card">
+            <div class="card-title"><span>🏦 Дүкендердің Банк Шоттары (Сетқа)</span></div>
+            <p style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 12px;">
+                Әр дүкен тіркелген кезде өзінің Kaspi немесе Halyk ID-ін енгізеді. Жүйе автоматты түрде сол сілтемеге бағыттайды:
+            </p>
+
+            <!-- 1. Alik -->
+            <div class="shop-info-tile" style="border-left: 4px solid var(--kaspi);">
+                <div class="shop-name">
+                    <span>Alik Hırdavat</span>
+                    <span class="bank-badge bg-kaspi">KASPI QR ACTIVE</span>
+                </div>
+                <div style="margin-top: 5px; color: #475569; font-size: 11px;">
+                    Merchant ID: <b>554091223</b><br>
+                    Сілтеме: <span style="color: var(--kaspi)">kaspi://kaspiqr/pay/...</span>
+                </div>
+            </div>
+
+            <!-- 2. Serikcan -->
+            <div class="shop-info-tile" style="border-left: 4px solid var(--halyk);">
+                <div class="shop-name">
+                    <span>Serikcan Market</span>
+                    <span class="bank-badge bg-halyk">HALYK QR ACTIVE</span>
+                </div>
+                <div style="margin-top: 5px; color: #475569; font-size: 11px;">
+                    Merchant ID: <b>HLK-889021</b><br>
+                    Сілтеме: <span style="color: var(--halyk)">halykapp://qr/pay/...</span>
+                </div>
+            </div>
+
+            <!-- 3. Ahmet -->
+            <div class="shop-info-tile" style="border-left: 4px solid var(--kaspi);">
+                <div class="shop-name">
+                    <span>Ahmet Elite</span>
+                    <span class="bank-badge bg-kaspi">KASPI QR ACTIVE</span>
+                </div>
+                <div style="margin-top: 5px; color: #475569; font-size: 11px;">
+                    Merchant ID: <b>332109445</b><br>
+                    Сілтеме: <span style="color: var(--kaspi)">kaspi://kaspiqr/pay/...</span>
+                </div>
+            </div>
+
+            <div style="background: #f1f5f9; padding: 10px; border-radius: 8px; margin-top: 15px;">
+                <div class="receipt-line"><span>Тауарлар құны:</span> <span>4,500 ₸</span></div>
+                <div class="receipt-line" id="receipt-delivery"><span>Жеткізу (Курьер):</span> <span>800 ₸</span></div>
+                <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 6px 0;">
+                <div class="receipt-line" style="color: #0f172a; font-size: 14px;"><span>Жалпы Толық бағасы:</span> <span id="total-price-text">5,300 ₸</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ДҮКЕНДЕРДІҢ БАНК ЖӘНЕ БАҒЫТТАУ МАТРИЦАСЫ (DATA DEEPLINKS)
+        const shopBankMatrix = {
+            "alik": {
+                name: "Alik Hırdavat",
+                bank: "kaspi",
+                merchantId: "554091223",
+                deeplink: "kaspi://kaspiqr/pay/554091223?amount=" 
+            },
+            "serikcan": {
+                name: "Serikcan Market",
+                bank: "halyk",
+                merchantId: "HLK-889021",
+                deeplink: "https://www.halykbank.kz/qr/pay/HLK-889021?amt=" 
+            },
+            "ahmet": {
+                name: "Ahmet Elite",
+                bank: "kaspi",
+                merchantId: "332109445",
+                deeplink: "kaspi://kaspiqr/pay/332109445?amount=" 
+            }
+        };
+
+        let currentMethod = 'bank';
+        let currentShip = 'courier';
+        let baseAmount = 4500;
+
+        // 1. ДҮКЕН ӨЗГЕРГЕНДЕ БАТЫРМАНЫ ДИНАМИКАЛЫҚ ТҮРДЕ ӨЗГЕРТУ
+        function updatePaymentButton() {
+            const shopKey = document.getElementById('selected-shop-select').value;
+            const shopData = shopBankMatrix[shopKey];
+            const buttonArea = document.getElementById('dynamic-payment-button-area');
+            
+            // Toplam tutarı hesapla (Kurye varsa +800)
+            let deliveryCost = currentShip === 'courier' ? 800 : 0;
+            let totalAmount = baseAmount + deliveryCost;
+            
+            // Fatura ekranını güncelle
+            document.getElementById('receipt-delivery').style.display = currentShip === 'courier' ? 'flex' : 'none';
+            document.getElementById('total-price-text').innerText = totalAmount.toLocaleString() + " ₸";
+
+            // Eğer nakit seçildiyse banka butonu yerine düz sipariş tamamlama butonu koy
+            if (currentMethod === 'cash') {
+                buttonArea.innerHTML = `
+                    <button class="btn-pay-gateway btn-default" onclick="completeCashOrder('${shopData.name}')">
+                        💵 Тапсырысты қолма-қол аяқтау (${totalAmount} ₸)
+                    </button>
+                `;
+                return;
+            }
+
+            // Banka QR seçildiyse dinamik deeplink butonunu oluştur
+            let finalLink = shopData.deeplink + totalAmount;
+
+            if (shopData.bank === 'kaspi') {
+                buttonArea.innerHTML = `
+                    <button class="btn-pay-gateway" style="background-color: var(--kaspi);" onclick="openBankApp('${finalLink}', 'Kaspi')">
+                        🔴 Kaspi-мен төлеуге өту (${totalAmount} ₸)
+                    </button>
+                `;
+            } else if (shopData.bank === 'halyk') {
+                buttonArea.innerHTML = `
+                    <button class="btn-pay-gateway" style="background-color: var(--halyk);" onclick="openBankApp('${finalLink}', 'Halyk')">
+                        🟢 Halyk QR-мен төлеуге өту (${totalAmount} ₸)
+                    </button>
+                `;
+            }
+        }
+
+        // 2. БАНК ҚОСЫМШАСЫН АШУ ФУНКЦИЯСЫ (REAL DEEPLINK TRIGGER)
+        function openBankApp(link, bankName) {
+            alert(`🚀 Бағыттау: Смартфондағы ${bankName} қосымшасы ашылуда...\n\nСілтеме: ${link}`);
+            // Real mobilde burası uygulamayı tetikler:
+            window.location.href = link;
+        }
+
+        // 3. ТӨЛЕМ ӘДІСІН АУЫСТЫРУ (БАНК / НАҚТЫ) + УСТА КУРАЛИ БАҢЛАНЫСЫ
+        function switchMethod(method) {
+            currentMethod = method;
+            document.getElementById('method-bank').classList.remove('selected');
+            document.getElementById('method-cash').classList.remove('selected');
+            document.getElementById(`method-${method}`).classList.add('selected');
+
+            const courierBtn = document.getElementById('ship-courier');
+            const alertBox = document.getElementById('cash-courier-warning');
+
+            if (method === 'cash') {
+                // !!! USTA KURALI INTEGRASYONU: Nakit ise kuryeyi kapat, gel-al seç
+                courierBtn.classList.add('disabled');
+                courierBtn.classList.remove('selected');
+                document.getElementById('ship-pickup').classList.add('selected');
+                currentShip = 'pickup';
+                alertBox.style.display = 'block';
+            } else {
+                courierBtn.classList.remove('disabled');
+                alertBox.style.display = 'none';
+            }
+
+            updatePaymentButton();
+        }
+
+        // 4. ЖЕТКІЗУ ӘДІСІН АУЫСТЫРУ
+        function switchShip(ship) {
+            if (currentMethod === 'cash' && ship === 'courier') return; // Engelle
+            
+            currentShip = ship;
+            document.getElementById('ship-courier').classList.remove('selected');
+            document.getElementById('ship-pickup').classList.remove('selected');
+            document.getElementById(`ship-${ship}`).classList.add('selected');
+            
+            updatePaymentButton();
+        }
+
+        function onShopChange() {
+            updatePaymentButton();
+        }
+
+        function completeCashOrder(shopName) {
+            alert(`💵 Тапсырыс қабылданды! Клиент ${shopName} дүкеніне барып, қолма-қол төлеп тауарды алып кетеді.`);
+        }
+
+        // Инициализация (İlk açılışta yükle)
+        window.onload = function() {
+            updatePaymentButton();
+        };
+    </script>
+</body>
+</html>

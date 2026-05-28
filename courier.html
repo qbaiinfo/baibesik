@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baibesik Kurye - Тапсырыстар / Доставка</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 15px;
+        }
+        .courier-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        /* Üst Bar */
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .lang-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .lang-btn.active {
+            background: white;
+            color: #007bff;
+        }
+
+        /* Harita Simülasyon Alanı */
+        .map-box {
+            background-color: #e5e3df;
+            height: 180px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed #007bff;
+            position: relative;
+            font-weight: bold;
+            color: #555;
+        }
+        .map-pin {
+            position: absolute;
+            font-size: 24px;
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        /* Sipariş Kartı */
+        .delivery-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid #007bff;
+        }
+        .card-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .label { font-weight: bold; color: #666; }
+        .value { font-weight: 600; text-align: right; }
+        
+        .badge-paid {
+            background-color: #28a745;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* Buton */
+        .btn-action {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .btn-action:hover { background-color: #0056b3; }
+        .btn-success { background-color: #28a745; }
+        .btn-success:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+    <div class="courier-container">
+        <header>
+            <div>
+                <h2 id="txt-title">Байбесік Курьер</h2>
+                <span style="font-size: 12px; opacity: 0.9;">ID: #707 (📍 Онлайн)</span>
+            </div>
+            <div style="display: flex; gap: 3px;">
+                <button class="lang-btn active" onclick="switchLanguage('kk')">KK</button>
+                <button class="lang-btn" onclick="switchLanguage('ru')">RU</button>
+                <button class="lang-btn" onclick="switchLanguage('tr')">TR</button>
+            </div>
+        </header>
+
+        <div class="section-title" id="txt-map-title">Жол картасы (Rota Takibi)</div>
+        <div class="map-box" id="map-area">
+            🗺️ Baibesik GPS Simülatör
+            <div class="map-pin" style="top: 40%; left: 50%;">📍</div>
+        </div>
+
+        <div class="section-title" id="txt-order-title">Ағымдағы тапсырыс (Aktif İş)</div>
+        <div class="delivery-card">
+            <div class="card-row">
+                <span class="label" id="lbl-order-id">Тапсырыс №:</span>
+                <span class="value" style="color: #007bff;">#1042</span>
+            </div>
+            <div class="card-row">
+                <span class="label" id="lbl-from">Қайдан (Дүкен):</span>
+                <span class="value">Ahmet Hırdavat (No: 5)</span>
+            </div>
+            <div class="card-row">
+                <span class="label" id="lbl-to">Қайда (Клиент):</span>
+                <span class="value">Farabi Bey</span>
+            </div>
+            <div class="card-row">
+                <span class="label" id="lbl-address">Мекен-жайы:</span>
+                <span class="value" id="val-address">Ақжол көшесі, 14 үй</span>
+            </div>
+            <div class="card-row">
+                <span class="label" id="lbl-payment">Төлем күйі:</span>
+                <span class="value"><span class="badge-paid" id="val-payment">Төленді (KART)</span></span>
+            </div>
+            
+            <button class="btn-action" id="btn-courier-step" onclick="nextStep()">Тауарды алдым (Mağazadan Aldım)</button>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            kk: {
+                title: "Байбесік Курьер",
+                map: "Жол картасы (Бағыт)",
+                order: "Ағымдағы тапсырыс",
+                orderId: "Тапсырыс №:",
+                from: "Қайдан (Дүкен):",
+                to: "Қайда (Клиент):",
+                address: "Мекен-жайы:",
+                payment: "Төлем күйі:",
+                paid: "Төленді (КАРТА)",
+                btn1: "Тауарды алдым (Дүкеннен)",
+                btn2: "Тапсырысты жеткіздім (Клиентке)",
+                alertFinish: "Тапсырыс сәтті жеткізілді! Бәрекелді!",
+                step2Text: "📍 Клиентке баратын жол ашылды..."
+            },
+            ru: {
+                title: "Байбесик Курьер",
+                map: "Карта маршрута (Рота)",
+                order: "Текущий заказ",
+                orderId: "Заказ №:",
+                from: "Откуда (Магазин):",
+                to: "Куда (Клиент):",
+                address: "Адрес доставки:",
+                payment: "Статус оплаты:",
+                paid: "Оплачено (КАРТА)",
+                btn1: "Забрал товар (Из магазина)",
+                btn2: "Доставил заказ (Клиенту)",
+                alertFinish: "Заказ успешно доставлен!",
+                step2Text: "📍 Маршрут к клиенту активирован..."
+            },
+            tr: {
+                title: "Baibesik Kurye",
+                map: "Yol Haritası (Rota)",
+                order: "Aktif Siparişiniz",
+                orderId: "Sipariş No:",
+                from: "Nereden (Mağaza):",
+                to: "Nereye (Müşteri):",
+                address: "Teslimat Adresi:",
+                payment: "Ödeme Durumu:",
+                paid: "Ödendi (KART)",
+                btn1: "Ürünü Teslim Aldım (Mağazadan)",
+                btn2: "Müşteriye Teslim Ettim",
+                alertFinish: "Sipariş başarıyla teslim edildi! Tebrikler.",
+                step2Text: "📍 Müşterinin evine giden rota açıldı..."
+            }
+        };
+
+        let currentLang = 'kk';
+        let currentStep = 1; // 1: Mağazadan alma aşaması, 2: Müşteriye götürme aşaması
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            
+            // Aktif dil butonu stili
+            const buttons = document.querySelectorAll('.lang-btn');
+            buttons.forEach(btn => {
+                if(btn.innerText.toLowerCase() === lang) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            // Metinleri Güncelle
+            document.getElementById('txt-title').innerText = dictionary[lang].title;
+            document.getElementById('txt-map-title').innerText = dictionary[lang].map;
+            document.getElementById('txt-order-title').innerText = dictionary[lang].order;
+            document.getElementById('lbl-order-id').innerText = dictionary[lang].orderId;
+            document.getElementById('lbl-from').innerText = dictionary[lang].from;
+            document.getElementById('lbl-to').innerText = dictionary[lang].to;
+            document.getElementById('lbl-address').innerText = dictionary[lang].address;
+            document.getElementById('lbl-payment').innerText = dictionary[lang].payment;
+            document.getElementById('val-payment').innerText = dictionary[lang].paid;
+
+            // Buton metnini adıma göre güncelle
+            const btn = document.getElementById('btn-courier-step');
+            if (currentStep === 1) {
+                btn.innerText = dictionary[lang].btn1;
+            } else {
+                btn.innerText = dictionary[lang].btn2;
+            }
+        }
+
+        // Kurye Adım Yönetimi Simülasyonu
+        function nextStep() {
+            const btn = document.getElementById('btn-courier-step');
+            
+            if (currentStep === 1) {
+                // Adım 1: Kurye ürünü dükkandan teslim aldı
+                currentStep = 2;
+                document.getElementById('map-area').innerText = dictionary[currentLang].step2Text;
+                document.getElementById('map-area').style.backgroundColor = "#d1e7dd";
+                btn.innerText = dictionary[currentLang].btn2;
+                btn.classList.add('btn-success');
+            } else {
+                // Adım 2: Kurye müşteriye ulaştı ve siparişi bitirdi
+                alert(dictionary[currentLang].alertFinish);
+                location.reload(); // Simülasyonu sıfırla (Yeni sipariş bekleme modu)
+            }
+        }
+
+        window.onload = function() {
+            switchLanguage('kk');
+        };
+    </script>
+</body>
+</html>

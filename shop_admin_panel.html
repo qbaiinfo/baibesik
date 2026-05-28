@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baibesik Market - Дүкенді Басқару Панелі</title>
+    <!-- Grafik çizimi için hafif ve hızlı Chart.js kütüphanesi -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --admin-main: #0f172a;
+            --admin-accent: #f59e0b;
+            --admin-success: #10b981;
+            --admin-bg: #f8fafc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: '-apple-system', BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--admin-bg); color: var(--admin-main); padding: 15px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* ҮСТІҢГІ ПАНЕЛЬ (HEADER) */
+        .admin-header { display: flex; justify-content: space-between; align-items: center; background: var(--admin-main); color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .shop-info h1 { font-size: 18px; color: var(--admin-accent); }
+        .shop-info p { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+        .status-badge { background: var(--admin-success); color: white; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
+
+        /* ЖИНАҚТАУШЫ КАРТАЛАР (WIDGETS) */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; text-align: center; }
+        .stat-card p { font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase; }
+        .stat-card h3 { font-size: 20px; font-weight: 800; margin-top: 5px; color: var(--admin-main); }
+
+        /* НЕГІЗГІ ҚҰРЫЛЫМ (MAIN LAYOUT) */
+        .dashboard-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 20px; }
+        @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: 1fr; } }
+
+        .panel-card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .panel-title { font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: var(--admin-main); display: flex; justify-content: space-between; align-items: center; }
+
+        /* ФОРМА ЭЛЕМЕНТТЕРІ (ТАУАР ҚОСУ) */
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 4px; color: #475569; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; background: #f8fafc; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-submit { width: 100%; background: var(--admin-main); color: var(--admin-accent); border: none; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; text-transform: uppercase; margin-top: 5px; }
+
+        /* КЕСТЕЛЕР (ТАПСЫРЫСТАР МЕН КЛИЕНТТЕР) */
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .data-table th { font-size: 11px; text-transform: uppercase; color: #64748b; padding: 8px 4px; border-bottom: 2px solid #f1f5f9; }
+        .data-table td { font-size: 12px; padding: 10px 4px; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
+        .client-avatar { width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin-right: 8px; vertical-align: middle; }
+
+        /* ДИПРАММА КОНТЕЙНЕРІ */
+        .chart-container { position: relative; width: 100%; height: 220px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- ҮСТІҢГІ БАСҚАРУ ПАНЕЛІ -->
+        <div class="admin-header">
+            <div class="shop-info">
+                <h1 id="shop-display-name">Alik Hırdavat — Басқару панелі</h1>
+                <p>Беттің жаңартылған уақыты / Время обновления: 27.05.2026</p>
+            </div>
+            <div>
+                <span class="status-badge">● ОНЛАЙН / СИНХРОНДЫ</span>
+            </div>
+        </div>
+
+        <!-- ЖИНАҚТАУШЫ КӨРСЕТКІШТЕР -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p>Айлық табыс (Выручка за месяц)</p>
+                <h3 style="color: var(--admin-success);" id="stat-revenue">945,000 ₸</h3>
+            </div>
+            <div class="stat-card">
+                <p>Тапсырыстар (Всего заказов)</p>
+                <h3 id="stat-orders">142 дана</h3>
+            </div>
+            <div class="stat-card">
+                <p>Тұрақты клиенттер (Клиенты)</p>
+                <h3 id="stat-clients">48 адам</h3>
+            </div>
+        </div>
+
+        <!-- НЕГІЗГІ БӨЛІМДЕР ГРИДІ -->
+        <div class="dashboard-grid">
+            
+            <!-- СОЛ ЖАҚ: ДИАГРАММА ЖӘНЕ ТАУАР ҚОСУ -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- АЙЛЫҚ САТЫЛЫМ ДИАГРАММАСЫ -->
+                <div class="panel-card">
+                    <div class="panel-title">📊 Сатылымдар графигі / График продаж (₸)</div>
+                    <div class="chart-container">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- ЖАҢА ТАУАР ҚОСУ ФОРМАСЫ -->
+                <div class="panel-card">
+                    <div class="panel-title">📦 Жаңа тауар қосу / Добавить новый товар</div>
+                    <form id="add-product-form" onsubmit="handleProductSubmit(event)">
+                        <div class="form-group">
+                            <label>Тауар атауы / Название товара:</label>
+                            <input type="text" class="form-control" placeholder="Мис: Clip Top Петля Blumotion" required id="prod-name">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Санат / Категория:</label>
+                                <select class="form-control" id="prod-cat">
+                                    <option value="петли">Петли (Жиектер)</option>
+                                    <option value="направляющие">Направляющие</option>
+                                    <option value="ручки">Ручки & Профили</option>
+                                    <option value="крепеж">Крепеж & Винты</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Сөре коды / Код полки (RAF):</label>
+                                <input type="text" class="form-control" placeholder="Мис: A-12" required id="prod-shelf">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Реңі / Цвет (Текстура):</label>
+                                <input type="text" class="form-control" placeholder="Мис: Antrasit / Grey Touch" id="prod-color">
+                            </div>
+                            <div class="form-group">
+                                <label>Өлшемі / Размер (Спецификация):</label>
+                                <input type="text" class="form-control" placeholder="Мис: 110° / 450mm" id="prod-size">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Бағасы / Цена (₸):</label>
+                            <input type="number" class="form-control" placeholder="₸" required id="prod-price">
+                        </div>
+                        <button type="submit" class="btn-submit">➕ Базаға қосу (Сохранить в базу)</button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- ОҢ ЖАҚ: ТАПСЫРЫСТАР ЖӘНЕ КЛИЕНТТЕР ТІЗІМІ -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- ТАПСЫРЫСТАРДЫ БАҚЫЛАУ -->
+                <div class="panel-card">
+                    <div class="panel-title">🔔 Соңғы тапсырыстар / Последние заказы</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Төлем</th>
+                                <th>Сомасы</th>
+                                <th style="text-align: right;">Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <tr>
+                                <td>#BBS-9942</td>
+                                <td>📱 Kaspi QR</td>
+                                <td>5,800 ₸</td>
+                                <td style="text-align: right; color: var(--admin-accent);">Жинақталуда</td>
+                            </tr>
+                            <tr>
+                                <td>#BBS-9941</td>
+                                <td>💵 Нақтылай</td>
+                                <td>9,000 ₸</td>
+                                <td style="text-align: right; color: var(--admin-success);">Жеткізілді</td>
+                            </tr>
+                            <tr>
+                                <td>#BBS-9938</td>
+                                <td>📱 Halyk QR</td>
+                                <td>14,200 ₸</td>
+                                <td style="text-align: right; color: var(--admin-success);">Жеткізілді</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- КЛИЕНТТЕР ТІЗІМІ -->
+                <div class="panel-card">
+                    <div class="panel-title">👥 Тұрақты клиенттер / База клиентов</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Клиент аты-жөні</th>
+                                <th style="text-align: right;">Тапсырыс саны</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-table-body">
+                            <tr>
+                                <td><div class="client-avatar">Y</div> Yerkanat (Жиһазшы)</td>
+                                <td style="text-align: right;">24 рет</td>
+                            </tr>
+                            <tr>
+                                <td><div class="client-avatar">B</div> Bauyrzhan Ustaz</td>
+                                <td style="text-align: right;">18 рет</td>
+                            </tr>
+                            <tr>
+                                <td><div class="client-avatar">Y</div> Yerkulan Master</td>
+                                <td style="text-align: right;">11 рет</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // 📊 CHART.JS ИНТЕГРАЦИЯСЫ: АЙЛЫҚ САТЫЛЫМ ДИАГРАММАСЫ
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        const monthlyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Қаңтар (Янв)', 'Ақпан (Фев)', 'Наурыз (Мар)', 'Сәуір (Апр)', 'Мамыр (Май)'],
+                datasets: [{
+                    label: 'Сатылым көлемі (₸)',
+                    data: [420000, 580000, 710000, 890000, 945000],
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 📦 ЖАҢА ТАУАРДЫ БАЗАҒА ЖІБЕРУ СИМУЛЯЦИЯСЫ
+        function handleProductSubmit(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('prod-name').value;
+            const price = document.getElementById('prod-price').value;
+            const shelf = document.getElementById('prod-shelf').value;
+
+            // Бұл жер Firebase-ке қосылатын кезде нақты жұмыс істейді
+            alert(`Тауар сәтті қосылды! / Товар добавлен!\n📦 ${name}\n💵 ${price} ₸\n📍 Сөре: ${shelf}`);
+            
+            document.getElementById('add-product-form').reset();
+        }
+    </script>
+</body>
+</html>

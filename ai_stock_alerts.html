@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Смарт Хабарламалар</title>
+    <style>
+        :root {
+            --ai-purple: #6d28d9;
+            --ai-bg: #f5f3ff;
+            --danger-red: #ef4444;
+            --success-green: #10b981;
+            --warning-amber: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: '-apple-system', sans-serif; }
+        body { background: #f8fafc; padding: 15px; }
+        .ai-container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+
+        /* AI НЕГІЗГІ БЛОГЫ (AI MASTER HUB) */
+        .ai-notify-card { background: white; border: 2px solid #ddd6fe; border-radius: 16px; padding: 18px; box-shadow: 0 4px 12px rgba(109, 40, 217, 0.05); position: relative; overflow: hidden; }
+        .ai-notify-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--ai-purple); }
+        .ai-header-row { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .ai-badge { background: var(--ai-purple); color: white; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ai-title { font-size: 14px; font-weight: 800; color: #4c1d95; text-transform: uppercase; }
+
+        /* СИГНАЛДАР ЖӘНЕ МОТИВАЦИЯЛАР (ALERTS & MOTIVATIONS) */
+        .alert-box { display: flex; align-items: flex-start; gap: 12px; padding: 12px 15px; border-radius: 10px; font-size: 12px; font-weight: 700; line-height: 1.5; margin-bottom: 10px; }
+        
+        .alert-stock-low { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+        .alert-trend { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+        .alert-price { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+
+        .alert-box svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+        .alert-stock-low svg { fill: var(--danger-red); }
+        .alert-trend svg { fill: var(--success-green); }
+        .alert-price svg { fill: var(--warning-amber); }
+
+        .action-btn { font-size: 10px; background: #0f172a; color: #f59e0b; padding: 4px 10px; border-radius: 5px; border: none; font-weight: 800; cursor: pointer; text-transform: uppercase; margin-top: 6px; display: inline-block; }
+        
+        /* СТОК КЕСТЕСІ (STOCKS TABLE) */
+        .stock-table-card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; }
+        .table-title { font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; color: #0f172a; }
+        .mini-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .mini-table th { font-size: 11px; color: #64748b; padding: 6px; border-bottom: 2px solid #f1f5f9; text-transform: uppercase; }
+        .mini-table td { font-size: 12px; padding: 10px 6px; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
+        .qty-indicator { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .qty-low { background: #fee2e2; color: #ef4444; }
+        .qty-ok { background: #e0f2fe; color: #0284c7; }
+    </style>
+</head>
+<body>
+
+    <div class="ai-container">
+        
+        <!-- 🧠 AI АҚЫЛДЫ ХАБАРЛАМАЛАР БЛОГЫ (ADMIN & MANAGER БЕТІ ҮШІН) -->
+        <div class="ai-notify-card">
+            <div class="ai-header-row">
+                <span class="ai-badge">Baibesik AI Engine v2.0</span>
+                <h2 class="ai-title">🤖 Жүйелік талдау және Мотивация / Аналитика и подсказки</h2>
+            </div>
+
+            <div id="ai-alerts-wrapper">
+                <!-- КРИТИКАЛЫҚ СТОК СИГНАЛЫ -->
+                <div class="alert-box alert-stock-low">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                    <div>
+                        <div><b>ҚОЙМАДА ТАУАР АЗ (КРИТИЧЕСКИЙ ОСТАТОК):</b> "Clip Top Menteşe Blum" қоймада тек <b>3 дана</b> қалды! Тауар таусылмай тұрып жедел түрде жаңа тапсырыс беріңіз.</div>
+                        <button class="action-btn" onclick="triggerOrder('Blum Menteşe')">🛒 Тапсырыс беру (Заказать)</button>
+                    </div>
+                </div>
+
+                <!-- НАҚТЫ САТЫЛЫМ ТРЕНДІ (МОТИВАЦИЯ) -->
+                <div class="alert-box alert-trend">
+                    <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/></svg>
+                    <div>
+                        <b>КЕРЕМЕТ КӨРСЕТКІШ (ЛИДЕР ПРОДАЖ):</b> Осы айда бұл тауарды басқаларға қарағанда <b>45%-ға артық</b> саттыңыз! Нарықтағы сұраныс жоғары. Дүкеніңіз алда келеді, осы қарқынды жоғалтпаңыз! Базардың басты шебері сізсіз! 💪
+                    </div>
+                </div>
+
+                <!-- БӘСЕКЕЛЕСТІК БАҒА АНАЛИЗІ -->
+                <div class="alert-box alert-price">
+                    <svg viewBox="0 0 24 24"><path d="M21.41 11.58l-9-9C12.05 2.22 11.54 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .54.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 6.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                    <div>
+                        <div><b>БАҒА АНАЛИТИКАСЫ (АНАЛИЗ ЦЕН):</b> Сіздің "Ağaç Vidası 4x16" тауарыңыздың бағасы (650 ₸) аймақтағы өзге дүкендермен салыстырғанда <b>12% АРЗАНЫРАҚ</b>. Пайданы арттыру үшін бағаны 720 ₸-ге дейін көтеруді ұсынамыз немесе осы бағамен клиент жинаңыз!</div>
+                        <button class="action-btn" style="background:#f59e0b; color:#0f172a;" onclick="adjustPrice()">📈 Бағаны түзету (Оптимизировать)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ҚОЙМАДАҒЫ ТАУАРЛАРДЫҢ ЖАЛПЫ КҮЙІ (MONITORING) -->
+        <div class="stock-table-card">
+            <div class="table-title">📊 Мониторинг қалдықтары / Текущий склад</div>
+            <table class="mini-table">
+                <thead>
+                    <tr>
+                        <th>Тауар (Товар)</th>
+                        <th>Сөре (Раф)</th>
+                        <th>Бағасы (Цена)</th>
+                        <th>Қалдық (Остаток)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Clip Top Петля Blum 110°</td>
+                        <td>A-14</td>
+                        <td>1,450 ₸</td>
+                        <td><span class="qty-indicator qty-low">3 шт (Аз)</span></td>
+                    </tr>
+                    <tr>
+                        <td>Направляющие Boyard 450мм</td>
+                        <td>B-02</td>
+                        <td>3,200 ₸</td>
+                        <td><span class="qty-indicator qty-ok">42 шт (Жеткілікті)</span></td>
+                    </tr>
+                    <tr>
+                        <td>Профиль Slim Антрацит 2.8м</td>
+                        <td>C-11</td>
+                        <td>8,500 ₸</td>
+                        <td><span class="qty-indicator qty-low">2 шт (Критикалық)</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        // Имитация батырмалардың жұмысы
+        function triggerOrder(productName) {
+            alert(`Сұраныс менеджерге жіберілді! / Запрос отправлен поставщику для: ${productName}`);
+        }
+        function adjustPrice() {
+            alert(`Бағаларды оңтайландыру терезесі ашылды! / Окно корректировки цен активировано.`);
+        }
+    </script>
+</body>
+</html>

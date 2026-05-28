@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baibesik Market - Басқару панелі / Панель администратора</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        body { background-color: #f4f6f8; color: #111827; padding: 30px; }
+        .admin-container { max-width: 800px; margin: 0 auto; background: white; padding: 35px; border-radius: 16px; box-shadow: 0 4px 25px rgba(0,0,0,0.06); }
+        
+        .header { border-bottom: 2px solid #f3f4f6; padding-bottom: 20px; margin-bottom: 25px; }
+        .header h1 { font-size: 22px; color: #111827; font-weight: 800; }
+        .header p { font-size: 13px; color: #6b7280; margin-top: 5px; }
+
+        /* ИКЕ ТІЛДІ АҚПАРАТТЫҚ БЛОК (INFO PANEL) */
+        .info-banner { background: #fffbeb; border: 1px solid #fef3c7; color: #b45309; padding: 15px; border-radius: 12px; font-size: 13px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; }
+
+        .form-group { margin-bottom: 22px; position: relative; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 8px; }
+        .form-input, .form-select { width: 100%; padding: 13px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background-color: #f9fafb; transition: all 0.2s; }
+        .form-input:focus, .form-select:focus { border-color: #f59e0b; background-color: white; outline: none; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); }
+
+        /* ФОТО ЖҮКТЕУ МЕН КАЧЕСТВО КОНТРОЛЬ АЛАНЫ */
+        .upload-zone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 25px; text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; }
+        .upload-zone:hover { border-color: #f59e0b; background: #fffbeb; }
+        .file-hidden { display: none; }
+        
+        .btn-ai { background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; border: none; padding: 12px 22px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 15px; transition: all 0.2s; }
+        .btn-ai:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3); }
+
+        /* ДИНАМИКАЛЫҚ СЕЗІМТАЛ СТАТУСТАР */
+        .status-box { display: none; padding: 12px 15px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 20px; }
+        .status-error { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; animation: shake 0.3s ease-in-out; }
+        .status-success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+        .status-ai { background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca; }
+
+        /* ПРЕДПРОСМОТР РИСУНКА */
+        .preview-box { display: none; margin-top: 15px; text-align: center; background: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .preview-box img { width: 140px; height: 140px; object-fit: cover; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        /* ЖІБЕРУ БАТЫРМАСЫ */
+        .btn-submit { width: 100%; background: #111827; color: #f59e0b; border: none; padding: 15px; border-radius: 8px; font-size: 15px; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .btn-submit:hover { background: #1f2937; color: #ffffff; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <div class="header">
+            <h1>Байбесік Басқару Панелі / Панель управления</h1>
+            <p>Жаңа тауарларды базаға енгізу және AI сапа бақылау жүйесі.</p>
+        </div>
+
+        <!-- КУРЬЕР ЖӘНЕ ӨЛШЕМ ЕСКЕРТУІ -->
+        <div class="info-banner">
+            <strong>⚠️ МАҢЫЗДЫ ЕРЕЖЕ / ВАЖНОЕ ПРАВИЛО:</strong><br>
+            Егер тауардың ұзындығы <strong>3 немесе 4 метр</strong> болса (мысалы: Gola профилі, плинтустар), жүйе курьерлік жеткізуді автоматты түрде блоктайды. Тауар өлшемдерін міндетті түрде дәл енгізіңіз!
+        </div>
+
+        <!-- 1. АҚЫЛДЫ СУРЕТ ЖҮКТЕУ ЖӘНЕ САПА БАҚЫЛАУЫ (IMAGE CONTROL) -->
+        <div class="upload-zone" onclick="triggerFileInput()">
+            <span style="font-size: 42px;">📸</span>
+            <p style="font-size: 14px; font-weight: 700; margin-top: 8px; color: #334155;">Тауар суретін таңдаңыз (Квадрат 1:1, Макс: 2MB)</p>
+            <p style="font-size: 11px; color: #64748b; margin-top: 4px;">(Нажмите для загрузки фото товара. Подкаталог автоматически примет реальное фото)</p>
+            
+            <input type="file" id="photo-file" class="file-hidden" accept="image/*" onchange="validateImage(this)">
+            <br>
+            <button type="button" class="btn-ai" id="ai-btn" style="display:none;" onclick="runAIEngine(event)">
+                ✨ AI Ассистент: Толтыру (Умное заполнение)
+            </button>
+        </div>
+
+        <!-- СТАТУС ХАБАРЛАМАЛАРЫ -->
+        <div id="status-ai-box" class="status-box status-ai">🤖 AI суретті талдауда, тауардың сипаттамасы мен ұзындығын есептеп жатыр...</div>
+        <div id="status-error-box" class="status-box status-error"></div>
+        <div id="status-success-box" class="status-box status-success"></div>
+
+        <!-- СУРЕТТІ АЛДЫН АЛА ҚАРАУ -->
+        <div id="image-preview-area" class="preview-box">
+            <p style="font-size: 11px; color: #64748b; margin-bottom: 8px;">Сурет форматы тексерілді / Предпросмотр:</p>
+            <img id="preview-img" src="">
+        </div>
+
+        <!-- 2. ТАУАР ФОРМАСЫ -->
+        <form id="main-admin-form" onsubmit="handleFormSubmit(event)">
+            
+            <div class="form-group">
+                <label>Тауардың толық атауы / Название товара</label>
+                <input type="text" id="product-name" class="form-input" placeholder="Мысалы: Профиль Gola L-образный черный" required oninput="checkDuplicateProduct()">
+            </div>
+
+            <div class="form-group">
+                <label>Негізгі Санаты / Категория</label>
+                <select id="product-category" class="form-select" required>
+                    <option value="">-- Санатты таңдаңыз / Выберите категорию --</option>
+                    <option value="направляющие">Направляющие & Выдвижные системы</option>
+                    <option value="петли">Мебельные петли и шарниры</option>
+                    <option value="ручки">Мебельные ручки, крючки & Профили</option>
+                    <option value="кухня_гардероб">Кухонные & Гардеробные системы</option>
+                    <option value="крепеж">Крепеж, метизы & Механизмы</option>
+                    <option value="свет_офис">Светильники, розетки & Аксессуары</option>
+                </select>
+            </div>
+
+            <!-- СЕН СҰРАҒАН ӨЛШЕМДЕРДІ МІНДЕТТІ ТҮРДЕ ТЕКСЕРУ БЛОГЫ -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Ұзындығы / Длина (Өлшемі: мм немесе метр)</label>
+                    <input type="text" id="product-length" class="form-input" placeholder="Мысалы: 450 мм немесе 4 м" required>
+                </div>
+                <div class="form-group">
+                    <label>Бренд / Марка продукций</label>
+                    <input type="text" id="product-brand" class="form-input" placeholder="Blum, Samet, Boyard т.б." required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Бағасы / Цена Тауара (₸)</label>
+                <input type="number" id="product-price" class="form-input" placeholder="Теңгемен жазыңыз (Тенге)" required>
+            </div>
+
+            <button type="submit" class="btn-submit">💾 ТАУАРДЫ БАЗАҒА ЕНГІЗУ / СОХРАНИТЬ В КАТАЛОГ</button>
+        </form>
+    </div>
+
+    <script>
+        // БАЗАДАҒЫ СИМУЛЯЦИЯЛЫҚ ТАУАРЛАР ТІЗІМІ (ҚАЙТАЛАНУДАН ҚОРҒАУ)
+        let databaseProducts = [
+            "Blum Clip Top Накладная петля",
+            "Профиль Gola L-образный черный",
+            "Направляющие скрытого монтажа Tandem"
+        ];
+
+        function triggerFileInput() {
+            document.getElementById('photo-file').click();
+        }
+
+        // АҚЫЛДЫ СУРЕТ САПАСЫН БАҚЫЛАУ МЕХАНИЗМІ (SIZE & ASPECT QUALITY CONTROL)
+        function validateImage(input) {
+            const errBox = document.getElementById('status-error-box');
+            const succBox = document.getElementById('status-success-box');
+            const previewArea = document.getElementById('image-preview-area');
+            const previewImg = document.getElementById('preview-img');
+            const aiBtn = document.getElementById('ai-btn');
+
+            errBox.style.display = "none";
+            succBox.style.display = "none";
+            previewArea.style.display = "none";
+            aiBtn.style.display = "none";
+
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // 1. Көлем бақылауы (Max 2MB)
+                const maxBytes = 2 * 1024 * 1024;
+                if (file.size > maxBytes) {
+                    errBox.innerText = "❌ ҚАТЕ: Сурет өте үлкен! Максималды шектеу - 2MB. (Размер файла превышает 2МБ!)";
+                    errBox.style.display = "block";
+                    input.value = "";
+                    return;
+                }
+
+                // 2. Пропорция бақылауы (Квадраттық 1:1 тексеру)
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const ratio = img.width / img.height;
+                        
+                        if (ratio < 0.8 || ratio > 1.2) {
+                            errBox.innerText = "⚠️ ЕСКЕРТУ: Сурет квадрат (1:1) форматына жақын болуы керек. Каталог әдемі көрінуі үшін квадрат жүктеңіз!";
+                            errBox.style.display = "block";
+                        } else {
+                            succBox.innerText = "✅ Сурет сапасы мен өлшемі тексеруден өтті! (Фото успешно прошло контроль качества)";
+                            succBox.style.display = "block";
+                        }
+
+                        // Алдын ала қарау терезесін ашу
+                        previewImg.src = e.target.result;
+                        previewArea.style.display = "block";
+                        aiBtn.style.display = "inline-flex"; // AI түймесін ашу
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // АҚЫЛДЫ AI АССИСТЕНТ МЫСАЛЫ (AUTOMATIC FILL ENGINE)
+        function runAIEngine(event) {
+            event.stopPropagation();
+            
+            const aiLoader = document.getElementById('status-ai-box');
+            aiLoader.style.display = 'block';
+
+            // Жүйе суретті 1.2 секунд талдайды
+            setTimeout(() => {
+                aiLoader.style.display = 'none';
+                
+                // AI суреттен профильді танып, өлшемдерін шығарды
+                document.getElementById('product-name').value = "Профиль Gola L-образный черный";
+                document.getElementById('product-category').value = "ручки";
+                document.getElementById('product-length').value = "4 м"; // Автоматты 4 метр логистикасы
+                document.getElementById('product-brand').value = "Almaty Aksesuar";
+                document.getElementById('product-price').value = "8500";
+                
+                checkDuplicateProduct();
+            }, 1200);
+        }
+
+        // ҚАЙТАЛАНАТЫН ТАУАРДЫ ІЗДЕУ (DUPLICATE DETECTOR)
+        function checkDuplicateProduct() {
+            const nameInput = document.getElementById('product-name').value.trim();
+            const errBox = document.getElementById('status-error-box');
+            
+            if (databaseProducts.includes(nameInput)) {
+                errBox.innerText = "❌ ТОҚТАҢЫЗ! Бұл тауар базада бұрыннан бар! Қайтадан қосуға рұқсат жоқ. (Этот товар уже занесен в базу!)";
+                errBox.style.display = "block";
+                return true;
+            } else {
+                // Егер қателік тек қайталанудан болса, оны өшіреді
+                if(errBox.innerText.includes("бұрыннан бар") || errBox.innerText.includes("занесено")) {
+                    errBox.style.display = "none";
+                }
+                return false;
+            }
+        }
+
+        // БАЗАҒА МӘЛІМЕТТІ ЖАЗУ
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            if (checkDuplicateProduct()) {
+                alert("Қателік! Қайталанатын тауарды сақтау мүмкін емес.");
+                return;
+            }
+
+            const newName = document.getElementById('product-name').value;
+            databaseProducts.push(newName); // Базаға қосу симуляциясы
+            
+            alert("Тауар сәтті сақталды! База жаңартылды. / Товар успешно занесен в каталог Baibesik.");
+            
+            // Форманы тазарту
+            document.getElementById('main-admin-form').reset();
+            document.getElementById('image-preview-area').style.display = "none";
+            document.getElementById('ai-btn').style.display = "none";
+            document.getElementById('status-success-box').style.display = "none";
+        }
+    </script>
+</body>
+</html>

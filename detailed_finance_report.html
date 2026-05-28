@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baibesik Market - Қаржылық Есеп</title>
+    <style>
+        :root {
+            --fin-main: #0f172a;
+            --fin-accent: #f59e0b;
+            --fin-success: #10b981;
+            --fin-danger: #ef4444;
+            --fin-bg: #f8fafc;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: '-apple-system', sans-serif; }
+        body { background-color: var(--fin-bg); color: var(--fin-main); padding: 15px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* БАСҚАРУ ФИЛЬТРЛЕРІ (TARİH VE DÜKKAN FİLTRESİ) */
+        .filter-bar { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .filter-group { display: flex; gap: 10px; align-items: center; }
+        .filter-label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; }
+        .filter-select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 700; background: #f8fafc; }
+
+        /* ҚАРЖЫЛЫҚ КАРТАЛАР (POCKET SUMMARY) */
+        .finance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        @media (max-width: 768px) { .finance-grid { grid-template-columns: repeat(2, 1fr); } }
+        .fin-card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 15px; border-bottom: 4px solid #cbd5e1; }
+        .fin-card p { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; }
+        .fin-card h2 { font-size: 22px; font-weight: 900; margin-top: 5px; }
+        
+        /* КАРТА ТҮСТЕРІ */
+        .card-turnover { border-bottom-color: #3b82f6; }
+        .card-cost { border-bottom-color: var(--fin-danger); }
+        .card-delivery { border-bottom-color: var(--fin-accent); }
+        .card-profit { border-bottom-color: var(--fin-success); background: #f0fdf4; }
+
+        /* ТӨЛЕМ ТҮРЛЕРІНІҢ БӨЛІНІСІ (KASPI VS CASH) */
+        .payment-split { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        @media (max-width: 600px) { .payment-split { grid-template-columns: 1fr; } }
+        .split-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .split-info h4 { font-size: 12px; font-weight: 800; color: #475569; }
+        .split-info span { font-size: 10px; color: #94a3b8; font-weight: 700; }
+        .split-val { font-size: 16px; font-weight: 900; }
+
+        /* ЕГЖЕЙ-ТЕГЖЕЙЛІ КЕСТЕ (DETAYLI RAPOR TABLOSU) */
+        .report-card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; overflow-x: auto; }
+        .report-title { font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .excel-btn { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        
+        .fin-table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
+        .fin-table th { font-size: 11px; text-transform: uppercase; color: #64748b; padding: 10px 8px; border-bottom: 2px solid #f1f5f9; }
+        .fin-table td { font-size: 12px; padding: 12px 8px; border-bottom: 1px solid #f1f5f9; font-weight: 700; }
+        
+        .badge-method { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .bg-kaspi { background: #fee2e2; color: #ef4444; }
+        .bg-cash { background: #fef3c7; color: #d97706; }
+        .bg-halyk { background: #dcfce7; color: #16a34a; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- ЖОҒАРҒЫ ФИЛЬТР ПАНЕЛІ -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <div>
+                    <span class="filter-label">Дүкен / Магазин:</span>
+                    <select class="filter-select" id="shop-filter" onchange="calculateFinance()">
+                        <option value="all">Барлық дүкендер (Общий)</option>
+                        <option value="alik">Alik Hırdavat</option>
+                        <option value="serik">Serikcan Market</option>
+                    </select>
+                </div>
+                <div>
+                    <span class="filter-label">Кезең / Период:</span>
+                    <select class="filter-select" id="date-filter">
+                        <option value="today">Бүгін (Сегодня)</option>
+                        <option value="week">Осы апта (Эта неделя)</option>
+                        <option value="month" selected>Осы ай (Мамыр 2026)</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <span class="filter-label" style="color: var(--fin-success);">● Есеп жаңартылды / Отчет обновлен</span>
+            </div>
+        </div>
+
+        <!-- ҚАРЖЫЛЫҚ СУММАТОРЛАР -->
+        <div class="finance-grid">
+            <div class="fin-card card-turnover">
+                <p>Жалпы Айналым (Оборот)</p>
+                <h2 style="color: #3b82f6;">1,250,000 ₸</h2>
+            </div>
+            <div class="fin-card card-cost">
+                <p>Тауар Өзіндік Құны (Себестоимость)</p>
+                <h2 style="color: var(--fin-danger);">780,000 ₸</h2>
+            </div>
+            <div class="fin-card card-delivery">
+                <p>Курьер Шығыны (Логистика)</p>
+                <h2 style="color: var(--fin-accent);">45,000 ₸</h2>
+            </div>
+            <div class="fin-card card-profit">
+                <p>Таза Пайда (Чистая Прибыль)</p>
+                <h2 style="color: var(--fin-success);">+425,000 ₸</h2>
+            </div>
+        </div>
+
+        <!-- ТӨЛЕМ АРНАЛАРЫНЫҢ СТАТИСТИКАСЫ -->
+        <div class="payment-split">
+            <div class="split-box" style="border-left: 4px solid #ef4444;">
+                <div class="split-info">
+                    <h4>📱 Kaspi QR / Электронды</h4>
+                    <span>Банк комиссиясы шегерілген (99.0%)</span>
+                </div>
+                <div class="split-val" style="color: #ef4444;">915,000 ₸</div>
+            </div>
+            <div class="split-box" style="border-left: 4px solid #d97706;">
+                <div class="split-info">
+                    <h4>💵 Нақты ақша (Касса/Наличные)</h4>
+                    <span>Қолма-қол қабылданған қаражат</span>
+                </div>
+                <div class="split-val" style="color: #d97706;">335,000 ₸</div>
+            </div>
+        </div>
+
+        <!-- ТОЛЫҚ ТРАНЗАКЦИЯЛЫҚ ЕСЕПТІЛІК -->
+        <div class="report-card">
+            <div class="report-title">
+                <span>📑 Сатылымдар журналы / Журнал транзакций</span>
+                <button class="excel-btn" onclick="exportExcelSimulation()">📊 EXCEL Жүктеу</button>
+            </div>
+            
+            <table class="fin-table">
+                <thead>
+                    <tr>
+                        <th>Күні (Дата)</th>
+                        <th>Тапсырыс ID</th>
+                        <th>Дүкен (Магазин)</th>
+                        <th>Төлем Әдісі</th>
+                        <th>Сату Бағасы (Выручка)</th>
+                        <th>Өзіндік Құны (Приход)</th>
+                        <th>Курьер</th>
+                        <th style="color: var(--fin-success);">Таза Пайда</th>
+                    </tr>
+                </thead>
+                <tbody id="finance-table-rows">
+                    <tr>
+                        <td>27.05.2026</td>
+                        <td>#BBS-9942</td>
+                        <td>Alik Hırdavat</td>
+                        <td><span class="badge-method bg-kaspi">📱 Kaspi QR</span></td>
+                        <td>5,800 ₸</td>
+                        <td>3,400 ₸</td>
+                        <td>800 ₸</td>
+                        <td style="color: var(--fin-success);">+1,600 ₸</td>
+                    </tr>
+                    <tr>
+                        <td>26.05.2026</td>
+                        <td>#BBS-9941</td>
+                        <td>Serikcan Market</td>
+                        <td><span class="badge-method bg-cash">💵 Нақтылай</span></td>
+                        <td>9,000 ₸</td>
+                        <td>5,100 ₸</td>
+                        <td>0 ₸ (Pickup)</td>
+                        <td style="color: var(--fin-success);">+3,900 ₸</td>
+                    </tr>
+                    <tr>
+                        <td>26.05.2026</td>
+                        <td>#BBS-9938</td>
+                        <td>Alik Hırdavat</td>
+                        <td><span class="badge-method bg-halyk">📱 Halyk QR</span></td>
+                        <td>14,200 ₸</td>
+                        <td>9,000 ₸</td>
+                        <td>800 ₸</td>
+                        <td style="color: var(--fin-success);">+4,400 ₸</td>
+                    </tr>
+                    <tr>
+                        <td>25.05.2026</td>
+                        <td>#BBS-9935</td>
+                        <td>Serikcan Market</td>
+                        <td><span class="badge-method bg-kaspi">📱 Kaspi QR</span></td>
+                        <td>22,500 ₸</td>
+                        <td>14,000 ₸</td>
+                        <td>1,200 ₸</td>
+                        <td style="color: var(--fin-success);">+7,300 ₸</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        function calculateFinance() {
+            const shop = document.getElementById('shop-filter').value;
+            // Firebase қосылғанда бұл жер таңдалған дүкенге байланысты деректерді динамикалық түрде қайта есептейді.
+            console.log(`Фильтр ауыстырылды: ${shop}`);
+        }
+
+        function exportExcelSimulation() {
+            alert("Қаржылық есеп .XLSX (Excel) форматында дайындалуда!\nЖүктеу автоматты түрде басталады.");
+        }
+    </script>
+</body>
+</html>
