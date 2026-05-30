@@ -1,204 +1,497 @@
 <!DOCTYPE html>
-<html lang="kk">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baibesik Hırdavat Marketplace</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background-color: #f4f6f9;
-            color: #333;
-        }
-        /* Üst Bar */
-        .navbar {
-            background-color: #212529;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .logo {
-            font-weight: bold;
-            font-size: 20px;
-            color: #ffc107;
-        }
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .btn-profile {
-            background-color: #ffc107;
-            color: #212529;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        /* Ana Gövde */
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 15px;
-        }
-        .welcome-box {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .welcome-box h1 {
-            font-size: 22px;
-            margin-bottom: 5px;
-        }
-        /* Dükkan Listesi */
-        .vendor-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-        }
-        @media(min-width: 600px) {
-            .vendor-grid { grid-template-columns: 1fr 1fr; }
-        }
-        .vendor-card {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border-top: 4px solid #ffc107;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
-        .vendor-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .vendor-name {
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-        .vendor-meta {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 15px;
-        }
-        .btn-visit {
-            background-color: #e9ecef;
-            color: #333;
-            border: none;
-            padding: 8px;
-            border-radius: 4px;
-            font-weight: 600;
-            text-align: center;
-            font-size: 13px;
-        }
-        .vendor-card:hover .btn-visit {
-            background-color: #ffc107;
-            color: #212529;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Мебельная фурнитура и хозтовары</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #f97316;
+  --orange-dark: #c2410c;
+  --orange-light: #fff7ed;
+  --dark: #0f172a;
+  --dark2: #1e293b;
+  --gray: #64748b;
+  --light: #f8fafc;
+  --white: #ffffff;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans', sans-serif; background: var(--light); color: var(--dark); }
+
+/* ── TOPBAR ── */
+.topbar { background: var(--dark); color: #94a3b8; font-size: 12px; padding: 6px 20px; display: flex; justify-content: space-between; align-items: center; }
+.topbar a { color: #94a3b8; text-decoration: none; }
+.topbar span { color: var(--orange); font-weight: 700; }
+
+/* ── HEADER ── */
+header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+.header-inner { max-width: 1200px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 16px; }
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--orange); letter-spacing: 2px; text-decoration: none; flex-shrink: 0; }
+.logo span { color: white; }
+.search-bar { flex: 1; display: flex; background: white; border-radius: 8px; overflow: hidden; border: 2px solid transparent; transition: border-color 0.2s; }
+.search-bar:focus-within { border-color: var(--orange); }
+.search-bar input { flex: 1; padding: 10px 14px; border: none; outline: none; font-size: 14px; font-family: 'Noto Sans', sans-serif; }
+.search-bar button { background: var(--orange); color: white; border: none; padding: 10px 18px; cursor: pointer; font-size: 15px; font-weight: 700; transition: background 0.2s; }
+.search-bar button:hover { background: var(--orange-dark); }
+.header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.lang-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s; font-family: 'Noto Sans', sans-serif; }
+.lang-btn.active, .lang-btn:hover { background: var(--orange); border-color: var(--orange); }
+.btn-login { background: var(--orange); color: white; border: none; padding: 9px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; font-family: 'Noto Sans', sans-serif; transition: background 0.2s; }
+.btn-login:hover { background: var(--orange-dark); }
+.cart-btn { background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.15); padding: 9px 14px; border-radius: 8px; cursor: pointer; font-size: 18px; position: relative; transition: all 0.2s; }
+.cart-btn:hover { background: var(--orange); border-color: var(--orange); }
+.cart-count { position: absolute; top: -6px; right: -6px; background: var(--orange); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+
+/* ── NAV ── */
+nav { background: var(--orange); }
+.nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; }
+.nav-inner::-webkit-scrollbar { display: none; }
+.nav-link { color: white; text-decoration: none; padding: 12px 16px; font-size: 13px; font-weight: 700; white-space: nowrap; display: block; border-bottom: 3px solid transparent; transition: border-color 0.2s, background 0.2s; }
+.nav-link:hover, .nav-link.active { border-bottom-color: white; background: rgba(0,0,0,0.1); }
+
+/* ── HERO ── */
+.hero { background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 50%, #1a0a00 100%); padding: 60px 20px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; right: -100px; top: -100px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%); pointer-events: none; }
+.hero-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+.hero-text { animation: fadeUp 0.6s ease both; }
+.hero-eyebrow { background: var(--orange); color: white; display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 16px; }
+.hero-title { font-family: 'Bebas Neue', sans-serif; font-size: 56px; line-height: 1; color: white; margin-bottom: 16px; letter-spacing: 1px; }
+.hero-title span { color: var(--orange); }
+.hero-sub { color: #94a3b8; font-size: 15px; line-height: 1.6; margin-bottom: 28px; max-width: 440px; }
+.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-primary { background: var(--orange); color: white; padding: 14px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; border: none; cursor: pointer; font-family: 'Noto Sans', sans-serif; transition: all 0.2s; display: inline-block; }
+.btn-primary:hover { background: var(--orange-dark); transform: translateY(-1px); }
+.btn-outline { background: transparent; color: white; padding: 14px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; border: 2px solid rgba(255,255,255,0.3); cursor: pointer; font-family: 'Noto Sans', sans-serif; transition: all 0.2s; display: inline-block; }
+.btn-outline:hover { border-color: var(--orange); color: var(--orange); }
+.hero-stats { display: flex; gap: 32px; margin-top: 36px; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.1); }
+.stat { text-align: center; }
+.stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--orange); display: block; }
+.stat-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.hero-visual { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; animation: fadeUp 0.6s 0.2s ease both; opacity: 0; animation-fill-mode: forwards; }
+.hero-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 20px; text-align: center; transition: transform 0.2s; }
+.hero-card:hover { transform: translateY(-3px); background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.3); }
+.hero-card-icon { font-size: 32px; margin-bottom: 8px; }
+.hero-card-name { color: white; font-size: 12px; font-weight: 700; }
+.hero-card-count { color: var(--orange); font-size: 11px; margin-top: 2px; }
+
+/* ── BADGES ── */
+.badges { background: var(--orange-light); border-top: 3px solid var(--orange); }
+.badges-inner { max-width: 1200px; margin: 0 auto; padding: 16px 20px; display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; }
+.badge-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--orange-dark); }
+.badge-item span:first-child { font-size: 18px; }
+
+/* ── SECTION ── */
+.section { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+.section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.section-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--dark); letter-spacing: 1px; }
+.section-title::after { content: ''; display: block; width: 48px; height: 3px; background: var(--orange); margin-top: 4px; }
+.see-all { color: var(--orange); font-size: 13px; font-weight: 700; text-decoration: none; }
+.see-all:hover { text-decoration: underline; }
+
+/* ── CATEGORIES ── */
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.cat-card { background: white; border: 1px solid #e2e8f0; border-radius: var(--radius); padding: 16px 12px; text-align: center; cursor: pointer; transition: all 0.2s; text-decoration: none; display: block; }
+.cat-card:hover { border-color: var(--orange); box-shadow: 0 4px 16px rgba(249,115,22,0.12); transform: translateY(-2px); }
+.cat-icon { font-size: 28px; margin-bottom: 8px; }
+.cat-name { font-size: 12px; font-weight: 700; color: var(--dark); line-height: 1.3; }
+.cat-count { font-size: 11px; color: var(--gray); margin-top: 3px; }
+
+/* ── PRODUCTS ── */
+.prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.prod-card { background: white; border: 1px solid #e2e8f0; border-radius: var(--radius); overflow: hidden; transition: all 0.2s; }
+.prod-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.prod-img { aspect-ratio: 1; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 48px; position: relative; }
+.prod-badge { position: absolute; top: 8px; left: 8px; background: var(--orange); color: white; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 4px; }
+.prod-body { padding: 12px; }
+.prod-name { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 4px; line-height: 1.3; }
+.prod-spec { font-size: 11px; color: var(--gray); margin-bottom: 8px; }
+.prod-footer { display: flex; justify-content: space-between; align-items: center; }
+.prod-price { font-size: 16px; font-weight: 900; color: var(--orange-dark); }
+.prod-price-old { font-size: 11px; color: var(--gray); text-decoration: line-through; margin-left: 4px; }
+.btn-cart { background: var(--orange); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 700; font-family: 'Noto Sans', sans-serif; transition: background 0.2s; }
+.btn-cart:hover { background: var(--orange-dark); }
+
+/* ── PROMO BANNER ── */
+.promo { background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 100%); margin: 0; padding: 48px 20px; }
+.promo-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.promo-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px; position: relative; overflow: hidden; transition: transform 0.2s; }
+.promo-card:hover { transform: translateY(-2px); }
+.promo-card::after { content: ''; position: absolute; right: -20px; bottom: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(249,115,22,0.2), transparent); }
+.promo-label { font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--orange); margin-bottom: 10px; }
+.promo-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: white; margin-bottom: 8px; letter-spacing: 1px; }
+.promo-desc { font-size: 13px; color: #94a3b8; margin-bottom: 20px; line-height: 1.5; }
+
+/* ── WHY US ── */
+.why { background: var(--orange-light); padding: 48px 20px; }
+.why-inner { max-width: 1200px; margin: 0 auto; }
+.why-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; margin-top: 28px; }
+.why-card { background: white; border-radius: var(--radius); padding: 24px; border-left: 4px solid var(--orange); }
+.why-icon { font-size: 28px; margin-bottom: 10px; }
+.why-title { font-size: 14px; font-weight: 800; color: var(--dark); margin-bottom: 6px; }
+.why-desc { font-size: 13px; color: var(--gray); line-height: 1.5; }
+
+/* ── FOOTER ── */
+footer { background: var(--dark); color: #94a3b8; padding: 48px 20px 24px; }
+.footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+.footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--orange); letter-spacing: 2px; margin-bottom: 10px; }
+.footer-logo span { color: white; }
+.footer-desc { font-size: 13px; line-height: 1.6; }
+.footer-title { font-size: 13px; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.footer-links a { color: #94a3b8; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+.footer-links a:hover { color: var(--orange); }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 20px; display: flex; justify-content: space-between; font-size: 12px; flex-wrap: wrap; gap: 8px; }
+.footer-bottom a { color: var(--orange); text-decoration: none; }
+
+/* ── ANIMATION ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .topbar { display: none; }
+  .logo { font-size: 26px; }
+  .hero-inner { grid-template-columns: 1fr; }
+  .hero-visual { display: none; }
+  .hero-title { font-size: 40px; }
+  .promo-inner { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr 1fr; }
+  .header-inner { flex-wrap: wrap; }
+  .search-bar { order: 3; width: 100%; }
+}
+@media (max-width: 480px) {
+  .cat-grid { grid-template-columns: repeat(3, 1fr); }
+  .prod-grid { grid-template-columns: repeat(2, 1fr); }
+  .footer-inner { grid-template-columns: 1fr; }
+}
+</style>
 </head>
 <body>
 
-    <!-- Üst Gezinme Çubuğu -->
-    <div class="navbar">
-        <div class="logo">🏗️ Baibesik Hırdavat</div>
-        <div class="nav-buttons">
-            <!-- Giriş yapıldığında simüle etmek için profil butonu -->
-            <a href="login.html" class="btn-profile" id="btn-user-space">Войти / Кіру / Giriş</a>
-        </div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <span>📍 Алматы, мкр. Байбесик</span>
+  <span>☎ +7 (727) 000-00-00 &nbsp;|&nbsp; <span>Пн–Сб: 9:00–19:00</span></span>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">BAI<span>BESIK</span></a>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Петли, направляющие, ручки...">
+      <button onclick="doSearch()">🔍</button>
     </div>
-
-    <div class="container">
-        <!-- Karşılama Alanı -->
-        <div class="welcome-box">
-            <h1 id="txt-greeting">Қош келдіңіз! / Добро пожаловать!</h1>
-            <p style="color: #666; font-size: 14px;">Baibesik mahallesindeki 20 güvenilir hırdavat esnafı tek çatıda.</p>
-        </div>
-
-        <!-- Dükkanlar Başlığı -->
-        <h2 style="font-size: 18px; margin-bottom: 15px; color: #495057;">Дүкендер / Магазины (Baibesik)</h2>
-
-        <!-- Esnaf Kartları Grubu -->
-        <div class="vendor-grid">
-            
-            <!-- Kart 1 -->
-            <div class="vendor-card" onclick="alert('Yakında: Ürün listesi ve sepet dinamikleri eklenecek!')">
-                <div>
-                    <div class="vendor-name">Ahmet Hırdavat (No: 5)</div>
-                    <div class="vendor-meta">📍 Ақжол көшесі • ⭐️ 4.9 (120+ тапсырыс)</div>
-                </div>
-                <div class="btn-visit">Дүкенге кіру / Войти в магазин</div>
-            </div>
-
-            <!-- Kart 2 -->
-            <div class="vendor-card" onclick="alert('Yakında: Ürün listesi ve sepet dinamikleri eklenecek!')">
-                <div>
-                    <div class="vendor-name">Eldar Stroy</div>
-                    <div class="vendor-meta">📍 Байтерек көшесі • ⭐️ 4.7 (85 тапсырыс)</div>
-                </div>
-                <div class="btn-visit">Дүкенге кіру / Войти в магазин</div>
-            </div>
-
-            <!-- Kart 3 -->
-            <div class="vendor-card" onclick="alert('Yakında: Ürün listesi ve sepet dinamikleri eklenecek!')">
-                <div>
-                    <div class="vendor-name">Almaty Yapı Market</div>
-                    <div class="vendor-meta">📍 Орталық көшесі • ⭐️ 4.8 (210+ тапсырыс)</div>
-                </div>
-                <div class="btn-visit">Дүкенге кіру / Войти в магазин</div>
-            </div>
-
-            <!-- Kart 4 -->
-            <div class="vendor-card" onclick="alert('Yakında: Ürün listesi ve sepet dinamikleri eklenecek!')">
-                <div>
-                    <div class="vendor-name">Kairat İnşaat</div>
-                    <div class="vendor-meta">📍 Жібек Жолы көшесі • ⭐️ 4.5 (40 тапсырыс)</div>
-                </div>
-                <div class="btn-visit">Дүкенге кіру / Войти в магазин</div>
-            </div>
-
-        </div>
+    <div class="header-actions">
+      <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" onclick="setLang('kk')">KK</button>
+      <button class="cart-btn" onclick="window.location.href='checkout_and_orders.html'">🛒<span class="cart-count" id="cart-count">0</span></button>
+      <button class="btn-login" onclick="window.location.href='login.html'" id="btn-login-text">Войти</button>
     </div>
+  </div>
+</header>
 
-    <script>
-        // Giriş yapmış kullanıcı simülasyonu kontrolü (Local Storage'dan bakabiliriz)
-        window.onload = function() {
-            // Küçük bir yapay zeka dokunuşu: Eğer daha önce sisteme rol kaydettiysek yönlendirmeyi güncelleyelim
-            const mockRole = localStorage.getItem('userRole'); 
-            const profileBtn = document.getElementById('btn-user-space');
-            
-            if(mockRole) {
-                if(mockRole === 'vendor') {
-                    profileBtn.innerText = "🏪 Esnaf Paneli";
-                    profileBtn.href = "vendor.html";
-                } else if(mockRole === 'courier') {
-                    profileBtn.innerText = "🏍️ Kurye Paneli";
-                    profileBtn.href = "courier.html";
-                } else {
-                    profileBtn.innerText = "👤 Profilim";
-                    profileBtn.href = "#";
-                }
-            }
-        }
-    </script>
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="catalog.html" class="nav-link active" id="nav-catalog">Каталог</a>
+    <a href="#categories" class="nav-link" id="nav-cats">Категории</a>
+    <a href="shop.html" class="nav-link" id="nav-shops">Магазины</a>
+    <a href="toptanci_dashboard.html" class="nav-link" id="nav-wholesale">Оптовикам</a>
+    <a href="#" class="nav-link" id="nav-delivery">Доставка</a>
+    <a href="detailed_finance_report.html" class="nav-link" id="nav-about">О нас</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-eyebrow" id="hero-eyebrow">Байбесик — мебельная фурнитура</div>
+      <h1 class="hero-title" id="hero-title">ВСЁ ДЛЯ<br><span>МЕБЕЛИ</span><br>В АЛМАТЫ</h1>
+      <p class="hero-sub" id="hero-sub">Петли, направляющие, ручки, профили — оптом и в розницу. Быстрая доставка по Алматы через InDrive и Яндекс.</p>
+      <div class="hero-btns">
+        <a href="catalog.html" class="btn-primary" id="hero-btn1">Смотреть каталог</a>
+        <a href="register.html" class="btn-outline" id="hero-btn2">Стать оптовиком</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-num">23</span><span class="stat-label" id="stat1">Категории</span></div>
+        <div class="stat"><span class="stat-num">500+</span><span class="stat-label" id="stat2">Товаров</span></div>
+        <div class="stat"><span class="stat-num">50+</span><span class="stat-label" id="stat3">Магазинов</span></div>
+        <div class="stat"><span class="stat-num">3 мес</span><span class="stat-label" id="stat4">Пробный период</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card"><div class="hero-card-icon">🔩</div><div class="hero-card-name">Петли Blum</div><div class="hero-card-count">от 450 ₸</div></div>
+      <div class="hero-card"><div class="hero-card-icon">📐</div><div class="hero-card-name">Направляющие</div><div class="hero-card-count">от 1 200 ₸</div></div>
+      <div class="hero-card"><div class="hero-card-icon">🪟</div><div class="hero-card-name">Раздвижные</div><div class="hero-card-count">от 3 500 ₸</div></div>
+      <div class="hero-card"><div class="hero-card-icon">🔧</div><div class="hero-card-name">Крепёж</div><div class="hero-card-count">от 15 ₸</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- BADGES -->
+<div class="badges">
+  <div class="badges-inner">
+    <div class="badge-item"><span>🚚</span><span id="b1">Доставка InDrive / Яндекс</span></div>
+    <div class="badge-item"><span>📱</span><span id="b2">Оплата Kaspi и Halyk</span></div>
+    <div class="badge-item"><span>🏪</span><span id="b3">Самовывоз из магазина</span></div>
+    <div class="badge-item"><span>💼</span><span id="b4">Специальные цены для оптовиков</span></div>
+    <div class="badge-item"><span>🎁</span><span id="b5">3 месяца бесплатно для магазинов</span></div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div id="categories">
+<section class="section">
+  <div class="section-head">
+    <div class="section-title" id="cat-title">КАТЕГОРИИ</div>
+    <a href="catalog.html" class="see-all" id="see-all-cats">Все категории →</a>
+  </div>
+  <div class="cat-grid" id="cat-grid"></div>
+</section>
+</div>
+
+<!-- FEATURED PRODUCTS -->
+<section class="section">
+  <div class="section-head">
+    <div class="section-title" id="prod-title">ПОПУЛЯРНЫЕ ТОВАРЫ</div>
+    <a href="catalog.html" class="see-all" id="see-all-prod">Весь каталог →</a>
+  </div>
+  <div class="prod-grid" id="prod-grid"></div>
+</section>
+
+<!-- PROMO -->
+<div class="promo">
+  <div class="promo-inner">
+    <div class="promo-card">
+      <div class="promo-label" id="promo1-label">Для владельцев магазинов</div>
+      <div class="promo-title" id="promo1-title">РАЗМЕСТИТЕ МАГАЗИН НА BAIBESIK</div>
+      <div class="promo-desc" id="promo1-desc">3 месяца бесплатного пробного периода. Ваши товары увидят тысячи покупателей в микрорайоне Байбесик.</div>
+      <a href="register.html" class="btn-primary" id="promo1-btn">Зарегистрировать магазин</a>
+    </div>
+    <div class="promo-card">
+      <div class="promo-label" id="promo2-label">Оптовые покупатели</div>
+      <div class="promo-title" id="promo2-title">СКИДКИ ДО 20% ДЛЯ ОПТОВИКОВ</div>
+      <div class="promo-desc" id="promo2-desc">Мебельщики, строители, предприниматели — получите доступ к специальным оптовым ценам.</div>
+      <a href="register.html" class="btn-primary" id="promo2-btn">Стать оптовым клиентом</a>
+    </div>
+  </div>
+</div>
+
+<!-- WHY US -->
+<div class="why">
+  <div class="why-inner">
+    <div class="section-title" id="why-title">ПОЧЕМУ BAIBESIK.KZ</div>
+    <div class="why-grid">
+      <div class="why-card"><div class="why-icon">📦</div><div class="why-title" id="w1t">Все в одном месте</div><div class="why-desc" id="w1d">Более 500 наименований мебельной фурнитуры от ведущих брендов.</div></div>
+      <div class="why-card"><div class="why-icon">🛵</div><div class="why-title" id="w2t">Быстрая доставка</div><div class="why-desc" id="w2d">Доставка через InDrive и Яндекс Dostavka по всему Алматы.</div></div>
+      <div class="why-card"><div class="why-icon">📱</div><div class="why-title" id="w3t">Удобная оплата</div><div class="why-desc" id="w3d">Kaspi QR, Halyk Bank, наличными при самовывозе.</div></div>
+      <div class="why-card"><div class="why-icon">🏷️</div><div class="why-title" id="w4t">Оптовые цены</div><div class="why-desc" id="w4d">Специальные цены для мебельщиков и строителей. Скидки до 20%.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">BAI<span>BESIK</span>.KZ</div>
+      <p class="footer-desc" id="footer-desc">Интернет-магазин мебельной фурнитуры и хозтоваров. Алматы, мкр. Байбесик.</p>
+    </div>
+    <div>
+      <div class="footer-title" id="ft1">Покупателям</div>
+      <ul class="footer-links">
+        <li><a href="catalog.html" id="fl1">Каталог товаров</a></li>
+        <li><a href="checkout_and_orders.html" id="fl2">Мои заказы</a></li>
+        <li><a href="#" id="fl3">Доставка и оплата</a></li>
+        <li><a href="register.html" id="fl4">Регистрация</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-title" id="ft2">Магазинам</div>
+      <ul class="footer-links">
+        <li><a href="shop_admin_panel.html" id="fl5">Панель магазина</a></li>
+        <li><a href="vendor.html" id="fl6">Управление заказами</a></li>
+        <li><a href="shop_picking_print.html" id="fl7">Сборка заказов</a></li>
+        <li><a href="register.html" id="fl8">Подключить магазин</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-title" id="ft3">Контакты</div>
+      <ul class="footer-links">
+        <li><a href="tel:+77270000000">+7 (727) 000-00-00</a></li>
+        <li><a href="mailto:info@baibesik.kz">info@baibesik.kz</a></li>
+        <li><a href="#">Алматы, мкр. Байбесик</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span id="footer-copy">© 2026 Baibesik.kz — Все права защищены</span>
+    <span><a href="admin.html">Для администраторов</a></span>
+  </div>
+</footer>
+
+<script>
+// ── DATA ──
+const categories = [
+  { icon: '🔩', ru: 'Петли и шарниры', kk: 'Ілгектер мен шарнирлер', count: '120+' },
+  { icon: '📐', ru: 'Направляющие', kk: 'Бағыттаушылар', count: '80+' },
+  { icon: '🖐️', ru: 'Ручки и крючки', kk: 'Тұтқалар', count: '200+' },
+  { icon: '🔒', ru: 'Замки и шпингалеты', kk: 'Құлыптар', count: '60+' },
+  { icon: '🪟', ru: 'Раздвижные двери', kk: 'Сырғымалы есіктер', count: '45+' },
+  { icon: '📦', ru: 'Ящики выдвижные', kk: 'Тартпалар жүйесі', count: '55+' },
+  { icon: '🛏️', ru: 'Кроватная фурнитура', kk: 'Төсек фурнитурасы', count: '40+' },
+  { icon: '🍳', ru: 'Кухонные комплект.', kk: 'Асхана жиынтықтары', count: '90+' },
+  { icon: '💡', ru: 'Светильники и розетки', kk: 'Шамдар мен розеткалар', count: '35+' },
+  { icon: '🔧', ru: 'Метизы и крепёж', kk: 'Бекіту элементтері', count: '300+' },
+  { icon: '📏', ru: 'Консоли и полкодерж.', kk: 'Сөреұстағыштар', count: '50+' },
+  { icon: '⚙️', ru: 'Мебельные механизмы', kk: 'Жиһаз механизмдері', count: '70+' }
+];
+
+const products = [
+  { icon: '🔩', name_ru: 'Петля Blum Clip Top 110°', name_kk: 'Blum Clip Top петлясы', spec: 'Антрацит / Гömme', price: '1 450', old: '1 800', badge: 'Хит' },
+  { icon: '📐', name_ru: 'Направляющие Boyard 450мм', name_kk: 'Boyard бағыттаушы 450мм', spec: 'Полного выдвижения', price: '3 200', old: null, badge: null },
+  { icon: '🖐️', name_ru: 'Ручка-профиль Gola 4м', name_kk: 'Gola профильді тұтқа 4м', spec: 'Алюминий, Антрацит', price: '8 500', old: null, badge: '⚠️ Самовывоз' },
+  { icon: '🔒', name_ru: 'Замок мебельный врезной', name_kk: 'Кіріктірілген мебель құлыбы', spec: ''+ 'Хром, 18мм', price: '650', old: null, badge: null },
+  { icon: '⚙️', name_ru: 'Амортизатор газовый 80N', name_kk: 'Газдық амортизатор 80N', spec: 'Серебро / Подъём', price: '850', old: '1 100', badge: '-23%' },
+  { icon: '🪟', name_ru: 'Система раздвижных дверей', name_kk: 'Сырғымалы есік жүйесі', spec: '2-дверная, до 80кг', price: '12 500', old: null, badge: null },
+  { icon: '📦', name_ru: 'Ящик Legrabox Pure', name_kk: 'Legrabox Pure тартпасы', spec: 'Белый, 500мм, L', price: '9 800', old: null, badge: 'Новинка' },
+  { icon: '🔧', name_ru: 'Конфирмат 7x50 (100шт)', name_kk: 'Конфирмат 7x50 (100дана)', spec: 'Оцинкованный', price: '450', old: null, badge: null }
+];
+
+// ── TRANSLATIONS ──
+const t = {
+  ru: {
+    search_ph: 'Петли, направляющие, ручки...',
+    login: 'Войти',
+    hero_eyebrow: 'Байбесик — мебельная фурнитура',
+    hero_title: 'ВСЁ ДЛЯ<br><span>МЕБЕЛИ</span><br>В АЛМАТЫ',
+    hero_sub: 'Петли, направляющие, ручки, профили — оптом и в розницу. Быстрая доставка по Алматы через InDrive и Яндекс.',
+    hero_btn1: 'Смотреть каталог', hero_btn2: 'Стать оптовиком',
+    stat1:'Категории', stat2:'Товаров', stat3:'Магазинов', stat4:'Пробный период',
+    b1:'Доставка InDrive / Яндекс', b2:'Оплата Kaspi и Halyk', b3:'Самовывоз из магазина',
+    b4:'Специальные цены для оптовиков', b5:'3 месяца бесплатно для магазинов',
+    cat_title:'КАТЕГОРИИ', see_all_cats:'Все категории →',
+    prod_title:'ПОПУЛЯРНЫЕ ТОВАРЫ', see_all_prod:'Весь каталог →',
+    add_cart:'В корзину',
+    promo1_label:'Для владельцев магазинов', promo1_title:'РАЗМЕСТИТЕ МАГАЗИН НА BAIBESIK', promo1_desc:'3 месяца бесплатного пробного периода.', promo1_btn:'Зарегистрировать магазин',
+    promo2_label:'Оптовые покупатели', promo2_title:'СКИДКИ ДО 20% ДЛЯ ОПТОВИКОВ', promo2_desc:'Мебельщики, строители — получите доступ к специальным ценам.', promo2_btn:'Стать оптовым клиентом',
+    why_title:'ПОЧЕМУ BAIBESIK.KZ',
+    w1t:'Все в одном месте', w1d:'Более 500 наименований мебельной фурнитуры.',
+    w2t:'Быстрая доставка', w2d:'Доставка через InDrive и Яндекс по всему Алматы.',
+    w3t:'Удобная оплата', w3d:'Kaspi QR, Halyk Bank, наличными при самовывозе.',
+    w4t:'Оптовые цены', w4d:'Специальные цены для мебельщиков. Скидки до 20%.',
+    footer_desc:'Интернет-магазин мебельной фурнитуры. Алматы, мкр. Байбесик.',
+    ft1:'Покупателям', ft2:'Магазинам', ft3:'Контакты',
+    fl1:'Каталог товаров', fl2:'Мои заказы', fl3:'Доставка и оплата', fl4:'Регистрация',
+    fl5:'Панель магазина', fl6:'Управление заказами', fl7:'Сборка заказов', fl8:'Подключить магазин',
+    footer_copy:'© 2026 Baibesik.kz — Все права защищены',
+    nav_catalog:'Каталог', nav_cats:'Категории', nav_shops:'Магазины', nav_wholesale:'Оптовикам', nav_delivery:'Доставка', nav_about:'О нас'
+  },
+  kk: {
+    search_ph: 'Петля, бағыттаушы, тұтқалар...',
+    login: 'Кіру',
+    hero_eyebrow: 'Байбесік — жиһаз фурнитурасы',
+    hero_title: 'ЖИҺАЗ ҮШІН<br><span>БАРЛЫҒЫ</span><br>АЛМАТЫДА',
+    hero_sub: 'Петлялар, бағыттаушылар, тұтқалар — көтерме және бөлшек. InDrive және Яндекс арқылы жеткізу.',
+    hero_btn1: 'Каталогты қарау', hero_btn2: 'Көтермешіге тіркелу',
+    stat1:'Санаттар', stat2:'Тауарлар', stat3:'Дүкендер', stat4:'Сынақ мерзімі',
+    b1:'InDrive / Яндекс жеткізуі', b2:'Kaspi және Halyk төлем', b3:'Дүкеннен алу',
+    b4:'Көтермешілерге арнайы баға', b5:'Дүкендерге 3 ай тегін',
+    cat_title:'САНАТТАР', see_all_cats:'Барлық санаттар →',
+    prod_title:'ТАНЫМАЛ ТАУАРЛАР', see_all_prod:'Барлық каталог →',
+    add_cart:'Себетке',
+    promo1_label:'Дүкен иелеріне', promo1_title:'BAIBESIK-ТЕ ДҮКЕН АШ', promo1_desc:'3 ай тегін сынақ кезеңі.', promo1_btn:'Дүкенді тіркеу',
+    promo2_label:'Көтермешілер', promo2_title:'КӨТЕРМЕШІЛЕРГЕ 20% ДЕЙІН ЖЕҢІЛДІК', promo2_desc:'Жиһазшылар, құрылысшылар — арнайы бағаға қол жеткізіңіз.', promo2_btn:'Көтермешіге тіркелу',
+    why_title:'НЕЛІКТЕН BAIBESIK.KZ',
+    w1t:'Бір жерде бәрі', w1d:'500-ден астам жиһаз фурнитурасы атаулары.',
+    w2t:'Жылдам жеткізу', w2d:'InDrive және Яндекс Dostavka арқылы жеткізу.',
+    w3t:'Ыңғайлы төлем', w3d:'Kaspi QR, Halyk Bank, дүкеннен алғанда қолма-қол.',
+    w4t:'Көтерме бағалар', w4d:'Жиһазшылар мен құрылысшыларға арнайы баға.',
+    footer_desc:'Жиһаз фурнитурасы интернет-дүкені. Алматы, Байбесік мкр.',
+    ft1:'Сатып алушыларға', ft2:'Дүкендерге', ft3:'Байланыс',
+    fl1:'Тауарлар каталогы', fl2:'Менің тапсырыстарым', fl3:'Жеткізу және төлем', fl4:'Тіркелу',
+    fl5:'Дүкен панелі', fl6:'Тапсырыстарды басқару', fl7:'Тапсырыс жинау', fl8:'Дүкенді қосу',
+    footer_copy:'© 2026 Baibesik.kz — Барлық құқықтар қорғалған',
+    nav_catalog:'Каталог', nav_cats:'Санаттар', nav_shops:'Дүкендер', nav_wholesale:'Көтермешілерге', nav_delivery:'Жеткізу', nav_about:'Біз туралы'
+  }
+};
+
+let lang = 'ru';
+let cartCount = 0;
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().toLowerCase() === l));
+  const d = t[l];
+  document.getElementById('search-input').placeholder = d.search_ph;
+  document.getElementById('btn-login-text').textContent = d.login;
+  document.getElementById('hero-eyebrow').textContent = d.hero_eyebrow;
+  document.getElementById('hero-title').innerHTML = d.hero_title;
+  document.getElementById('hero-sub').textContent = d.hero_sub;
+  document.getElementById('hero-btn1').textContent = d.hero_btn1;
+  document.getElementById('hero-btn2').textContent = d.hero_btn2;
+  ['stat1','stat2','stat3','stat4','b1','b2','b3','b4','b5',
+   'cat_title','see_all_cats','prod_title','see_all_prod',
+   'promo1_label','promo1_title','promo1_desc','promo1_btn',
+   'promo2_label','promo2_title','promo2_desc','promo2_btn',
+   'why_title','w1t','w1d','w2t','w2d','w3t','w3d','w4t','w4d',
+   'footer_desc','ft1','ft2','ft3','fl1','fl2','fl3','fl4',
+   'fl5','fl6','fl7','fl8','footer_copy',
+   'nav_catalog','nav_cats','nav_shops','nav_wholesale','nav_delivery','nav_about'
+  ].forEach(k => {
+    const el = document.getElementById(k.replace(/_/g,'-') !== k ? k : k);
+    if(el) el.textContent = d[k] || d[k.replace('-','_')] || '';
+  });
+  renderCats(); renderProds();
+}
+
+function renderCats() {
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = categories.map(c => `
+    <a href="catalog.html" class="cat-card">
+      <div class="cat-icon">${c.icon}</div>
+      <div class="cat-name">${lang==='ru'?c.ru:c.kk}</div>
+      <div class="cat-count">${c.count} товаров</div>
+    </a>`).join('');
+}
+
+function renderProds() {
+  const grid = document.getElementById('prod-grid');
+  const btnText = t[lang].add_cart;
+  grid.innerHTML = products.map((p,i) => `
+    <div class="prod-card">
+      <div class="prod-img">${p.icon}${p.badge?`<span class="prod-badge">${p.badge}</span>`:''}</div>
+      <div class="prod-body">
+        <div class="prod-name">${lang==='ru'?p.name_ru:p.name_kk}</div>
+        <div class="prod-spec">${p.spec}</div>
+        <div class="prod-footer">
+          <div><span class="prod-price">${p.price} ₸</span>${p.old?`<span class="prod-price-old">${p.old} ₸</span>`:''}</div>
+          <button class="btn-cart" onclick="addCart(${i})">${btnText}</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function addCart(i) {
+  cartCount++;
+  document.getElementById('cart-count').textContent = cartCount;
+  const btn = document.querySelectorAll('.btn-cart')[i];
+  btn.textContent = '✓';
+  btn.style.background = '#16a34a';
+  setTimeout(() => { btn.textContent = t[lang].add_cart; btn.style.background = ''; }, 1500);
+}
+
+function doSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  if(q) window.location.href = `catalog.html?q=${encodeURIComponent(q)}`;
+}
+document.getElementById('search-input').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+
+// init
+renderCats(); renderProds();
+</script>
 </body>
 </html>
