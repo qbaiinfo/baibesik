@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Панель магазина</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #f97316;
+  --orange-dark: #c2410c;
+  --dark: #0f172a;
+  --dark2: #1e293b;
+  --gray: #64748b;
+  --border: #e2e8f0;
+  --light: #f8fafc;
+  --green: #10b981;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --yellow: #f59e0b;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans', sans-serif; background: var(--light); color: var(--dark); }
+
+/* ── HEADER ── */
+header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
+.header-inner { max-width: 1100px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 14px; }
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--orange); letter-spacing: 2px; text-decoration: none; }
+.logo span { color: white; }
+.header-center { flex: 1; }
+.shop-label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+.shop-name { font-size: 14px; font-weight: 700; color: white; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+.lang-btn { background: rgba(255,255,255,0.08); color: #94a3b8; border: 1px solid rgba(255,255,255,0.12); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; font-family: 'Noto Sans', sans-serif; transition: all 0.2s; }
+.lang-btn.active { background: var(--orange); color: white; border-color: var(--orange); }
+.online-dot { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--green); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.btn-back { color: #94a3b8; text-decoration: none; font-size: 12px; font-weight: 600; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; }
+
+/* ── TABS ── */
+.tabs-bar { background: white; border-bottom: 2px solid var(--border); }
+.tabs-inner { max-width: 1100px; margin: 0 auto; padding: 0 20px; display: flex; }
+.tab-btn { padding: 12px 18px; font-size: 13px; font-weight: 700; color: var(--gray); cursor: pointer; border-bottom: 3px solid transparent; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Noto Sans', sans-serif; white-space: nowrap; transition: all 0.2s; position: relative; }
+.tab-btn:hover { color: var(--orange); }
+.tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+.tab-badge { position: absolute; top: 8px; right: 4px; background: var(--red); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+
+/* ── LAYOUT ── */
+.content { max-width: 1100px; margin: 0 auto; padding: 20px; }
+.tab-section { display: none; }
+.tab-section.active { display: block; }
+
+/* ── STAT CARDS ── */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+.stat-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; border-left: 4px solid var(--border); }
+.stat-card.orange { border-left-color: var(--orange); }
+.stat-card.green  { border-left-color: var(--green); }
+.stat-card.blue   { border-left-color: var(--blue); }
+.stat-card.yellow { border-left-color: var(--yellow); }
+.sc-icon { font-size: 20px; margin-bottom: 6px; }
+.sc-label { font-size: 11px; font-weight: 800; color: var(--gray); text-transform: uppercase; }
+.sc-val { font-family: 'Bebas Neue', sans-serif; font-size: 26px; margin-top: 3px; }
+.sc-val.orange { color: var(--orange-dark); }
+.sc-val.green  { color: var(--green); }
+.sc-val.blue   { color: var(--blue); }
+.sc-val.yellow { color: var(--yellow); }
+
+/* ── ORDER CARD ── */
+.order-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; overflow: hidden; transition: box-shadow 0.2s; }
+.order-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+.order-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+.order-id { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--orange); letter-spacing: 1px; }
+.order-client { font-size: 14px; font-weight: 700; flex: 1; }
+.order-client-meta { font-size: 11px; color: var(--gray); margin-top: 1px; }
+.order-body { padding: 14px 18px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; }
+.order-items { font-size: 12px; color: var(--gray); line-height: 1.6; }
+.order-item-row { display: flex; gap: 8px; align-items: baseline; margin-bottom: 3px; }
+.order-item-name { font-weight: 700; color: var(--dark); }
+.order-item-qty { color: var(--orange); font-weight: 800; }
+.order-footer { padding: 12px 18px; background: var(--light); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.order-amount { font-size: 16px; font-weight: 900; color: var(--green); margin-right: auto; }
+
+/* ── BADGES ── */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.badge-new      { background: rgba(249,115,22,0.1); color: var(--orange); }
+.badge-ready    { background: rgba(245,158,11,0.1); color: var(--yellow); }
+.badge-delivery { background: rgba(59,130,246,0.1); color: var(--blue); }
+.badge-done     { background: rgba(16,185,129,0.1); color: var(--green); }
+.badge-cash     { background: rgba(245,158,11,0.1); color: var(--yellow); }
+.badge-kaspi    { background: rgba(239,68,68,0.1);  color: var(--red); }
+.badge-halyk    { background: rgba(16,185,129,0.1); color: var(--green); }
+.badge-pickup   { background: rgba(100,116,139,0.1); color: var(--gray); }
+
+/* ── BUTTONS ── */
+.btn { border: none; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-dark    { background: var(--dark); color: var(--orange); }
+.btn-dark:hover { background: var(--dark2); }
+.btn-green   { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+.btn-green:hover { background: var(--green); color: white; }
+.btn-orange  { background: var(--orange); color: white; }
+.btn-orange:hover { background: var(--orange-dark); }
+.btn-ghost   { background: white; color: var(--gray); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--orange); color: var(--orange); }
+.btn-disabled { opacity: 0.4; pointer-events: none; }
+
+/* ── MODAL OVERLAY ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border-radius: 16px; width: 100%; max-width: 520px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-head { background: var(--dark); padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--orange); letter-spacing: 1px; }
+.modal-close { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; transition: color 0.2s; }
+.modal-close:hover { color: white; }
+.modal-body { padding: 20px 22px; }
+
+/* ── ADDRESS BLOCK ── */
+.addr-block { background: var(--light); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+.addr-label { font-size: 10px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.addr-text { font-size: 14px; font-weight: 700; color: var(--dark); }
+.addr-coords { font-size: 11px; color: var(--gray); margin-top: 3px; font-family: monospace; }
+
+/* ── PRICE ESTIMATE ── */
+.price-estimate { background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 100%); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pe-item { text-align: center; }
+.pe-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+.pe-val { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--orange); margin-top: 3px; }
+.pe-sub { font-size: 10px; color: #64748b; margin-top: 1px; }
+
+/* ── COURIER BUTTONS ── */
+.courier-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.btn-indrive { background: #1a1a2e; color: #00d4aa; border: 1px solid #00d4aa33; padding: 14px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: 'Noto Sans', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; display: block; }
+.btn-indrive:hover { background: #00d4aa; color: #1a1a2e; }
+.btn-yandex { background: #fff; color: #fc3f1d; border: 1.5px solid #fc3f1d33; padding: 14px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: 'Noto Sans', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; display: block; }
+.btn-yandex:hover { background: #fc3f1d; color: white; }
+.courier-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+.courier-name { font-size: 14px; font-weight: 900; }
+.courier-sub { font-size: 10px; opacity: 0.7; margin-top: 2px; }
+.cash-warning { background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; font-size: 12px; font-weight: 700; color: #92400e; display: flex; align-items: center; gap: 8px; }
+
+/* ── TABLE ── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { font-size: 11px; text-transform: uppercase; color: var(--gray); padding: 8px 10px; border-bottom: 2px solid var(--border); text-align: left; font-weight: 800; }
+.data-table td { font-size: 13px; padding: 11px 10px; border-bottom: 1px solid var(--border); font-weight: 600; vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--light); }
+
+/* ── SECTION CARD ── */
+.section-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+.section-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.section-title { font-size: 13px; font-weight: 800; color: var(--dark); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .order-body { grid-template-columns: 1fr; }
+  .courier-btns { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="header-center">
+      <div class="shop-label" id="h-label">Панель магазина</div>
+      <div class="shop-name" id="h-name">Alik Hırdavat — Байбесик</div>
+    </div>
+    <div class="header-right">
+      <div class="online-dot"><div class="dot"></div><span id="online-txt">Онлайн</span></div>
+      <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" onclick="setLang('kk')">KK</button>
+      <a href="index.html" class="btn-back" id="btn-back">← Сайт</a>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <div class="tabs-inner">
+    <button class="tab-btn active" onclick="showTab('orders', this)" id="tab-orders">
+      📦 <span id="tl-orders">Заказы</span>
+      <span class="tab-badge" id="new-badge">3</span>
+    </button>
+    <button class="tab-btn" onclick="showTab('history', this)" id="tab-history">📋 <span id="tl-history">История</span></button>
+    <button class="tab-btn" onclick="showTab('products', this)" id="tab-products">🏷️ <span id="tl-products">Товары</span></button>
+    <button class="tab-btn" onclick="showTab('finance', this)" id="tab-finance">💰 <span id="tl-finance">Финансы</span></button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ══ STATS ══ -->
+  <div class="stats-row">
+    <div class="stat-card orange">
+      <div class="sc-icon">🔔</div>
+      <div class="sc-label" id="s1-label">Новых заказов</div>
+      <div class="sc-val orange" id="s1-val">3</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="sc-icon">⏳</div>
+      <div class="sc-label" id="s2-label">Готовится</div>
+      <div class="sc-val yellow" id="s2-val">2</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="sc-icon">🛵</div>
+      <div class="sc-label" id="s3-label">В доставке</div>
+      <div class="sc-val blue" id="s3-val">1</div>
+    </div>
+    <div class="stat-card green">
+      <div class="sc-icon">💰</div>
+      <div class="sc-label" id="s4-label">Сегодня (₸)</div>
+      <div class="sc-val green">45,200</div>
+    </div>
+  </div>
+
+  <!-- ══ ORDERS TAB ══ -->
+  <div class="tab-section active" id="sec-orders">
+    <div id="orders-container"></div>
+  </div>
+
+  <!-- ══ HISTORY TAB ══ -->
+  <div class="tab-section" id="sec-history">
+    <div class="section-card">
+      <div class="section-head"><span class="section-title" id="hist-title">📋 История заказов</span></div>
+      <div style="overflow-x:auto">
+        <table class="data-table" style="min-width:600px">
+          <thead><tr>
+            <th>ID</th>
+            <th id="th-date">Дата</th>
+            <th id="th-client">Клиент</th>
+            <th id="th-pay">Оплата</th>
+            <th id="th-deliver">Доставка</th>
+            <th id="th-amount">Сумма</th>
+            <th id="th-status">Статус</th>
+          </tr></thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PRODUCTS TAB ══ -->
+  <div class="tab-section" id="sec-products">
+    <div class="section-card">
+      <div class="section-head">
+        <span class="section-title" id="prod-title">🏷️ Мои товары</span>
+        <button class="btn btn-orange" onclick="alert('Форма добавления (Supabase подключим позже)')" id="btn-add">+ Добавить</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr>
+            <th id="th-p-name">Товар</th>
+            <th id="th-p-price">Цена</th>
+            <th id="th-p-ws">Оптовая</th>
+            <th id="th-p-stock">Склад</th>
+            <th id="th-p-status">Статус</th>
+          </tr></thead>
+          <tbody id="products-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FINANCE TAB ══ -->
+  <div class="tab-section" id="sec-finance">
+    <div class="section-card">
+      <div class="section-head"><span class="section-title" id="fin-title">💰 Финансы</span></div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr>
+            <th id="th-f-date">Дата</th><th>ID</th>
+            <th id="th-f-pay">Оплата</th>
+            <th id="th-f-sum">Выручка</th>
+            <th id="th-f-courier">Курьер</th>
+            <th id="th-f-profit" style="color:var(--green)">Прибыль</th>
+          </tr></thead>
+          <tbody id="finance-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- ══ COURIER MODAL ══ -->
+<div class="modal-overlay" id="courier-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">🛵 Вызов курьера</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Order info -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--orange)" id="m-order-id">#BBS-9942</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700" id="m-client-name">Ерканат Жұмабай</div>
+          <div style="font-size:12px;color:var(--gray)" id="m-client-phone">+7 707 123 4567</div>
+        </div>
+        <div style="font-size:16px;font-weight:900;color:var(--green)" id="m-amount">5,800 ₸</div>
+      </div>
+
+      <!-- FROM address -->
+      <div class="addr-block" style="margin-bottom:8px">
+        <div class="addr-label" id="m-from-label">📍 От (ваш магазин)</div>
+        <div class="addr-text" id="m-from-addr">Байбесик, ул. 2-я, уч. 14 — Alik Hırdavat</div>
+        <div class="addr-coords">43.2558° N, 76.9356° E</div>
+      </div>
+
+      <!-- TO address -->
+      <div class="addr-block">
+        <div class="addr-label" id="m-to-label">🏠 Куда (клиент)</div>
+        <div class="addr-text" id="m-to-addr">ул. Акжол, д. 14</div>
+        <div class="addr-coords" id="m-to-coords">43.2480° N, 76.9150° E</div>
+      </div>
+
+      <!-- Price estimate -->
+      <div class="price-estimate">
+        <div class="pe-item">
+          <div class="pe-label" id="pe-dist-label">Расстояние</div>
+          <div class="pe-val" id="pe-dist">2.4 км</div>
+          <div class="pe-sub" id="pe-dist-sub">по прямой</div>
+        </div>
+        <div class="pe-item">
+          <div class="pe-label" id="pe-time-label">Примерно</div>
+          <div class="pe-val" id="pe-time">12–18 мин</div>
+          <div class="pe-sub" id="pe-time-sub">время в пути</div>
+        </div>
+        <div class="pe-item">
+          <div class="pe-label" id="pe-indrive-label">InDrive ~</div>
+          <div class="pe-val" id="pe-indrive-price">900–1200 ₸</div>
+          <div class="pe-sub">тариф Almatы</div>
+        </div>
+        <div class="pe-item">
+          <div class="pe-label" id="pe-yandex-label">Яндекс ~</div>
+          <div class="pe-val" id="pe-yandex-price">1100–1500 ₸</div>
+          <div class="pe-sub">Dostavka</div>
+        </div>
+      </div>
+
+      <!-- CASH WARNING -->
+      <div class="cash-warning" id="cash-warning" style="display:none;margin-bottom:12px">
+        ⚠️ <span id="cash-warn-text">Оплата наличными — курьер недоступен. Клиент заберёт сам.</span>
+      </div>
+
+      <!-- COURIER BUTTONS -->
+      <div class="courier-btns" id="courier-btn-area">
+        <a id="btn-indrive" href="#" onclick="callCourier('indrive')" class="btn-indrive">
+          <span class="courier-icon">🟢</span>
+          <span class="courier-name">InDrive</span>
+          <span class="courier-sub" id="indrive-sub">Адрес вставится автоматически</span>
+        </a>
+        <a id="btn-yandex" href="#" onclick="callCourier('yandex')" class="btn-yandex">
+          <span class="courier-icon">🔴</span>
+          <span class="courier-name">Яндекс Доставка</span>
+          <span class="courier-sub" id="yandex-sub">Адрес вставится автоматически</span>
+        </a>
+      </div>
+
+      <div style="font-size:11px;color:var(--gray);text-align:center;line-height:1.6" id="modal-note">
+        После выбора курьера — адрес клиента автоматически передаётся в приложение.
+        Статус заказа обновится на «В доставке».
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STORE CONFIG ───────────────────────────────────────
+const STORE = {
+  name: 'Alik Hırdavat',
+  address_ru: 'Байбесик, ул. 2-я, уч. 14',
+  address_kk: 'Байбесік, 2-ші көше, 14-телім',
+  lat: 43.2558,
+  lng: 76.9356,
+};
+
+// ─── DATA ───────────────────────────────────────────────
+const orders = [
+  {
+    id: 'BBS-9942', status: 'new',
+    client: 'Ерканат Жұмабай', phone: '+7 707 123 4567',
+    address_ru: 'ул. Акжол, д. 14', address_kk: 'Ақжол көшесі, 14 үй',
+    lat: 43.2480, lng: 76.9150,
+    pay: 'kaspi', delivery: 'courier',
+    items: [
+      { name_ru: 'Петля Blum Clip Top', name_kk: 'Blum Clip Top петлясы', qty: 4, price: 1450 },
+      { name_ru: 'Доводчик Blumotion', name_kk: 'Blumotion жетегі', qty: 4, price: 650 },
+    ],
+    amount: 8400,
+  },
+  {
+    id: 'BBS-9941', status: 'new',
+    client: 'Болат Мамытов', phone: '+7 701 200 3344',
+    address_ru: 'ул. Ынтымак, д. 7', address_kk: 'Ынтымақ көшесі, 7 үй',
+    lat: 43.2620, lng: 76.9420,
+    pay: 'cash', delivery: 'pickup',
+    items: [
+      { name_ru: 'Направляющие Boyard 450мм', name_kk: 'Boyard 450мм бағыттаушы', qty: 10, price: 3200 },
+    ],
+    amount: 32000,
+  },
+  {
+    id: 'BBS-9940', status: 'new',
+    client: 'Зарина Ахметова', phone: '+7 777 456 7890',
+    address_ru: 'мкр. Думан, д. 22', address_kk: 'Думан мкр., 22 үй',
+    lat: 43.2310, lng: 76.8980,
+    pay: 'halyk', delivery: 'courier',
+    items: [
+      { name_ru: 'Конфирмат 7x50 (100шт)', name_kk: 'Конфирмат 7x50 (100дана)', qty: 2, price: 450 },
+      { name_ru: 'Ручка кнопка Matt Black', name_kk: 'Matt Black батырма тұтқасы', qty: 6, price: 380 },
+    ],
+    amount: 3180,
+  },
+  {
+    id: 'BBS-9939', status: 'ready',
+    client: 'Нұрлан Сейтқали', phone: '+7 702 333 4455',
+    address_ru: 'ул. Тимирязева, д. 5', address_kk: 'Тимирязев көшесі, 5 үй',
+    lat: 43.2650, lng: 76.9500,
+    pay: 'kaspi', delivery: 'courier',
+    items: [
+      { name_ru: 'Ящик Legrabox Pure 500мм', name_kk: 'Legrabox Pure 500мм', qty: 8, price: 9800 },
+    ],
+    amount: 78400,
+  },
+  {
+    id: 'BBS-9938', status: 'ready',
+    client: 'Айдар Бекенов', phone: '+7 705 678 9012',
+    address_ru: 'ул. 1-я, д. 38', address_kk: '1-ші көше, 38 үй',
+    lat: 43.2440, lng: 76.9200,
+    pay: 'halyk', delivery: 'courier',
+    items: [
+      { name_ru: 'Система раздвижных дверей', name_kk: 'Сырғымалы есік жүйесі', qty: 1, price: 12500 },
+    ],
+    amount: 12500,
+  },
+  {
+    id: 'BBS-9937', status: 'delivery',
+    client: 'Мадина Жаксыбай', phone: '+7 708 111 2233',
+    address_ru: 'пр. Абая, д. 99', address_kk: 'Абай даңғылы, 99 үй',
+    lat: 43.2550, lng: 76.9300,
+    pay: 'kaspi', delivery: 'courier',
+    items: [
+      { name_ru: 'Петля Samet 35мм (уп.)', name_kk: 'Samet 35мм петля (буп.)', qty: 2, price: 3400 },
+    ],
+    amount: 6800,
+  },
+];
+
+const historyOrders = [
+  { id:'BBS-9936', date:'26.05.2026', client:'Тимур Алиев', pay:'kaspi', delivery:'courier', amount:75000, status:'done' },
+  { id:'BBS-9935', date:'25.05.2026', client:'Асыл Бекова', pay:'cash', delivery:'pickup', amount:4500, status:'done' },
+  { id:'BBS-9934', date:'24.05.2026', client:'Данияр Омаров', pay:'halyk', delivery:'courier', amount:18200, status:'done' },
+  { id:'BBS-9933', date:'23.05.2026', client:'Гульнара Кали', pay:'kaspi', delivery:'courier', amount:9800, status:'done' },
+];
+
+const myProducts = [
+  { icon:'🔩', name_ru:'Петля Blum Clip Top 110°', name_kk:'Blum Clip Top 110°', price:1450, wholesale:1100, stock:142, active:true },
+  { icon:'📐', name_ru:'Направляющие Boyard 450мм', name_kk:'Boyard 450мм', price:3200, wholesale:2500, stock:34, active:true },
+  { icon:'🖐️', name_ru:'Ручка-профиль Gola 4м', name_kk:'Gola 4м тұтқа', price:8500, wholesale:6500, stock:8, active:true },
+  { icon:'🔧', name_ru:'Конфирмат 7x50 (100шт)', name_kk:'Конфирмат 7x50', price:450, wholesale:320, stock:580, active:true },
+  { icon:'📦', name_ru:'Ящик Legrabox Pure 500мм', name_kk:'Legrabox Pure 500мм', price:9800, wholesale:7800, stock:12, active:false },
+];
+
+const financeData = [
+  { date:'27.05.2026', id:'BBS-9942', pay:'kaspi', revenue:8400, courier:900, profit:2100 },
+  { date:'26.05.2026', id:'BBS-9936', pay:'kaspi', revenue:75000, courier:1200, profit:18750 },
+  { date:'25.05.2026', id:'BBS-9935', pay:'cash', revenue:4500, courier:0, profit:1125 },
+  { date:'24.05.2026', id:'BBS-9934', pay:'halyk', revenue:18200, courier:1000, profit:4550 },
+];
+
+// ─── STATE ───────────────────────────────────────────────
+let lang = 'ru';
+let currentOrder = null;
+
+// ─── TRANSLATIONS ───────────────────────────────────────
+const T = {
+  ru: {
+    'h-label':'Панель магазина', 'online-txt':'Онлайн', 'btn-back':'← Сайт',
+    'tl-orders':'Заказы', 'tl-history':'История', 'tl-products':'Товары', 'tl-finance':'Финансы',
+    's1-label':'Новых заказов', 's2-label':'Готовится', 's3-label':'В доставке', 's4-label':'Сегодня (₸)',
+    'modal-title':'🛵 Вызов курьера',
+    'm-from-label':'📍 От (ваш магазин)', 'm-to-label':'🏠 Куда (клиент)',
+    'pe-dist-label':'Расстояние', 'pe-dist-sub':'по прямой',
+    'pe-time-label':'Примерно', 'pe-time-sub':'время в пути',
+    'pe-indrive-label':'InDrive ~', 'pe-yandex-label':'Яндекс ~',
+    'indrive-sub':'Адрес вставится автоматически', 'yandex-sub':'Адрес вставится автоматически',
+    'cash-warn-text':'Оплата наличными — курьер недоступен. Клиент заберёт сам.',
+    'modal-note':'После выбора курьера — адрес клиента автоматически передаётся в приложение.',
+    'hist-title':'📋 История заказов', 'prod-title':'🏷️ Мои товары',
+    'btn-add':'+ Добавить', 'fin-title':'💰 Финансы',
+    'th-date':'Дата', 'th-client':'Клиент', 'th-pay':'Оплата', 'th-deliver':'Доставка', 'th-amount':'Сумма', 'th-status':'Статус',
+    'th-p-name':'Товар', 'th-p-price':'Цена', 'th-p-ws':'Оптовая', 'th-p-stock':'Склад', 'th-p-status':'Статус',
+    'th-f-date':'Дата', 'th-f-pay':'Оплата', 'th-f-sum':'Выручка', 'th-f-courier':'Курьер', 'th-f-profit':'Прибыль',
+    status_new:'Новый', status_ready:'Готовится', status_delivery:'В доставке', status_done:'Доставлено',
+    btn_prepare:'Начать сборку', btn_ready:'Готово → Вызвать курьера', btn_pickup_ready:'Готово → Ждём клиента', btn_done:'✓ Доставлено',
+    delivery_courier:'🛵 Курьер', delivery_pickup:'🏃 Самовывоз',
+    pay_kaspi:'📱 Kaspi QR', pay_halyk:'📱 Halyk QR', pay_cash:'💵 Наличные',
+    item_pcs:'шт',
+  },
+  kk: {
+    'h-label':'Дүкен панелі', 'online-txt':'Онлайн', 'btn-back':'← Сайт',
+    'tl-orders':'Тапсырыстар', 'tl-history':'Тарих', 'tl-products':'Тауарлар', 'tl-finance':'Қаржы',
+    's1-label':'Жаңа тапсырыс', 's2-label':'Дайындалуда', 's3-label':'Жолда', 's4-label':'Бүгін (₸)',
+    'modal-title':'🛵 Курьер шақыру',
+    'm-from-label':'📍 Қайдан (сіздің дүкен)', 'm-to-label':'🏠 Қайда (клиент)',
+    'pe-dist-label':'Қашықтық', 'pe-dist-sub':'тура жол',
+    'pe-time-label':'Шамамен', 'pe-time-sub':'жол уақыты',
+    'pe-indrive-label':'InDrive ~', 'pe-yandex-label':'Яндекс ~',
+    'indrive-sub':'Мекенжай автоматты қосылады', 'yandex-sub':'Мекенжай автоматты қосылады',
+    'cash-warn-text':'Қолма-қол төлем — курьер қолжетімсіз. Клиент өзі алып кетеді.',
+    'modal-note':'Курьер таңдағаннан кейін клиент мекенжайы автоматты жіберіледі.',
+    'hist-title':'📋 Тапсырыс тарихы', 'prod-title':'🏷️ Менің тауарларым',
+    'btn-add':'+ Қосу', 'fin-title':'💰 Қаржы',
+    'th-date':'Күні', 'th-client':'Клиент', 'th-pay':'Төлем', 'th-deliver':'Жеткізу', 'th-amount':'Сомасы', 'th-status':'Статус',
+    'th-p-name':'Тауар', 'th-p-price':'Баға', 'th-p-ws':'Көтерме', 'th-p-stock':'Қойма', 'th-p-status':'Статус',
+    'th-f-date':'Күні', 'th-f-pay':'Төлем', 'th-f-sum':'Айналым', 'th-f-courier':'Курьер', 'th-f-profit':'Пайда',
+    status_new:'Жаңа', status_ready:'Дайындалуда', status_delivery:'Жолда', status_done:'Жеткізілді',
+    btn_prepare:'Жинауды бастау', btn_ready:'Дайын → Курьер шақыру', btn_pickup_ready:'Дайын → Клиент күтілуде', btn_done:'✓ Жеткізілді',
+    delivery_courier:'🛵 Курьер', delivery_pickup:'🏃 Өзі алады',
+    pay_kaspi:'📱 Kaspi QR', pay_halyk:'📱 Halyk QR', pay_cash:'💵 Қолма-қол',
+    item_pcs:'дана',
+  }
+};
+
+// ─── HELPERS ────────────────────────────────────────────
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function estimatePrice(km) {
+  // Almaty yaklaşık fiyat hesabı
+  const base = 500;
+  const perKm = 180;
+  const low  = Math.round((base + km * perKm) / 100) * 100;
+  const high = Math.round(low * 1.35 / 100) * 100;
+  return { indrive: `${low.toLocaleString()}–${high.toLocaleString()} ₸`, yandex: `${Math.round(low*1.2).toLocaleString()}–${Math.round(high*1.25).toLocaleString()} ₸` };
+}
+
+function estimateTime(km) {
+  const min = Math.round(km * 4 + 5);
+  const max = Math.round(km * 5 + 10);
+  return `${min}–${max} ${lang==='ru'?'мин':'мин'}`;
+}
+
+function buildIndriveLink(order) {
+  const from = encodeURIComponent(`${STORE.lat},${STORE.lng}`);
+  const to   = encodeURIComponent(`${order.lat},${order.lng}`);
+  const addr = encodeURIComponent(lang==='ru' ? order.address_ru : order.address_kk);
+  // Mobile deeplink
+  const mobile = `indrive://com.slydev.driver/route?start_lat=${STORE.lat}&start_lng=${STORE.lng}&finish_lat=${order.lat}&finish_lng=${order.lng}&finish_address=${addr}`;
+  // Web fallback
+  const web = `https://indrive.com/kz/delivery/?start_lat=${STORE.lat}&start_lng=${STORE.lng}&end_lat=${order.lat}&end_lng=${order.lng}&end_address=${addr}`;
+  return { mobile, web };
+}
+
+function buildYandexLink(order) {
+  const addr = encodeURIComponent(lang==='ru' ? order.address_ru : order.address_kk);
+  // Yandex Go deeplink (mobile)
+  const mobile = `yandextaxi://route?end-lat=${order.lat}&end-lon=${order.lng}&end-name=${addr}&ref=baibesik`;
+  // Web fallback
+  const web = `https://go.yandex/route?end-lat=${order.lat}&end-lon=${order.lng}&end-name=${addr}`;
+  return { mobile, web };
+}
+
+function statusBadge(s) {
+  const d = T[lang];
+  const cfg = {
+    new:      { cls:'badge-new',      icon:'🔔', label: d.status_new },
+    ready:    { cls:'badge-ready',    icon:'⏳', label: d.status_ready },
+    delivery: { cls:'badge-delivery', icon:'🛵', label: d.status_delivery },
+    done:     { cls:'badge-done',     icon:'✓',  label: d.status_done },
+  };
+  const c = cfg[s] || cfg.new;
+  return `<span class="badge ${c.cls}">${c.icon} ${c.label}</span>`;
+}
+
+function payBadge(p) {
+  const d = T[lang];
+  const cfg = {
+    kaspi: { cls:'badge-kaspi', label: d.pay_kaspi },
+    halyk: { cls:'badge-halyk', label: d.pay_halyk },
+    cash:  { cls:'badge-cash',  label: d.pay_cash },
+  };
+  const c = cfg[p] || {};
+  return `<span class="badge ${c.cls||''}">${c.label||p}</span>`;
+}
+
+function deliveryBadge(d_type) {
+  const d = T[lang];
+  return d_type === 'courier'
+    ? `<span class="badge badge-delivery">${d.delivery_courier}</span>`
+    : `<span class="badge badge-pickup">${d.delivery_pickup}</span>`;
+}
+
+// ─── RENDER ORDERS ───────────────────────────────────────
+function renderOrders() {
+  const d = T[lang];
+  const active = orders.filter(o => o.status !== 'done');
+  if(active.length === 0) {
+    document.getElementById('orders-container').innerHTML = `<div style="text-align:center;padding:60px;color:var(--gray)"><div style="font-size:48px;margin-bottom:12px">📭</div><div style="font-size:15px;font-weight:600">${lang==='ru'?'Нет активных заказов':'Белсенді тапсырыс жоқ'}</div></div>`;
+    return;
+  }
+  document.getElementById('orders-container').innerHTML = active.map(o => {
+    const isCash = o.pay === 'cash';
+    const isPickup = o.delivery === 'pickup';
+    const canCallCourier = !isCash && !isPickup && o.status === 'ready';
+    const canPickupReady = (isCash || isPickup) && o.status === 'ready';
+
+    let actionBtn = '';
+    if (o.status === 'new') {
+      actionBtn = `<button class="btn btn-dark" onclick="prepareOrder('${o.id}')">${d.btn_prepare}</button>`;
+    } else if (o.status === 'ready' && !isCash && !isPickup) {
+      actionBtn = `<button class="btn btn-orange" onclick="openCourierModal('${o.id}')">${d.btn_ready}</button>`;
+    } else if (o.status === 'ready' && (isCash || isPickup)) {
+      actionBtn = `<button class="btn btn-green" onclick="markPickupReady('${o.id}')">${d.btn_pickup_ready}</button>`;
+    } else if (o.status === 'delivery') {
+      actionBtn = `<button class="btn btn-green" onclick="markDone('${o.id}')">${d.btn_done}</button>`;
+    }
+
+    const items = o.items.map(it =>
+      `<div class="order-item-row"><span class="order-item-qty">${it.qty} ${d.item_pcs}</span><span class="order-item-name">${lang==='ru'?it.name_ru:it.name_kk}</span><span style="color:var(--gray);font-size:11px">× ${it.price.toLocaleString()} ₸</span></div>`
+    ).join('');
+
+    return `
+      <div class="order-card" id="card-${o.id}">
+        <div class="order-header">
+          <div class="order-id">#${o.id}</div>
+          <div style="flex:1;margin:0 12px">
+            <div class="order-client">${o.client}</div>
+            <div class="order-client-meta">${o.phone} &nbsp;|&nbsp; ${lang==='ru'?o.address_ru:o.address_kk}</div>
+          </div>
+          ${statusBadge(o.status)}
+        </div>
+        <div class="order-body">
+          <div class="order-items">${items}</div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+            ${payBadge(o.pay)}
+            ${deliveryBadge(o.delivery)}
+          </div>
+        </div>
+        <div class="order-footer">
+          <div class="order-amount">${o.amount.toLocaleString()} ₸</div>
+          ${actionBtn}
+        </div>
+      </div>`;
+  }).join('');
+
+  // Update stats
+  document.getElementById('s1-val').textContent = orders.filter(o=>o.status==='new').length;
+  document.getElementById('s2-val').textContent = orders.filter(o=>o.status==='ready').length;
+  document.getElementById('s3-val').textContent = orders.filter(o=>o.status==='delivery').length;
+  document.getElementById('new-badge').textContent = orders.filter(o=>o.status==='new').length;
+}
+
+// ─── ORDER ACTIONS ───────────────────────────────────────
+function prepareOrder(id) {
+  const o = orders.find(x=>x.id===id);
+  if(o) { o.status = 'ready'; renderOrders(); }
+}
+
+function markPickupReady(id) {
+  const d = T[lang];
+  const o = orders.find(x=>x.id===id);
+  if(o) {
+    o.status = 'done';
+    renderOrders();
+    alert(`✅ ${o.client} ${lang==='ru'?'— заберёт товар из магазина. Заказ завершён.':'— тауарды дүкеннен алып кетеді. Тапсырыс аяқталды.'}`);
+  }
+}
+
+function markDone(id) {
+  const o = orders.find(x=>x.id===id);
+  if(o) { o.status = 'done'; renderOrders(); }
+}
+
+// ─── COURIER MODAL ───────────────────────────────────────
+function openCourierModal(id) {
+  const o = orders.find(x=>x.id===id);
+  if(!o) return;
+  currentOrder = o;
+  const d = T[lang];
+
+  // Fill order info
+  document.getElementById('m-order-id').textContent = '#' + o.id;
+  document.getElementById('m-client-name').textContent = o.client;
+  document.getElementById('m-client-phone').textContent = o.phone;
+  document.getElementById('m-amount').textContent = o.amount.toLocaleString() + ' ₸';
+  document.getElementById('m-from-addr').textContent = lang==='ru' ? STORE.address_ru : STORE.address_kk;
+  document.getElementById('m-to-addr').textContent = lang==='ru' ? o.address_ru : o.address_kk;
+  document.getElementById('m-to-coords').textContent = `${o.lat}° N, ${o.lng}° E`;
+
+  // Distance & price
+  const km = haversineKm(STORE.lat, STORE.lng, o.lat, o.lng);
+  const prices = estimatePrice(km);
+  const time = estimateTime(km);
+  document.getElementById('pe-dist').textContent = km.toFixed(1) + ' км';
+  document.getElementById('pe-time').textContent = time;
+  document.getElementById('pe-indrive-price').textContent = prices.indrive;
+  document.getElementById('pe-yandex-price').textContent = prices.yandex;
+
+  // Cash warning
+  const cashWarn = document.getElementById('cash-warning');
+  const courierArea = document.getElementById('courier-btn-area');
+  if(o.pay === 'cash') {
+    cashWarn.style.display = 'flex';
+    courierArea.style.display = 'none';
+  } else {
+    cashWarn.style.display = 'none';
+    courierArea.style.display = 'grid';
+  }
+
+  document.getElementById('courier-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('courier-modal').classList.remove('open');
+  currentOrder = null;
+}
+
+// ─── CALL COURIER (DEEPLINK) ─────────────────────────────
+function callCourier(type) {
+  if(!currentOrder) return;
+  const o = currentOrder;
+
+  if(type === 'indrive') {
+    const links = buildIndriveLink(o);
+    // Try mobile deeplink first, fallback to web
+    const start = Date.now();
+    window.location.href = links.mobile;
+    setTimeout(() => {
+      if(Date.now() - start < 2000) {
+        window.open(links.web, '_blank');
+      }
+    }, 1500);
+  } else {
+    const links = buildYandexLink(o);
+    const start = Date.now();
+    window.location.href = links.mobile;
+    setTimeout(() => {
+      if(Date.now() - start < 2000) {
+        window.open(links.web, '_blank');
+      }
+    }, 1500);
+  }
+
+  // Update order status → delivery
+  const idx = orders.findIndex(x=>x.id===o.id);
+  if(idx >= 0) orders[idx].status = 'delivery';
+
+  closeModal();
+  renderOrders();
+
+  const svc = type === 'indrive' ? 'InDrive' : 'Яндекс Доставка';
+  setTimeout(() => {
+    alert(`🛵 ${svc} ${lang==='ru'?'открывается. Адрес клиента передан автоматически. Заказ переведён в статус «В доставке».':'ашылуда. Клиент мекенжайы автоматты жіберілді. Тапсырыс «Жолда» статусына өтті.'}`);
+  }, 300);
+}
+
+// ─── RENDER HISTORY ──────────────────────────────────────
+function renderHistory() {
+  const d = T[lang];
+  document.getElementById('history-body').innerHTML = historyOrders.map(o => `
+    <tr>
+      <td style="color:var(--orange);font-weight:800">#${o.id}</td>
+      <td>${o.date}</td>
+      <td style="font-weight:700">${o.client}</td>
+      <td>${payBadge(o.pay)}</td>
+      <td>${deliveryBadge(o.delivery)}</td>
+      <td style="color:var(--green);font-weight:800">${o.amount.toLocaleString()} ₸</td>
+      <td>${statusBadge(o.status)}</td>
+    </tr>`).join('');
+}
+
+// ─── RENDER PRODUCTS ─────────────────────────────────────
+function renderProducts() {
+  document.getElementById('products-body').innerHTML = myProducts.map(p => `
+    <tr>
+      <td><span style="font-size:16px;margin-right:8px">${p.icon}</span><span style="font-weight:700">${lang==='ru'?p.name_ru:p.name_kk}</span></td>
+      <td style="font-weight:700">${p.price.toLocaleString()} ₸</td>
+      <td style="color:var(--green);font-weight:700">${p.wholesale.toLocaleString()} ₸</td>
+      <td>${p.stock} ${T[lang].item_pcs}</td>
+      <td>${p.active ? `<span class="badge badge-done">● ${lang==='ru'?'Активен':'Белсенді'}</span>` : `<span class="badge badge-new">${lang==='ru'?'Скрыт':'Жасырын'}</span>`}</td>
+    </tr>`).join('');
+}
+
+// ─── RENDER FINANCE ──────────────────────────────────────
+function renderFinance() {
+  document.getElementById('finance-body').innerHTML = financeData.map(r => `
+    <tr>
+      <td>${r.date}</td>
+      <td style="color:var(--orange)">#${r.id}</td>
+      <td>${payBadge(r.pay)}</td>
+      <td style="font-weight:800">${r.revenue.toLocaleString()} ₸</td>
+      <td>${r.courier>0?r.courier.toLocaleString()+' ₸':'—'}</td>
+      <td style="color:var(--green);font-weight:800">+${r.profit.toLocaleString()} ₸</td>
+    </tr>`).join('');
+}
+
+// ─── LANG ────────────────────────────────────────────────
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().toLowerCase() === l));
+  const d = T[l];
+  const keys = ['h-label','online-txt','btn-back','tl-orders','tl-history','tl-products','tl-finance',
+    's1-label','s2-label','s3-label','s4-label','modal-title','m-from-label','m-to-label',
+    'pe-dist-label','pe-dist-sub','pe-time-label','pe-time-sub','pe-indrive-label','pe-yandex-label',
+    'indrive-sub','yandex-sub','cash-warn-text','modal-note','hist-title','prod-title','btn-add','fin-title',
+    'th-date','th-client','th-pay','th-deliver','th-amount','th-status',
+    'th-p-name','th-p-price','th-p-ws','th-p-stock','th-p-status',
+    'th-f-date','th-f-pay','th-f-sum','th-f-courier','th-f-profit'];
+  keys.forEach(k => { const el = document.getElementById(k); if(el) el.textContent = d[k]||''; });
+  renderAll();
+}
+
+// ─── TABS ────────────────────────────────────────────────
+function showTab(id, el) {
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+}
+
+// ─── RENDER ALL ──────────────────────────────────────────
+function renderAll() {
+  renderOrders();
+  renderHistory();
+  renderProducts();
+  renderFinance();
+}
+
+// ─── CLOSE MODAL ON OVERLAY CLICK ───────────────────────
+document.getElementById('courier-modal').addEventListener('click', function(e) {
+  if(e.target === this) closeModal();
+});
+
+// ─── INIT ────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Оформление заказа</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;
+  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;
+  --border:#e2e8f0;--light:#f8fafc;
+  --green:#10b981;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+
+/* HEADER */
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--orange);letter-spacing:2px;text-decoration:none;flex-shrink:0}
+.logo span{color:#fff}
+.htitle{flex:1;font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px}
+.hr{display:flex;gap:8px;align-items:center}
+.lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Noto Sans',sans-serif;transition:all .2s}
+.lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.btn-back{color:#94a3b8;text-decoration:none;font-size:12px;font-weight:600;padding:6px 12px;border:1px solid rgba(255,255,255,.1);border-radius:6px;transition:all .2s}
+.btn-back:hover{color:var(--orange);border-color:var(--orange)}
+
+/* STEPS */
+.steps-bar{background:#fff;border-bottom:1px solid var(--border)}
+.steps-inner{max-width:1100px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:0}
+.step{display:flex;align-items:center;gap:8px;flex:1}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;border:2px solid var(--border);background:#fff;flex-shrink:0;transition:all .3s}
+.step-num.done{background:var(--green);border-color:var(--green);color:#fff}
+.step-num.active{background:var(--orange);border-color:var(--orange);color:#fff}
+.step-lbl{font-size:12px;font-weight:700;color:var(--gray);white-space:nowrap}
+.step-lbl.active{color:var(--orange)}
+.step-lbl.done{color:var(--green)}
+.step-line{flex:1;height:2px;background:var(--border);margin:0 8px;transition:background .3s}
+.step-line.done{background:var(--green)}
+
+/* LAYOUT */
+.layout{max-width:1100px;margin:0 auto;padding:20px 16px;display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+
+/* SECTION CARD */
+.sec{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.sec-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sec-num{width:24px;height:24px;border-radius:50%;background:var(--orange);color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-title{font-size:13px;font-weight:800;color:var(--dark);text-transform:uppercase;letter-spacing:.5px}
+.sec-body{padding:16px 18px}
+
+/* CART ITEMS */
+.cart-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.cart-item:last-child{border-bottom:none}
+.ci-icon{width:52px;height:52px;background:var(--light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;position:relative}
+.ci-heavy{position:absolute;bottom:-4px;right:-4px;background:var(--dark);color:#fbbf24;font-size:8px;font-weight:800;padding:1px 4px;border-radius:3px}
+.ci-info{flex:1}
+.ci-name{font-size:13px;font-weight:700;color:var(--dark)}
+.ci-store{font-size:11px;color:var(--gray);margin-top:2px}
+.ci-spec{font-size:11px;color:#94a3b8;margin-top:1px}
+.ci-qty{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.qty-btn{width:26px;height:26px;border:1.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.qty-btn:hover{border-color:var(--orange);color:var(--orange)}
+.qty-num{font-size:14px;font-weight:800;min-width:24px;text-align:center}
+.ci-price{text-align:right;flex-shrink:0;min-width:80px}
+.ci-price-val{font-size:14px;font-weight:900;color:var(--orange-dark)}
+.ci-price-unit{font-size:10px;color:var(--gray)}
+.ci-del{background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:16px;padding:4px;transition:color .2s;flex-shrink:0}
+.ci-del:hover{color:var(--red)}
+
+/* STORE GROUP */
+.store-group{background:var(--light);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.sg-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.sg-icon{font-size:18px}
+.sg-name{font-size:13px;font-weight:800;color:var(--dark);flex:1}
+.sg-items-count{font-size:11px;color:var(--gray)}
+
+/* PAYMENT CHIPS */
+.pay-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px}
+.pay-chip{border:2px solid var(--border);border-radius:10px;padding:12px 10px;text-align:center;cursor:pointer;transition:all .2s;background:#fff;font-family:'Noto Sans',sans-serif}
+.pay-chip:hover{border-color:var(--orange);background:var(--orange-light)}
+.pay-chip.selected{border-color:var(--orange);background:var(--orange-light)}
+.pay-chip-icon{font-size:24px;display:block;margin-bottom:5px}
+.pay-chip-name{font-size:12px;font-weight:800;color:var(--dark)}
+.pay-chip-sub{font-size:10px;color:var(--gray);margin-top:2px}
+.pay-chip.selected .pay-chip-name{color:var(--orange-dark)}
+
+/* DELIVERY CHIPS */
+.del-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.del-chip{border:2px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .2s;background:#fff;font-family:'Noto Sans',sans-serif;text-align:left}
+.del-chip:hover{border-color:var(--orange);background:var(--orange-light)}
+.del-chip.selected{border-color:var(--orange);background:var(--orange-light)}
+.del-chip.disabled{opacity:.4;pointer-events:none;background:var(--light)}
+.del-icon{font-size:22px;margin-bottom:6px}
+.del-name{font-size:13px;font-weight:800;color:var(--dark)}
+.del-sub{font-size:11px;color:var(--gray);margin-top:3px;line-height:1.4}
+.del-chip.selected .del-name{color:var(--orange-dark)}
+
+/* ALERT */
+.alert{border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;display:flex;align-items:flex-start;gap:8px;margin-top:10px}
+.alert-warn{background:#fef3c7;border:1px solid #fde68a;color:#92400e}
+.alert-info{background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8}
+.alert-heavy{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.alert-green{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.fg.full{grid-column:1/-1}
+.fg-lbl{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+.fg-inp{padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Noto Sans',sans-serif;outline:none;transition:border-color .2s}
+.fg-inp:focus{border-color:var(--orange)}
+.fg-sel{padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Noto Sans',sans-serif;outline:none;cursor:pointer;background:#fff}
+
+/* SUMMARY CARD (RIGHT) */
+.summary{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;position:sticky;top:80px}
+.summary-head{background:var(--dark);padding:14px 18px}
+.summary-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange);letter-spacing:1px}
+.summary-body{padding:16px 18px}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--gray);margin-bottom:8px}
+.sum-row.total{font-size:16px;font-weight:900;color:var(--dark);margin-top:10px;padding-top:10px;border-top:2px dashed var(--border)}
+.sum-row.total span:last-child{color:var(--orange-dark)}
+.sum-store-row{background:var(--light);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:12px;font-weight:700;color:var(--dark)}
+.sum-store-name{color:var(--gray);font-size:11px;margin-bottom:2px}
+.sum-store-items{display:flex;justify-content:space-between}
+
+/* ORDER BUTTON */
+.btn-order{width:100%;background:var(--dark);color:var(--orange);border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s;margin-top:14px;letter-spacing:.5px}
+.btn-order:hover{background:var(--orange);color:#fff}
+.btn-order:disabled{opacity:.4;pointer-events:none}
+
+/* EMPTY */
+.empty-cart{text-align:center;padding:48px}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-text{font-size:15px;font-weight:600;color:var(--gray);margin-bottom:16px}
+.btn-go{background:var(--orange);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;text-decoration:none;display:inline-block}
+
+/* SUCCESS MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:20px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-body{padding:32px 28px;text-align:center}
+.modal-icon{font-size:56px;margin-bottom:16px}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--dark);letter-spacing:1px;margin-bottom:8px}
+.modal-sub{font-size:14px;color:var(--gray);line-height:1.6;margin-bottom:24px}
+.modal-order-id{background:var(--orange-light);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:12px;font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange-dark);letter-spacing:1px;margin-bottom:20px}
+.modal-btns{display:flex;gap:10px}
+.modal-btn{flex:1;padding:12px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;text-decoration:none;display:block;text-align:center;transition:all .2s}
+.modal-btn-primary{background:var(--dark);color:var(--orange);border:none}
+.modal-btn-primary:hover{background:var(--orange);color:#fff}
+.modal-btn-ghost{background:#fff;color:var(--gray);border:1.5px solid var(--border)}
+.modal-btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+
+/* STORE SPLIT VISUAL */
+.split-card{background:var(--light);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;border-left:4px solid var(--orange)}
+.split-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.split-store{font-size:13px;font-weight:800;color:var(--dark)}
+.split-item{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--gray);margin-bottom:4px}
+.split-total{display:flex;justify-content:space-between;font-size:13px;font-weight:800;color:var(--dark);padding-top:8px;border-top:1px dashed var(--border);margin-top:6px}
+
+/* RESPONSIVE */
+@media(max-width:900px){.layout{grid-template-columns:1fr}.summary{position:static}}
+@media(max-width:600px){.pay-grid{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}.steps-bar .step-lbl{display:none}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="hi">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="htitle" id="page-title">ОФОРМЛЕНИЕ ЗАКАЗА</div>
+    <div class="hr">
+      <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" onclick="setLang('kk')">KK</button>
+      <a href="catalog.html" class="btn-back" id="btn-back">← Каталог</a>
+    </div>
+  </div>
+</header>
+
+<!-- STEPS -->
+<div class="steps-bar">
+  <div class="steps-inner">
+    <div class="step">
+      <div class="step-num active" id="sn1">1</div>
+      <span class="step-lbl active" id="sl1">Корзина</span>
+    </div>
+    <div class="step-line" id="sl-line1"></div>
+    <div class="step">
+      <div class="step-num" id="sn2">2</div>
+      <span class="step-lbl" id="sl2">Оплата и доставка</span>
+    </div>
+    <div class="step-line" id="sl-line2"></div>
+    <div class="step">
+      <div class="step-num" id="sn3">3</div>
+      <span class="step-lbl" id="sl3">Подтверждение</span>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <div id="left-col">
+
+    <!-- STEP 1: CART -->
+    <div id="step1">
+      <div class="sec">
+        <div class="sec-head">
+          <div class="sec-num">1</div>
+          <div class="sec-title" id="cart-title">Ваша корзина</div>
+        </div>
+        <div class="sec-body" id="cart-body"></div>
+      </div>
+    </div>
+
+    <!-- STEP 2: PAYMENT + DELIVERY + ADDRESS -->
+    <div id="step2" style="display:none">
+
+      <!-- PAYMENT -->
+      <div class="sec">
+        <div class="sec-head">
+          <div class="sec-num">2</div>
+          <div class="sec-title" id="pay-title">Способ оплаты</div>
+        </div>
+        <div class="sec-body">
+          <div class="pay-grid">
+            <div class="pay-chip selected" id="pc-kaspi" onclick="selectPay('kaspi')">
+              <span class="pay-chip-icon">🔴</span>
+              <div class="pay-chip-name">Kaspi QR</div>
+              <div class="pay-chip-sub" id="pc-kaspi-sub">Быстро и удобно</div>
+            </div>
+            <div class="pay-chip" id="pc-halyk" onclick="selectPay('halyk')">
+              <span class="pay-chip-icon">🟢</span>
+              <div class="pay-chip-name">Halyk QR</div>
+              <div class="pay-chip-sub" id="pc-halyk-sub">Halyk Bank</div>
+            </div>
+            <div class="pay-chip" id="pc-cash" onclick="selectPay('cash')">
+              <span class="pay-chip-icon">💵</span>
+              <div class="pay-chip-name" id="pc-cash-name">Наличными</div>
+              <div class="pay-chip-sub" id="pc-cash-sub">При самовывозе</div>
+            </div>
+          </div>
+          <div class="alert alert-warn" id="cash-alert" style="display:none">
+            ⚠️ <span id="cash-alert-text">При наличной оплате курьерская доставка недоступна. Товар нужно забрать из магазина.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DELIVERY -->
+      <div class="sec">
+        <div class="sec-head">
+          <div class="sec-num">3</div>
+          <div class="sec-title" id="del-title">Способ доставки</div>
+        </div>
+        <div class="sec-body">
+          <div class="del-grid">
+            <div class="del-chip selected" id="dc-courier" onclick="selectDel('courier')">
+              <div class="del-icon">🛵</div>
+              <div class="del-name" id="dc-courier-name">Курьер</div>
+              <div class="del-sub" id="dc-courier-sub">InDrive или Яндекс Dostavka. Цена зависит от расстояния (~500–1500 ₸)</div>
+            </div>
+            <div class="del-chip" id="dc-pickup" onclick="selectDel('pickup')">
+              <div class="del-icon">🏃</div>
+              <div class="del-name" id="dc-pickup-name">Самовывоз</div>
+              <div class="del-sub" id="dc-pickup-sub">Бесплатно. Заберите сами из магазина в удобное время</div>
+            </div>
+          </div>
+          <div class="alert alert-heavy" id="heavy-alert" style="display:none">
+            ❌ <span id="heavy-alert-text">В корзине есть крупногабаритные товары (4м профиль, мойки, обувницы). Такие товары доставляются только самовывозом из магазина.</span>
+          </div>
+          <div class="alert alert-info" id="courier-info" style="display:none;margin-top:10px">
+            ℹ️ <span id="courier-info-text">Менеджер магазина вызовет курьера после подтверждения оплаты. Вы получите уведомление.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADDRESS -->
+      <div class="sec" id="addr-sec">
+        <div class="sec-head">
+          <div class="sec-num">4</div>
+          <div class="sec-title" id="addr-title">Адрес доставки</div>
+        </div>
+        <div class="sec-body">
+          <div class="form-row">
+            <div class="fg">
+              <span class="fg-lbl" id="lbl-name">Имя получателя</span>
+              <input class="fg-inp" id="inp-name" placeholder="Ерканат Жұмабай" value="Ерканат Жұмабай">
+            </div>
+            <div class="fg">
+              <span class="fg-lbl" id="lbl-phone">Телефон</span>
+              <input class="fg-inp" id="inp-phone" placeholder="+7 707 123 4567" value="+7 707 123 4567">
+            </div>
+          </div>
+          <div class="fg">
+            <span class="fg-lbl" id="lbl-street">Улица и дом</span>
+            <input class="fg-inp" id="inp-street" placeholder="ул. Акжол, д. 14, кв. 3" value="ул. Акжол, д. 14, кв. 3">
+          </div>
+          <div class="fg">
+            <span class="fg-lbl" id="lbl-comment">Комментарий (необязательно)</span>
+            <input class="fg-inp" id="inp-comment" placeholder="Код домофона, ориентир...">
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDER SPLIT PREVIEW -->
+      <div class="sec">
+        <div class="sec-head">
+          <div class="sec-num">5</div>
+          <div class="sec-title" id="split-title">Распределение по магазинам</div>
+        </div>
+        <div class="sec-body" id="split-body"></div>
+      </div>
+
+    </div>
+
+    <!-- STEP 3: CONFIRM -->
+    <div id="step3" style="display:none">
+      <div class="sec">
+        <div class="sec-head">
+          <div class="sec-num">✓</div>
+          <div class="sec-title" id="confirm-title">Подтверждение заказа</div>
+        </div>
+        <div class="sec-body" id="confirm-body"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: SUMMARY -->
+  <div>
+    <div class="summary">
+      <div class="summary-head">
+        <div class="summary-title" id="sum-title">ИТОГО</div>
+      </div>
+      <div class="summary-body">
+        <div id="sum-stores"></div>
+        <div class="sum-row"><span id="sum-items-lbl">Товары:</span><span id="sum-items-val">0 ₸</span></div>
+        <div class="sum-row" id="sum-del-row"><span id="sum-del-lbl">Доставка:</span><span id="sum-del-val">~ по тарифу</span></div>
+        <div class="sum-row total"><span id="sum-total-lbl">К оплате:</span><span id="sum-total-val">0 ₸</span></div>
+
+        <!-- STEP BUTTONS -->
+        <div id="step1-btns">
+          <button class="btn-order" id="btn-to-step2" onclick="goStep(2)">
+            <span id="btn-s2-text">Перейти к оплате →</span>
+          </button>
+          <a href="catalog.html" style="display:block;text-align:center;margin-top:10px;font-size:12px;font-weight:700;color:var(--gray);text-decoration:none" id="cont-shop-link">+ Добавить ещё товары</a>
+        </div>
+        <div id="step2-btns" style="display:none">
+          <button class="btn-order" id="btn-to-step3" onclick="goStep(3)">
+            <span id="btn-s3-text">Проверить заказ →</span>
+          </button>
+          <button style="width:100%;background:none;border:none;color:var(--gray);font-size:12px;font-weight:700;cursor:pointer;margin-top:10px;font-family:'Noto Sans',sans-serif;padding:8px" onclick="goStep(1)" id="btn-back-s1">← Назад к корзине</button>
+        </div>
+        <div id="step3-btns" style="display:none">
+          <button class="btn-order" id="btn-place" onclick="placeOrder()">
+            <span id="btn-place-text">🚀 Оформить заказ</span>
+          </button>
+          <button style="width:100%;background:none;border:none;color:var(--gray);font-size:12px;font-weight:700;cursor:pointer;margin-top:10px;font-family:'Noto Sans',sans-serif;padding:8px" onclick="goStep(2)" id="btn-back-s2">← Изменить данные</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="overlay" id="success-modal">
+  <div class="modal">
+    <div class="modal-body">
+      <div class="modal-icon">🎉</div>
+      <div class="modal-title" id="modal-title">ЗАКАЗ ОФОРМЛЕН!</div>
+      <div class="modal-order-id" id="modal-order-id">#BBS-0000</div>
+      <div class="modal-sub" id="modal-sub">Ваш заказ принят и передан в магазин. Склад начинает сборку. Вы получите уведомление, когда курьер будет вызван.</div>
+      <div class="modal-btns">
+        <a href="musteri_dashboard.html" class="modal-btn modal-btn-primary" id="modal-btn-track">📦 Отследить заказ</a>
+        <a href="catalog.html" class="modal-btn modal-btn-ghost" id="modal-btn-catalog">Продолжить покупки</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CART DATA (реальные BMT товары) ────────────────────────────────────────
+let cart = [
+  {id:1, storeId:'alik', storeName:'Alik Hırdavat', icon:'🔩', ru:'Петля Blum Clip Top 110° (уп.20шт)', kk:'Blum Clip Top 110° (уп.20дана)', spec:'Антрацит, 1.2мм', price:1450, qty:2, heavy:false},
+  {id:2, storeId:'alik', storeName:'Alik Hırdavat', icon:'⬆️', ru:'Газлифт белый N80 (уп.100шт)', kk:'Ақ газлифт N80 (уп.100дана)', spec:'100шт/уп', price:220, qty:1, heavy:false},
+  {id:3, storeId:'serik', storeName:'Serikcan Market', icon:'📐', ru:'Тандем полный 450мм Boyard (уп.10шт)', kk:'Толық тандем 450мм Boyard', spec:'1.2мм, уп.10шт', price:3950, qty:3, heavy:false},
+  {id:4, storeId:'serik', storeName:'Serikcan Market', icon:'🔧', ru:'Конфирмат 6.3×50мм (3000шт)', kk:'Конфирмат 6.3×50мм (3000дана)', spec:'H7, уп.3000шт', price:13200, qty:1, heavy:false},
+  {id:5, storeId:'alik', storeName:'Alik Hırdavat', icon:'🪣', ru:'Гола ручка ЗОЛОТО профиль L6M', kk:'АЛТЫН Gola тұтқа L6M', spec:'6м, уп.20шт', price:6850, qty:1, heavy:true},
+];
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let lang = 'ru';
+let step = 1;
+let payMethod = 'kaspi';
+let delMethod = 'courier';
+let orderId = '';
+
+// ─── TRANSLATIONS ────────────────────────────────────────────────────────────
+const T = {
+  ru:{
+    'page-title':'ОФОРМЛЕНИЕ ЗАКАЗА','btn-back':'← Каталог',
+    'sl1':'Корзина','sl2':'Оплата и доставка','sl3':'Подтверждение',
+    'cart-title':'Ваша корзина',
+    'pay-title':'Способ оплаты',
+    'pc-kaspi-sub':'Быстро и удобно','pc-halyk-sub':'Halyk Bank',
+    'pc-cash-name':'Наличными','pc-cash-sub':'При самовывозе',
+    cash_alert:'При наличной оплате курьерская доставка недоступна. Товар нужно забрать из магазина.',
+    'del-title':'Способ доставки',
+    'dc-courier-name':'Курьер','dc-courier-sub':'InDrive или Яндекс Dostavka (~500–1500 ₸)',
+    'dc-pickup-name':'Самовывоз','dc-pickup-sub':'Бесплатно. Заберите в удобное время',
+    heavy_alert:'Крупногабаритные товары доставляются только самовывозом из магазина.',
+    courier_info:'Менеджер вызовет курьера после подтверждения оплаты.',
+    'addr-title':'Адрес доставки','lbl-name':'Имя получателя','lbl-phone':'Телефон',
+    'lbl-street':'Улица и дом','lbl-comment':'Комментарий (необязательно)',
+    'split-title':'Распределение по магазинам',
+    'confirm-title':'Подтверждение заказа',
+    'sum-title':'ИТОГО','sum-items-lbl':'Товары:','sum-del-lbl':'Доставка:','sum-total-lbl':'К оплате:',
+    del_courier:'🛵 Курьер (InDrive/Яндекс)','del_pickup':'🏃 Самовывоз (бесплатно)',
+    pay_kaspi:'📱 Kaspi QR','pay_halyk':'📱 Halyk QR','pay_cash':'💵 Наличными',
+    'btn-s2-text':'Перейти к оплате →','btn-s3-text':'Проверить заказ →',
+    'btn-place-text':'🚀 Оформить заказ',
+    'btn-back-s1':'← Назад к корзине','btn-back-s2':'← Изменить данные',
+    'cont-shop-link':'+ Добавить ещё товары',
+    'modal-title':'ЗАКАЗ ОФОРМЛЕН!',
+    modal_sub_courier:'Ваш заказ принят. Склад начинает сборку. Вы получите уведомление когда курьер будет вызван.',
+    modal_sub_pickup:'Ваш заказ принят. Когда товар будет готов — получите уведомление и приходите забирать.',
+    'modal-btn-track':'📦 Отследить заказ','modal-btn-catalog':'Продолжить покупки',
+    del_free:'Бесплатно',del_tariff:'~ по тарифу курьера',
+    empty_cart:'Ваша корзина пуста',go_catalog:'Перейти в каталог',
+    items_lbl:'шт',store_lbl:'Магазин:',
+    confirm_pay:'Оплата:',confirm_del:'Доставка:',confirm_addr:'Адрес:',confirm_phone:'Телефон:',
+    confirm_items:'Товары:',confirm_total:'Итого:',
+  },
+  kk:{
+    'page-title':'ТАПСЫРЫСТЫ РӘСІМДЕУ','btn-back':'← Каталог',
+    'sl1':'Себет','sl2':'Төлем және жеткізу','sl3':'Растау',
+    'cart-title':'Сіздің себетіңіз',
+    'pay-title':'Төлем әдісі',
+    'pc-kaspi-sub':'Жылдам және ыңғайлы','pc-halyk-sub':'Halyk Bank',
+    'pc-cash-name':'Қолма-қол','pc-cash-sub':'Өзі алғанда',
+    cash_alert:'Қолма-қол төлемде курьер қолжетімсіз. Тауарды дүкеннен алу керек.',
+    'del-title':'Жеткізу әдісі',
+    'dc-courier-name':'Курьер','dc-courier-sub':'InDrive немесе Яндекс Dostavka (~500–1500 ₸)',
+    'dc-pickup-name':'Өзі алу','dc-pickup-sub':'Тегін. Ыңғайлы уақытта дүкеннен алыңыз',
+    heavy_alert:'Ірі габаритті тауарларды тек дүкеннен алуға болады.',
+    courier_info:'Менеджер төлем расталғаннан кейін курьер шақырады.',
+    'addr-title':'Жеткізу мекенжайы','lbl-name':'Алушы аты','lbl-phone':'Телефон',
+    'lbl-street':'Көше және үй','lbl-comment':'Түсініктеме (міндетті емес)',
+    'split-title':'Дүкендер бойынша бөлу',
+    'confirm-title':'Тапсырысты растау',
+    'sum-title':'БАРЛЫҒЫ','sum-items-lbl':'Тауарлар:','sum-del-lbl':'Жеткізу:','sum-total-lbl':'Төлеу:',
+    del_courier:'🛵 Курьер (InDrive/Яндекс)','del_pickup':'🏃 Өзі алу (тегін)',
+    pay_kaspi:'📱 Kaspi QR','pay_halyk:'📱 Halyk QR','pay_cash':'💵 Қолма-қол',
+    'btn-s2-text':'Төлемге өту →','btn-s3-text':'Тапсырысты тексеру →',
+    'btn-place-text':'🚀 Тапсырысты рәсімдеу',
+    'btn-back-s1':'← Себетке оралу','btn-back-s2':'← Деректерді өзгерту',
+    'cont-shop-link':'+ Тауар қосу',
+    'modal-title':'ТАПСЫРЫС РӘСІМДЕЛДІ!',
+    modal_sub_courier:'Тапсырысыңыз қабылданды. Қойма жинауды бастайды.',
+    modal_sub_pickup:'Тапсырысыңыз қабылданды. Тауар дайын болғанда хабарлама аласыз.',
+    'modal-btn-track':'📦 Тапсырысты бақылау','modal-btn-catalog':'Сатып алуды жалғастыру',
+    del_free:'Тегін',del_tariff:'~ курьер тарифі бойынша',
+    empty_cart:'Себетіңіз бос',go_catalog:'Каталогқа өту',
+    items_lbl:'дана',store_lbl:'Дүкен:',
+    confirm_pay:'Төлем:',confirm_del:'Жеткізу:',confirm_addr:'Мекенжай:',confirm_phone:'Телефон:',
+    confirm_items:'Тауарлар:',confirm_total:'Барлығы:',
+  }
+};
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function d(){return T[lang];}
+function subtotal(){return cart.reduce((s,i)=>s+i.price*i.qty,0);}
+function hasHeavy(){return cart.some(i=>i.heavy);}
+function groupByStore(){
+  const g={};
+  cart.forEach(i=>{
+    if(!g[i.storeId]) g[i.storeId]={storeName:i.storeName,items:[]};
+    g[i.storeId].items.push(i);
+  });
+  return g;
+}
+function genOrderId(){return 'BBS-'+Math.floor(9000+Math.random()*1000);}
+function fmt(n){return n.toLocaleString('ru');}
+
+// ─── LANG ────────────────────────────────────────────────────────────────────
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
+  const keys=['page-title','btn-back','sl1','sl2','sl3','cart-title','pay-title','pc-kaspi-sub','pc-halyk-sub','pc-cash-name','pc-cash-sub','del-title','dc-courier-name','dc-courier-sub','dc-pickup-name','dc-pickup-sub','addr-title','lbl-name','lbl-phone','lbl-street','lbl-comment','split-title','confirm-title','sum-title','sum-items-lbl','sum-del-lbl','sum-total-lbl','btn-s2-text','btn-s3-text','btn-place-text','btn-back-s1','btn-back-s2','cont-shop-link','modal-title','modal-btn-track','modal-btn-catalog'];
+  keys.forEach(k=>{const el=document.getElementById(k);if(el)el.textContent=d()[k]||'';});
+  document.getElementById('cash-alert-text').textContent=d().cash_alert;
+  document.getElementById('heavy-alert-text').textContent=d().heavy_alert;
+  document.getElementById('courier-info-text').textContent=d().courier_info;
+  renderAll();
+}
+
+// ─── STEP NAVIGATION ──────────────────────────────────────────────────────────
+function goStep(s){
+  if(s===2 && cart.length===0) return;
+  step=s;
+  document.getElementById('step1').style.display=s===1?'block':'none';
+  document.getElementById('step2').style.display=s===2?'block':'none';
+  document.getElementById('step3').style.display=s===3?'block':'none';
+  document.getElementById('step1-btns').style.display=s===1?'block':'none';
+  document.getElementById('step2-btns').style.display=s===2?'block':'none';
+  document.getElementById('step3-btns').style.display=s===3?'block':'none';
+  // Steps visual
+  [1,2,3].forEach(i=>{
+    document.getElementById('sn'+i).className='step-num'+(i<s?' done':i===s?' active':'');
+    document.getElementById('sl'+i).className='step-lbl'+(i<s?' done':i===s?' active':'');
+    if(i<3) document.getElementById('sl-line'+i).className='step-line'+(i<s?' done':'');
+  });
+  if(s===2){renderSplit();checkRules();}
+  if(s===3){renderConfirm();}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── CART RENDER ─────────────────────────────────────────────────────────────
+function renderCart(){
+  const el=document.getElementById('cart-body');
+  if(!cart.length){
+    el.innerHTML=`<div class="empty-cart"><div class="empty-icon">🛒</div><div class="empty-text">${d().empty_cart}</div><a href="catalog.html" class="btn-go">${d().go_catalog}</a></div>`;
+    document.getElementById('btn-to-step2').disabled=true;
+    return;
+  }
+  document.getElementById('btn-to-step2').disabled=false;
+
+  // Group by store
+  const groups=groupByStore();
+  el.innerHTML=Object.values(groups).map(g=>`
+    <div class="store-group">
+      <div class="sg-header">
+        <span class="sg-icon">🏪</span>
+        <span class="sg-name">${g.storeName}</span>
+        <span class="sg-items-count">${g.items.length} ${lang==='ru'?'позиции':'позиция'}</span>
+      </div>
+      ${g.items.map(i=>`
+        <div class="cart-item">
+          <div class="ci-icon">${i.icon}${i.heavy?`<span class="ci-heavy">4М+</span>`:''}</div>
+          <div class="ci-info">
+            <div class="ci-name">${lang==='ru'?i.ru:i.kk}</div>
+            <div class="ci-store">🏪 ${i.storeName}</div>
+            <div class="ci-spec">${i.spec}${i.heavy?` &nbsp;⚠️ ${lang==='ru'?'Самовывоз':'Өзі алу'}`:''}</div>
+          </div>
+          <div class="ci-qty">
+            <button class="qty-btn" onclick="changeQty(${i.id},-1)">−</button>
+            <span class="qty-num">${i.qty}</span>
+            <button class="qty-btn" onclick="changeQty(${i.id},1)">+</button>
+          </div>
+          <div class="ci-price">
+            <div class="ci-price-val">${fmt(i.price*i.qty)} ₸</div>
+            <div class="ci-price-unit">${fmt(i.price)} ₸/${lang==='ru'?'шт':'дана'}</div>
+          </div>
+          <button class="ci-del" onclick="removeItem(${i.id})">✕</button>
+        </div>`).join('')}
+    </div>`).join('');
+  updateSummary();
+}
+
+// ─── CART ACTIONS ────────────────────────────────────────────────────────────
+function changeQty(id, delta){
+  const item=cart.find(i=>i.id===id);
+  if(!item) return;
+  item.qty=Math.max(1,item.qty+delta);
+  renderCart();
+}
+function removeItem(id){
+  cart=cart.filter(i=>i.id!==id);
+  renderCart();
+  if(cart.length===0) document.getElementById('btn-to-step2').disabled=true;
+}
+
+// ─── PAYMENT & DELIVERY ──────────────────────────────────────────────────────
+function selectPay(m){
+  payMethod=m;
+  ['kaspi','halyk','cash'].forEach(k=>document.getElementById('pc-'+k).classList.toggle('selected',k===m));
+  checkRules();
+}
+function selectDel(m){
+  if(payMethod==='cash' && m==='courier') return;
+  if(hasHeavy() && m==='courier') return;
+  delMethod=m;
+  ['courier','pickup'].forEach(k=>document.getElementById('dc-'+k).classList.toggle('selected',k===m));
+  updateSummary();
+}
+function checkRules(){
+  const isCash=payMethod==='cash';
+  const hasH=hasHeavy();
+  const forcePickup=isCash||hasH;
+
+  document.getElementById('cash-alert').style.display=isCash?'flex':'none';
+  document.getElementById('heavy-alert').style.display=hasH?'flex':'none';
+  document.getElementById('courier-info').style.display=(!forcePickup&&delMethod==='courier')?'flex':'none';
+
+  const courierChip=document.getElementById('dc-courier');
+  courierChip.classList.toggle('disabled',forcePickup);
+
+  if(forcePickup){
+    delMethod='pickup';
+    document.getElementById('dc-courier').classList.remove('selected');
+    document.getElementById('dc-pickup').classList.add('selected');
+  }
+
+  // addr section: hide if pickup
+  document.getElementById('addr-sec').style.display=delMethod==='courier'?'block':'none';
+  updateSummary();
+}
+
+// ─── SPLIT RENDER ────────────────────────────────────────────────────────────
+function renderSplit(){
+  const groups=groupByStore();
+  document.getElementById('split-body').innerHTML=Object.values(groups).map(g=>{
+    const total=g.items.reduce((s,i)=>s+i.price*i.qty,0);
+    return `
+      <div class="split-card">
+        <div class="split-head"><span style="font-size:18px">🏪</span><span class="split-store">${g.storeName}</span></div>
+        ${g.items.map(i=>`<div class="split-item"><span>${lang==='ru'?i.ru:i.kk} ×${i.qty}</span><span>${fmt(i.price*i.qty)} ₸</span></div>`).join('')}
+        <div class="split-total"><span>${lang==='ru'?'Итого по магазину':'Дүкен бойынша'}</span><span style="color:var(--green)">${fmt(total)} ₸</span></div>
+      </div>`;
+  }).join('');
+}
+
+// ─── CONFIRM RENDER ──────────────────────────────────────────────────────────
+function renderConfirm(){
+  const sub=subtotal();
+  const dd=d();
+  const payLabels={kaspi:dd.pay_kaspi,halyk:dd.pay_halyk,cash:dd.pay_cash};
+  const delLabels={courier:dd.del_courier,pickup:dd.del_pickup};
+  const addr=document.getElementById('inp-street')?.value||'';
+  const phone=document.getElementById('inp-phone')?.value||'';
+  const name=document.getElementById('inp-name')?.value||'';
+
+  document.getElementById('confirm-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+      <div style="background:var(--light);border-radius:10px;padding:14px">
+        <div style="font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;margin-bottom:8px">${dd.confirm_pay}</div>
+        <div style="font-size:15px;font-weight:800">${payLabels[payMethod]}</div>
+      </div>
+      <div style="background:var(--light);border-radius:10px;padding:14px">
+        <div style="font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;margin-bottom:8px">${dd.confirm_del}</div>
+        <div style="font-size:13px;font-weight:800">${delLabels[delMethod]}</div>
+      </div>
+    </div>
+    ${delMethod==='courier'?`
+    <div style="background:var(--light);border-radius:10px;padding:14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;margin-bottom:6px">${dd.confirm_addr}</div>
+      <div style="font-size:14px;font-weight:700">${name}</div>
+      <div style="font-size:13px;color:var(--gray)">${addr} · ${phone}</div>
+    </div>`:''}
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;margin-bottom:10px">${dd.confirm_items}</div>
+      ${cart.map(i=>`<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--dark)"><span>${lang==='ru'?i.ru:i.kk} ×${i.qty}</span><span style="font-weight:800">${fmt(i.price*i.qty)} ₸</span></div>`).join('')}
+      <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;border-top:2px dashed var(--border);padding-top:10px;margin-top:8px"><span>${dd.confirm_total}</span><span style="color:var(--orange-dark)">${fmt(sub)} ₸</span></div>
+    </div>
+    <div class="alert alert-green" style="margin-top:14px">✅ <span>${lang==='ru'?'Всё проверено. Нажмите «Оформить заказ» для подтверждения.':'Барлығы тексерілді. Растау үшін «Тапсырысты рәсімдеу» батырмасын басыңыз.'}</span></div>`;
+}
+
+// ─── SUMMARY ─────────────────────────────────────────────────────────────────
+function updateSummary(){
+  const sub=subtotal();
+  const dd=d();
+  const groups=groupByStore();
+
+  document.getElementById('sum-stores').innerHTML=Object.values(groups).map(g=>{
+    const t=g.items.reduce((s,i)=>s+i.price*i.qty,0);
+    return `<div class="sum-store-row"><div class="sum-store-name">🏪 ${g.storeName}</div><div class="sum-store-items"><span>${g.items.length} ${lang==='ru'?'поз.':'поз.'}</span><span style="font-weight:800;color:var(--green)">${fmt(t)} ₸</span></div></div>`;
+  }).join('');
+
+  document.getElementById('sum-items-val').textContent=fmt(sub)+' ₸';
+  document.getElementById('sum-del-val').textContent=delMethod==='pickup'?dd.del_free:dd.del_tariff;
+  document.getElementById('sum-total-val').textContent=fmt(sub)+' ₸';
+}
+
+// ─── PLACE ORDER ─────────────────────────────────────────────────────────────
+function placeOrder(){
+  orderId = genOrderId();
+  const dd=d();
+  document.getElementById('modal-order-id').textContent='#'+orderId;
+  document.getElementById('modal-sub').textContent=delMethod==='courier'?dd.modal_sub_courier:dd.modal_sub_pickup;
+  document.getElementById('success-modal').classList.add('open');
+}
+
+// ─── RENDER ALL ──────────────────────────────────────────────────────────────
+function renderAll(){
+  renderCart();
+  updateSummary();
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>
