@@ -189,6 +189,7 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
     <button class="tab-btn" onclick="showTab('history', this)" id="tab-history">📋 <span id="tl-history">История</span></button>
     <button class="tab-btn" onclick="showTab('products', this)" id="tab-products">🏷️ <span id="tl-products">Товары</span></button>
     <button class="tab-btn" onclick="showTab('finance', this)" id="tab-finance">💰 <span id="tl-finance">Финансы</span></button>
+    <button class="tab-btn" onclick="showTab('customers', this)" id="tab-customers">👥 <span id="tl-customers">Клиенты</span></button>
   </div>
 </div>
 
@@ -285,7 +286,62 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
     </div>
   </div>
 
+
+  <!-- ══ КЛИЕНТЫ TAB ══ -->
+  <div class="tab-section" id="sec-customers">
+    <div class="section-card">
+      <div class="section-head">
+        <span class="section-title" id="cust-title">👥 Клиенты и оптовики</span>
+      </div>
+      <div style="padding:14px 18px">
+        <!-- ПОИСК -->
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <input id="cust-search" placeholder="Поиск по имени или телефону..." 
+            style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Noto Sans',sans-serif;outline:none"
+            oninput="searchCustomers(this.value)">
+          <button class="btn btn-orange" onclick="searchCustomers(document.getElementById('cust-search').value)" id="btn-cust-search">🔍</button>
+        </div>
+        <!-- СПИСОК -->
+        <div id="customers-list"></div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /content -->
+
+<!-- WHOLESALE MODAL -->
+<div class="modal-overlay" id="ws-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="ws-modal-title">📦 Оптовый статус</div>
+      <button class="modal-close" onclick="closeWsModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:36px;margin-bottom:8px" id="ws-user-icon">👤</div>
+        <div style="font-size:16px;font-weight:800;color:var(--dark)" id="ws-user-name">Имя клиента</div>
+        <div style="font-size:12px;color:var(--gray)" id="ws-user-phone">+7 xxx xxx xxxx</div>
+      </div>
+      <div style="background:var(--orange-light);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:14px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:800;color:var(--orange-dark);margin-bottom:4px" id="ws-info-title">📦 Что даёт оптовый статус?</div>
+        <div style="font-size:12px;color:var(--gray)" id="ws-info-text">Клиент получит скидку 20% на все товары. Вы в любой момент можете отменить статус.</div>
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px" id="ws-discount-lbl">Скидка (%)</label>
+        <input id="ws-discount" type="number" value="20" min="5" max="40" 
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none">
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="closeWsModal()" style="flex:1" id="ws-btn-cancel">Отмена</button>
+        <button class="btn btn-orange" onclick="setWholesale()" style="flex:2" id="ws-btn-confirm">✅ Назначить оптовиком</button>
+      </div>
+      <button class="btn" id="ws-btn-remove" onclick="removeWholesale()" 
+        style="width:100%;margin-top:8px;background:rgba(239,68,68,.1);color:var(--red);display:none">
+        ❌ Убрать оптовый статус
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ COURIER MODAL ══ -->
 <div class="modal-overlay" id="courier-modal">

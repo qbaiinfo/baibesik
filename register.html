@@ -6,11 +6,7 @@
 <title>Baibesik.kz — Регистрация</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-:root{
-  --orange:#f97316;--orange-dark:#c2410c;
-  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;
-  --green:#10b981;--red:#ef4444;
-}
+:root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--border:#e2e8f0;--green:#10b981;--red:#ef4444;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans',sans-serif;background:var(--dark);min-height:100vh;display:flex;flex-direction:column}
 .bg{position:fixed;inset:0;background:linear-gradient(135deg,#0a1a0f 0%,#0f172a 50%,#1e293b 100%);z-index:0}
@@ -24,13 +20,14 @@ body{font-family:'Noto Sans',sans-serif;background:var(--dark);min-height:100vh;
 
 .main{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;z-index:10}
 
-.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.5)}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.5)}
 .card-head{background:linear-gradient(135deg,var(--green) 0%,#059669 100%);padding:24px;text-align:center}
-.card-icon{font-size:34px;margin-bottom:6px}
+.card-icon{font-size:36px;margin-bottom:8px}
 .card-title{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#fff;letter-spacing:2px}
 .card-sub{font-size:13px;color:rgba(255,255,255,.8);margin-top:4px}
 .card-body{padding:24px}
 
+/* STEPS */
 .steps{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
 .step-dot{width:28px;height:6px;border-radius:3px;background:rgba(255,255,255,.1);transition:all .3s}
 .step-dot.active{background:var(--green);width:36px}
@@ -38,69 +35,74 @@ body{font-family:'Noto Sans',sans-serif;background:var(--dark);min-height:100vh;
 
 .step-sec{display:none}
 .step-sec.active{display:block}
-.step-title{font-size:13px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;text-align:center}
+.step-title{font-size:12px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;text-align:center}
 
-/* ROL GRID */
-.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.role-chip{border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.04)}
-.role-chip:hover{border-color:var(--green);background:rgba(16,185,129,.08)}
-.role-chip.selected{border-color:var(--green);background:rgba(16,185,129,.15)}
-.role-icon{font-size:28px;display:block;margin-bottom:8px}
-.role-name{font-size:13px;font-weight:800;color:#fff}
-.role-sub{font-size:11px;color:#64748b;margin-top:3px}
-.role-chip.selected .role-name{color:var(--green)}
-
-/* FORM */
 .fg{margin-bottom:14px}
-.fg-lbl{font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
 .fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg-lbl{font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
 .fg-inp-wrap{position:relative}
-.fg-inp{width:100%;padding:12px 14px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;font-size:14px;font-family:'Noto Sans',sans-serif;color:#fff;outline:none;transition:all .2s}
+.fg-inp{width:100%;padding:11px 13px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;font-size:14px;font-family:'Noto Sans',sans-serif;color:#fff;outline:none;transition:all .2s}
 .fg-inp::placeholder{color:#475569}
 .fg-inp:focus{border-color:var(--green)}
+.fg-inp.error{border-color:var(--red)}
 .fg-inp-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:#64748b;cursor:pointer}
 .phone-wrap{display:flex;gap:8px}
-.phone-prefix{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;color:#94a3b8;font-size:14px;font-weight:700}
+.phone-prefix{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 13px;color:#94a3b8;font-size:14px;font-weight:700;white-space:nowrap}
 
-.ps-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.1);margin:6px 0 4px}
+/* PASSWORD STRENGTH */
+.ps-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.1);margin:6px 0 3px}
 .ps-fill{height:100%;border-radius:2px;transition:all .3s;width:0}
 .ps-text{font-size:11px;font-weight:700;color:#64748b}
 
-.terms-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:16px;padding:12px;background:rgba(255,255,255,.03);border-radius:8px;cursor:pointer}
-.terms-check{width:20px;height:20px;border:1.5px solid rgba(255,255,255,.2);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;color:#fff}
-.terms-check.checked{background:var(--green);border-color:var(--green)}
-.terms-text{font-size:12px;color:#94a3b8;line-height:1.5}
-.terms-text a{color:var(--green);text-decoration:none}
+/* TERMS */
+.terms-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:16px;padding:11px 13px;background:rgba(255,255,255,.03);border-radius:8px;cursor:pointer}
+.terms-chk{width:20px;height:20px;border:1.5px solid rgba(255,255,255,.2);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;color:#fff;margin-top:1px}
+.terms-chk.on{background:var(--green);border-color:var(--green)}
+.terms-txt{font-size:12px;color:#94a3b8;line-height:1.5}
+.terms-txt a{color:var(--green);text-decoration:none}
 
-.btn-main{width:100%;background:linear-gradient(135deg,var(--green) 0%,#059669 100%);color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s;letter-spacing:.5px}
+/* INFO BOX */
+.info-box{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:14px;margin-bottom:16px}
+.info-icon{font-size:20px;margin-bottom:6px}
+.info-title{font-size:13px;font-weight:800;color:var(--green);margin-bottom:4px}
+.info-text{font-size:12px;color:#94a3b8;line-height:1.5}
+
+/* BUTTONS */
+.btn-main{width:100%;background:linear-gradient(135deg,var(--green) 0%,#059669 100%);color:#fff;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s;letter-spacing:.5px}
 .btn-main:hover{opacity:.9}
 .btn-main:disabled{opacity:.4;pointer-events:none}
-.btn-ghost{background:rgba(255,255,255,.04);color:#94a3b8;border:1px solid rgba(255,255,255,.1);padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s}
+.btn-ghost{background:rgba(255,255,255,.04);color:#94a3b8;border:1px solid rgba(255,255,255,.1);padding:11px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s}
 .btn-ghost:hover{border-color:var(--green);color:var(--green)}
-
-.loading-ring{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+.loading-ring{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.alert{border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;margin-bottom:14px;display:none;align-items:center;gap:8px}
+.alert{border-radius:8px;padding:10px 13px;font-size:12px;font-weight:700;margin-bottom:14px;display:none;align-items:center;gap:8px}
 .alert.show{display:flex}
-.alert-error{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#fca5a5}
-.alert-success{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#6ee7b7}
+.alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5}
+.alert-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#6ee7b7}
 
-.success-screen{text-align:center;padding:24px 0;display:none}
+/* SUCCESS */
+.success-screen{text-align:center;padding:20px 0;display:none}
 .success-screen.show{display:block}
-.success-icon{font-size:60px;margin-bottom:14px;animation:pop .4s ease}
+.suc-icon{font-size:56px;margin-bottom:12px;animation:pop .4s ease}
 @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
-.success-title{font-family:'Bebas Neue',sans-serif;font-size:28px;color:#fff;letter-spacing:1px;margin-bottom:8px}
-.success-sub{font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.6}
+.suc-title{font-family:'Bebas Neue',sans-serif;font-size:26px;color:#fff;letter-spacing:1px;margin-bottom:8px}
+.suc-sub{font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.6}
+
+/* STAFF LINK */
+.staff-link{text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)}
+.staff-link a{font-size:12px;color:#475569;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px}
+.staff-link a:hover{color:#64748b}
 
 .link-row{text-align:center;margin-top:14px;font-size:13px;color:#64748b}
 .link-row a{color:var(--green);text-decoration:none;font-weight:700}
 footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11px;color:#334155}
+
+@media(max-width:400px){.fg-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="bg"></div>
-
 <div class="top-bar">
   <a href="index.html" class="logo">BAI<span>BESIK</span></a>
   <div class="lang-btns">
@@ -112,9 +114,9 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
 <div class="main">
   <div class="card">
     <div class="card-head">
-      <div class="card-icon">✨</div>
+      <div class="card-icon">🛒</div>
       <div class="card-title" id="card-title">РЕГИСТРАЦИЯ</div>
-      <div class="card-sub" id="card-sub">Создайте аккаунт бесплатно</div>
+      <div class="card-sub" id="card-sub">Создайте аккаунт покупателя</div>
     </div>
     <div class="card-body">
 
@@ -127,17 +129,10 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
       <div class="alert alert-error" id="alert-err">⚠️ <span id="alert-msg"></span></div>
       <div class="alert alert-success" id="alert-ok">✅ <span id="alert-ok-msg"></span></div>
 
-      <!-- STEP 1 -->
+      <!-- STEP 1: ЛИЧНЫЕ ДАННЫЕ -->
       <div class="step-sec active" id="step-1">
-        <div class="step-title" id="st1">ШАГ 1 — КТО ВЫ?</div>
-        <div class="role-grid" id="role-grid"></div>
-        <button class="btn-main" onclick="goStep(2)" id="btn-s1">Далее →</button>
-      </div>
-
-      <!-- STEP 2 -->
-      <div class="step-sec" id="step-2">
-        <div class="step-title" id="st2">ШАГ 2 — ЛИЧНЫЕ ДАННЫЕ</div>
-        <div class="fg-row" style="margin-bottom:14px">
+        <div class="step-title" id="st1">ШАГ 1 — ЛИЧНЫЕ ДАННЫЕ</div>
+        <div class="fg-row">
           <div class="fg">
             <label class="fg-lbl" id="lbl-fn">Имя</label>
             <input class="fg-inp" id="inp-fn" placeholder="Ерканат">
@@ -151,12 +146,28 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
           <label class="fg-lbl" id="lbl-ph">Номер телефона</label>
           <div class="phone-wrap">
             <div class="phone-prefix">+7</div>
-            <input class="fg-inp" id="inp-ph" type="tel" placeholder="707 123 4567" maxlength="10" inputmode="numeric">
+            <input class="fg-inp" id="inp-ph" type="tel" placeholder="707 123 4567" maxlength="11" inputmode="numeric">
           </div>
         </div>
+        <button class="btn-main" onclick="goStep(2)" id="btn-s1">Далее →</button>
+      </div>
+
+      <!-- STEP 2: АДРЕС -->
+      <div class="step-sec" id="step-2">
+        <div class="step-title" id="st2">ШАГ 2 — АДРЕС</div>
         <div class="fg">
-          <label class="fg-lbl" id="lbl-city">Город / Район</label>
-          <input class="fg-inp" id="inp-city" placeholder="Алматы, мкр. Байбесик">
+          <label class="fg-lbl" id="lbl-street">Улица и дом</label>
+          <input class="fg-inp" id="inp-street" placeholder="ул. Акжол, д. 14, кв. 3">
+        </div>
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-city">Район / Город</label>
+          <input class="fg-inp" id="inp-city" placeholder="Алматы, мкр. Байбесик" value="Алматы, мкр. Байбесик">
+        </div>
+        <!-- INFO: Оптовик -->
+        <div class="info-box">
+          <div class="info-icon">📦</div>
+          <div class="info-title" id="ws-info-title">Хотите покупать оптом?</div>
+          <div class="info-text" id="ws-info-text">После регистрации обратитесь к менеджеру магазина — он оформит вам оптовый статус со скидкой до 20%.</div>
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn-ghost" onclick="goStep(1)" id="btn-b1" style="flex:1">← Назад</button>
@@ -164,7 +175,7 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
         </div>
       </div>
 
-      <!-- STEP 3 -->
+      <!-- STEP 3: ПАРОЛЬ -->
       <div class="step-sec" id="step-3">
         <div class="step-title" id="st3">ШАГ 3 — ПАРОЛЬ</div>
         <div class="fg">
@@ -184,8 +195,8 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
           </div>
         </div>
         <div class="terms-row" onclick="toggleTerms()">
-          <div class="terms-check" id="terms-chk"></div>
-          <div class="terms-text" id="terms-txt">Я согласен с <a href="#">условиями использования</a> Baibesik.kz</div>
+          <div class="terms-chk" id="terms-chk"></div>
+          <div class="terms-txt" id="terms-txt">Я согласен с <a href="#">условиями использования</a> Baibesik.kz</div>
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn-ghost" onclick="goStep(2)" id="btn-b2" style="flex:1">← Назад</button>
@@ -197,14 +208,21 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
 
       <!-- SUCCESS -->
       <div class="success-screen" id="suc-screen">
-        <div class="success-icon">🎉</div>
-        <div class="success-title" id="suc-title">АККАУНТ СОЗДАН!</div>
-        <div class="success-sub" id="suc-sub">Добро пожаловать! Перенаправляем...</div>
-        <button class="btn-main" onclick="window.location.href='login.html'" id="btn-go-login">Войти сейчас →</button>
+        <div class="suc-icon">🎉</div>
+        <div class="suc-title" id="suc-title">АККАУНТ СОЗДАН!</div>
+        <div class="suc-sub" id="suc-sub">Добро пожаловать в Baibesik.kz! Перенаправляем...</div>
+        <button class="btn-main" onclick="window.location.href='musteri_dashboard.html'" id="btn-go">Перейти в кабинет →</button>
       </div>
 
       <div class="link-row" id="login-row">
         <span id="have-acc">Уже есть аккаунт?</span> <a href="login.html" id="login-lnk">Войти</a>
+      </div>
+
+      <!-- Сотрудник магазина? -->
+      <div class="staff-link">
+        <a href="login.html?staff=1">
+          🏪 <span id="staff-lnk">Вы сотрудник магазина? Войти здесь</span>
+        </a>
       </div>
 
     </div>
@@ -213,105 +231,91 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
 <footer>© 2026 Baibesik.kz</footer>
 
 <script>
-// ─── CONFIG — BURAYA KENDİ KEY'İNİ YAZ ───────────────────────────────────
 const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80'; // eyJ... ile başlayan key
-// ─────────────────────────────────────────────────────────────────────────
-
-const ROLES = [
-  {id:'customer',  icon:'🛒', ru:'Покупатель',  kk:'Сатып алушы',  sub_ru:'Розничный',        sub_kk:'Бөлшек'},
-  {id:'wholesale', icon:'📦', ru:'Оптовик',     kk:'Көтермеші',    sub_ru:'Оптовый',          sub_kk:'Көтерме'},
-  {id:'manager',   icon:'🏪', ru:'Менеджер',    kk:'Менеджер',     sub_ru:'Сотрудник магазина',sub_kk:'Дүкен қызметкері'},
-  {id:'warehouse', icon:'🏭', ru:'Склад',       kk:'Қойма',        sub_ru:'Складской',        sub_kk:'Қойма жұмысшысы'},
-];
-
-const ROUTES = {
-  customer:'musteri_dashboard.html', wholesale:'toptanci_dashboard.html',
-  manager:'vendor.html', warehouse:'depo_panel.html',
-};
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
 
 const T = {
   ru:{
-    'card-title':'РЕГИСТРАЦИЯ','card-sub':'Создайте аккаунт бесплатно',
-    'st1':'ШАГ 1 — КТО ВЫ?','st2':'ШАГ 2 — ЛИЧНЫЕ ДАННЫЕ','st3':'ШАГ 3 — ПАРОЛЬ',
+    'card-title':'РЕГИСТРАЦИЯ','card-sub':'Создайте аккаунт покупателя',
+    'st1':'ШАГ 1 — ЛИЧНЫЕ ДАННЫЕ','st2':'ШАГ 2 — АДРЕС','st3':'ШАГ 3 — ПАРОЛЬ',
     'lbl-fn':'Имя','lbl-ln':'Фамилия','lbl-ph':'Номер телефона',
-    'lbl-city':'Город / Район','lbl-pw':'Пароль','lbl-pw2':'Повторите пароль',
+    'lbl-street':'Улица и дом','lbl-city':'Район / Город',
+    'ws-info-title':'Хотите покупать оптом?',
+    'ws-info-text':'После регистрации обратитесь к менеджеру — он оформит оптовый статус со скидкой до 20%.',
+    'lbl-pw':'Пароль','lbl-pw2':'Повторите пароль',
+    'terms-txt':'Я согласен с условиями использования Baibesik.kz',
     'btn-s1':'Далее →','btn-s2':'Далее →','btn-b1':'← Назад','btn-b2':'← Назад',
-    'btn-reg-txt':'Создать аккаунт →','btn-go-login':'Войти сейчас →',
+    'btn-reg-txt':'Создать аккаунт →','btn-go':'Перейти в кабинет →',
     'suc-title':'АККАУНТ СОЗДАН!','suc-sub':'Добро пожаловать! Перенаправляем...',
     'have-acc':'Уже есть аккаунт?','login-lnk':'Войти',
-    'terms-txt':'Я согласен с условиями использования Baibesik.kz',
-    err_fill:'Заполните все поля',err_phone:'Введите 10-значный номер',
+    'staff-lnk':'Вы сотрудник магазина? Войти здесь',
+    err_fill:'Заполните все поля',err_phone:'Введите номер телефона (от 9 цифр)',
     err_pass:'Пароль минимум 6 символов',err_match:'Пароли не совпадают',
-    err_terms:'Примите условия использования',err_exists:'Пользователь уже зарегистрирован',
+    err_terms:'Примите условия использования',err_exists:'Этот номер уже зарегистрирован',
     ps_weak:'Слабый',ps_med:'Средний',ps_strong:'Надёжный',
-    ok_reg:'Аккаунт создан! Перенаправляем...',
+    ok_reg:'Аккаунт создан!',
   },
   kk:{
-    'card-title':'ТІРКЕЛУ','card-sub':'Тегін аккаунт жасаңыз',
-    'st1':'1-ҚАДАМ — СІЗ КІМСІЗ?','st2':'2-ҚАДАМ — ЖЕКЕ ДЕРЕКТЕР','st3':'3-ҚАДАМ — ҚҰПИЯ СӨЗ',
+    'card-title':'ТІРКЕЛУ','card-sub':'Сатып алушы аккаунты',
+    'st1':'1-ҚАДАМ — ЖЕКЕ ДЕРЕКТЕР','st2':'2-ҚАДАМ — МЕКЕНЖАЙ','st3':'3-ҚАДАМ — ҚҰПИЯ СӨЗ',
     'lbl-fn':'Аты','lbl-ln':'Тегі','lbl-ph':'Телефон нөмірі',
-    'lbl-city':'Қала / Аудан','lbl-pw':'Құпия сөз','lbl-pw2':'Қайталаңыз',
+    'lbl-street':'Көше және үй','lbl-city':'Аудан / Қала',
+    'ws-info-title':'Көтерме сатып алғыңыз келе ме?',
+    'ws-info-text':'Тіркелгеннен кейін дүкен менеджеріне хабарласыңыз — ол 20% дейін жеңілдікпен көтерме мәртебе береді.',
+    'lbl-pw':'Құпия сөз','lbl-pw2':'Қайталаңыз',
+    'terms-txt':'Baibesik.kz пайдалану шарттарымен келісемін',
     'btn-s1':'Келесі →','btn-s2':'Келесі →','btn-b1':'← Артқа','btn-b2':'← Артқа',
-    'btn-reg-txt':'Аккаунт жасау →','btn-go-login':'Қазір кіру →',
+    'btn-reg-txt':'Аккаунт жасау →','btn-go':'Кабинетке өту →',
     'suc-title':'АККАУНТ ЖАСАЛДЫ!','suc-sub':'Қош келдіңіз! Бағытталуда...',
     'have-acc':'Аккаунт бар ма?','login-lnk':'Кіру',
-    'terms-txt':'Baibesik.kz пайдалану шарттарымен келісемін',
-    err_fill:'Барлық өрістерді толтырыңыз',err_phone:'10 санды нөмір енгізіңіз',
+    'staff-lnk':'Дүкен қызметкерісіз бе? Осы жерден кіріңіз',
+    err_fill:'Барлық өрістерді толтырыңыз',err_phone:'Телефон нөмірін енгізіңіз (9 саннан)',
     err_pass:'Кем дегенде 6 таңба',err_match:'Құпия сөздер сәйкес емес',
-    err_terms:'Шарттарды қабылдаңыз',err_exists:'Пайдаланушы бұрын тіркелген',
+    err_terms:'Шарттарды қабылдаңыз',err_exists:'Бұл нөмір бұрын тіркелген',
     ps_weak:'Әлсіз',ps_med:'Орташа',ps_strong:'Сенімді',
-    ok_reg:'Аккаунт жасалды! Бағытталуда...',
+    ok_reg:'Аккаунт жасалды!',
   }
 };
 
-let lang='ru', selRole='customer', termsOk=false;
-
+let lang='ru', termsOk=false;
 function d(){return T[lang];}
 function $(id){return document.getElementById(id);}
 
 function setLang(l){
   lang=l;
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
-  ['card-title','card-sub','st1','st2','st3','lbl-fn','lbl-ln','lbl-ph','lbl-city',
-   'lbl-pw','lbl-pw2','btn-s1','btn-s2','btn-b1','btn-b2','btn-reg-txt',
-   'btn-go-login','suc-title','suc-sub','have-acc','login-lnk','terms-txt'].forEach(k=>{
-    const el=$(k);if(el)el.textContent=d()[k]||'';
+  const d_=d();
+  ['card-title','card-sub','st1','st2','st3','lbl-fn','lbl-ln','lbl-ph',
+   'lbl-street','lbl-city','ws-info-title','ws-info-text','lbl-pw','lbl-pw2',
+   'terms-txt','btn-s1','btn-s2','btn-b1','btn-b2','btn-reg-txt','btn-go',
+   'suc-title','suc-sub','have-acc','login-lnk','staff-lnk'].forEach(k=>{
+    const el=$(k);if(el)el.textContent=d_[k]||'';
   });
-  renderRoles();
-}
-
-function renderRoles(){
-  $('role-grid').innerHTML=ROLES.map(r=>`
-    <div class="role-chip${selRole===r.id?' selected':''}" onclick="selRole='${r.id}';renderRoles()">
-      <span class="role-icon">${r.icon}</span>
-      <div class="role-name">${lang==='ru'?r.ru:r.kk}</div>
-      <div class="role-sub">${lang==='ru'?r.sub_ru:r.sub_kk}</div>
-    </div>`).join('');
 }
 
 function goStep(s){
   const d_=d();
   hideAlerts();
-  if(s===3){
+  if(s===2){
     const fn=$('inp-fn').value.trim();
     const ph=$('inp-ph').value.replace(/\D/g,'');
-    if(!fn||!ph){showErr(d_.err_fill);return;}
-    if(ph.length<10){showErr(d_.err_phone);return;}
+    if(!fn){$('inp-fn').classList.add('error');showErr(d_.err_fill);return;}
+    $('inp-fn').classList.remove('error');
+    if(ph.length<9){$('inp-ph').classList.add('error');showErr(d_.err_phone);return;}
+    $('inp-ph').classList.remove('error');
   }
   [1,2,3].forEach(i=>{
     $('step-'+i).className='step-sec'+(i===s?' active':'');
-    const dot=$('dot-'+i);
-    dot.className='step-dot'+(i===s?' active':i<s?' done':'');
+    $('dot-'+i).className='step-dot'+(i===s?' active':i<s?' done':'');
   });
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function toggleTerms(){
   termsOk=!termsOk;
-  $('terms-chk').classList.toggle('checked',termsOk);
+  $('terms-chk').classList.toggle('on',termsOk);
   $('terms-chk').textContent=termsOk?'✓':'';
 }
-
 function togglePw(id){const el=$(id);el.type=el.type==='password'?'text':'password';}
 
 function checkStr(){
@@ -335,13 +339,14 @@ async function doRegister(){
   const fn=$('inp-fn').value.trim();
   const ln=$('inp-ln').value.trim();
   const ph=$('inp-ph').value.replace(/\D/g,'');
+  const street=$('inp-street').value.trim();
   const city=$('inp-city').value.trim();
   const pw=$('inp-pw').value;
   const pw2=$('inp-pw2').value;
 
   hideAlerts();
   if(!fn||!ph){showErr(d_.err_fill);return;}
-  if(ph.length<10){showErr(d_.err_phone);return;}
+  if(ph.length<9){showErr(d_.err_phone);return;}
   if(pw.length<6){showErr(d_.err_pass);return;}
   if(pw!==pw2){showErr(d_.err_match);return;}
   if(!termsOk){showErr(d_.err_terms);return;}
@@ -351,14 +356,15 @@ async function doRegister(){
   $('btn-reg-txt').innerHTML='<span class="loading-ring"></span>';
 
   try{
-    // Supabase SDK dinamik yükle
     const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
     const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-
     const fullName=`${fn} ${ln}`.trim();
     const email=ph+'@baibesik.kz';
 
-    const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{full_name:fullName,phone:'+7'+ph,city}}});
+    const {data,error}=await sb.auth.signUp({
+      email,password:pw,
+      options:{data:{full_name:fullName,phone:'+7'+ph,city}}
+    });
 
     if(error){
       if(error.message.includes('already'))showErr(d_.err_exists);
@@ -369,17 +375,28 @@ async function doRegister(){
 
     if(data.user){
       await sb.from('users').insert({
-        id:data.user.id,phone:'+7'+ph,full_name:fullName,role:selRole
+        id:data.user.id,
+        phone:'+7'+ph,
+        full_name:fullName,
+        role:'customer'  // Sadece customer! Toptancıyı müdür atar
       });
+      // Adres kaydet
+      if(street){
+        await sb.from('user_addresses').insert({
+          user_id:data.user.id,
+          street:street+', '+city,
+          is_main:true
+        });
+      }
     }
 
     // Success
     $('steps-wrap').style.display='none';
     ['step-1','step-2','step-3'].forEach(id=>$(id).className='step-sec');
     $('login-row').style.display='none';
+    document.querySelector('.staff-link').style.display='none';
     $('suc-screen').classList.add('show');
-
-    setTimeout(()=>{window.location.href=ROUTES[selRole]||'musteri_dashboard.html';},2000);
+    setTimeout(()=>window.location.href='musteri_dashboard.html',2000);
 
   }catch(e){
     showErr(e.message||'Ошибка подключения');
@@ -388,13 +405,9 @@ async function doRegister(){
   }
 }
 
-// Telefon — sadece rakam
-document.getElementById('inp-ph').addEventListener('input',function(){
-  this.value=this.value.replace(/\D/g,'').slice(0,10);
+$('inp-ph').addEventListener('input',function(){
+  this.value=this.value.replace(/\D/g,'').slice(0,11);
 });
-
-// INIT
-renderRoles();
 </script>
 </body>
 </html>
