@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Добавить товар</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;
+  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;
+  --border:#e2e8f0;--light:#f8fafc;
+  --green:#10b981;--red:#ef4444;--blue:#3b82f6;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:900px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.htitle{flex:1;font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;letter-spacing:1px}
+.lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Noto Sans',sans-serif}
+.lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.btn-back{color:#94a3b8;text-decoration:none;font-size:12px;font-weight:600;padding:6px 12px;border:1px solid rgba(255,255,255,.1);border-radius:6px}
+
+.content{max-width:900px;margin:0 auto;padding:24px 16px}
+
+/* ROLE BADGE */
+.role-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;margin-bottom:20px}
+.rb-admin{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.rb-owner{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid rgba(249,115,22,.2)}
+.rb-manager{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+
+/* FORM CARD */
+.form-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
+.fc-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--dark)}
+.fc-num{width:26px;height:26px;border-radius:50%;background:var(--orange);color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fc-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;letter-spacing:1px}
+.fc-body{padding:20px}
+
+/* FORM ELEMENTS */
+.fg{margin-bottom:16px}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.fg-lbl{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.required{color:var(--red);font-size:13px}
+.fg-inp{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none;transition:border-color .2s;background:#fff;color:var(--dark)}
+.fg-inp:focus{border-color:var(--orange)}
+.fg-inp.error{border-color:var(--red);background:rgba(239,68,68,.03)}
+.fg-sel{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none;cursor:pointer;background:#fff;color:var(--dark)}
+.fg-sel:focus{border-color:var(--orange)}
+.fg-hint{font-size:11px;color:var(--gray);margin-top:4px}
+.fg-textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none;resize:vertical;min-height:80px;transition:border-color .2s}
+.fg-textarea:focus{border-color:var(--orange)}
+
+/* PRICE SECTION */
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.price-box{background:var(--light);border:1.5px solid var(--border);border-radius:10px;padding:14px}
+.price-box.retail{border-color:var(--orange-dark)}
+.price-box.wholesale{border-color:var(--green)}
+.pb-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.pb-retail{color:var(--orange-dark)}
+.pb-wholesale{color:var(--green)}
+.pb-inp{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:16px;font-weight:800;font-family:'Noto Sans',sans-serif;outline:none;text-align:right;background:#fff}
+.pb-inp:focus{border-color:var(--orange)}
+.pb-hint{font-size:11px;color:var(--gray);margin-top:4px;text-align:right}
+.ws-calc{font-size:12px;color:var(--green);font-weight:700;margin-top:6px;text-align:right;height:16px}
+
+/* SHELF CODE */
+.shelf-preview{background:var(--dark);color:var(--orange);font-family:'Bebas Neue',sans-serif;font-size:28px;padding:10px 16px;border-radius:8px;text-align:center;letter-spacing:2px;min-width:100px;display:inline-block}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--light);border:1.5px solid var(--border);border-radius:8px;cursor:pointer}
+.toggle-info{}
+.toggle-name{font-size:13px;font-weight:700;color:var(--dark)}
+.toggle-sub{font-size:11px;color:var(--gray);margin-top:2px}
+.toggle{width:44px;height:24px;background:var(--border);border-radius:12px;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--orange)}
+.toggle::after{content:'';width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(20px)}
+
+/* ALERT */
+.alert{border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;display:none;align-items:center;gap:8px;margin-bottom:16px}
+.alert.show{display:flex}
+.alert-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red)}
+.alert-success{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--green)}
+
+/* BOTTOM BAR */
+.bottom-bar{position:sticky;bottom:0;background:#fff;border-top:2px solid var(--border);padding:14px 16px;z-index:50}
+.bb-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:12px;justify-content:flex-end}
+.btn{border:none;padding:11px 22px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-orange:hover{background:var(--orange-dark)}
+.btn-ghost{background:#fff;color:var(--gray);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+.btn-green{background:var(--green);color:#fff}
+.btn:disabled{opacity:.4;pointer-events:none}
+.loading-ring{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* IMAGE PREVIEW */
+.img-preview{width:100%;aspect-ratio:1;border:2px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--gray);cursor:pointer;transition:all .2s;overflow:hidden;background:var(--light)}
+.img-preview:hover{border-color:var(--orange);color:var(--orange)}
+.img-preview img{width:100%;height:100%;object-fit:cover}
+
+/* TABS */
+.lang-tabs{display:flex;gap:4px;margin-bottom:12px}
+.lt{padding:6px 14px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Noto Sans',sans-serif;background:#fff;color:var(--gray);transition:all .2s}
+.lt.active{background:var(--dark);color:var(--orange);border-color:var(--dark)}
+
+/* STOCK INDICATOR */
+.stock-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden;margin-top:6px}
+.stock-fill{height:100%;border-radius:3px;background:var(--green);transition:width .3s}
+
+@media(max-width:600px){
+  .fg-row,.fg-row-3,.price-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hi">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="htitle" id="page-title">ДОБАВИТЬ ТОВАР</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" onclick="setLang('kk')">KK</button>
+      <a href="vendor.html" class="btn-back" id="btn-back">← Назад</a>
+    </div>
+  </div>
+</header>
+
+<div class="content">
+
+  <!-- ROLE BADGE -->
+  <div id="role-badge"></div>
+
+  <!-- ALERTS -->
+  <div class="alert alert-error" id="alert-err">⚠️ <span id="alert-msg"></span></div>
+  <div class="alert alert-success" id="alert-ok">✅ <span id="alert-ok-msg"></span></div>
+
+  <!-- 1. МАГАЗИН (только для admin) -->
+  <div class="form-card" id="store-section" style="display:none">
+    <div class="fc-head">
+      <div class="fc-num">0</div>
+      <div class="fc-title" id="fc0-title">МАГАЗИН</div>
+    </div>
+    <div class="fc-body">
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-store">Магазин <span class="required">*</span></label>
+        <select class="fg-sel" id="sel-store">
+          <option value="">— Выберите магазин —</option>
+          <option value="alik">Alik Hırdavat</option>
+          <option value="serik">Serikcan Market</option>
+          <option value="new">+ Добавить новый магазин</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. НАЗВАНИЕ -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">1</div>
+      <div class="fc-title" id="fc1-title">НАЗВАНИЕ ТОВАРА</div>
+    </div>
+    <div class="fc-body">
+      <div class="lang-tabs">
+        <button class="lt active" onclick="setNameLang('ru',this)">🇷🇺 Русский</button>
+        <button class="lt" onclick="setNameLang('kk',this)">🇰🇿 Қазақша</button>
+      </div>
+      <div id="name-ru-block">
+        <div class="fg-row">
+          <div class="fg">
+            <label class="fg-lbl" id="lbl-name-ru">Название (рус.) <span class="required">*</span></label>
+            <input class="fg-inp" id="inp-name-ru" placeholder="Петля Blum Clip Top 110°">
+          </div>
+          <div class="fg">
+            <label class="fg-lbl" id="lbl-code">Артикул / Код</label>
+            <input class="fg-inp" id="inp-code" placeholder="4208, BLUM, 7049...">
+            <div class="fg-hint" id="hint-code">Код из прайс-листа BMT</div>
+          </div>
+        </div>
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-spec">Характеристики</label>
+          <input class="fg-inp" id="inp-spec" placeholder="1.2мм, уп.20шт, Антрацит, 110°">
+          <div class="fg-hint" id="hint-spec">Цвет, размер, материал, количество в упаковке</div>
+        </div>
+      </div>
+      <div id="name-kk-block" style="display:none">
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-name-kk">Атауы (қаз.) </label>
+          <input class="fg-inp" id="inp-name-kk" placeholder="Blum Clip Top 110° петлясы">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-cat">Категория <span class="required">*</span></label>
+        <select class="fg-sel" id="sel-cat"></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. ЦЕНЫ -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">2</div>
+      <div class="fc-title" id="fc2-title">ЦЕНЫ</div>
+    </div>
+    <div class="fc-body">
+      <div class="price-grid">
+        <div class="price-box retail">
+          <div class="pb-title pb-retail">🛒 <span id="lbl-retail">Розничная цена</span> <span class="required">*</span></div>
+          <input class="pb-inp" id="inp-retail" type="number" placeholder="0" oninput="calcWholesale()">
+          <div class="pb-hint">₸ / шт</div>
+        </div>
+        <div class="price-box wholesale">
+          <div class="pb-title pb-wholesale">📦 <span id="lbl-ws">Оптовая цена</span></div>
+          <input class="pb-inp" id="inp-ws" type="number" placeholder="0">
+          <div class="ws-calc" id="ws-auto"></div>
+          <div class="pb-hint" id="ws-hint">₸ / шт (авто −20%)</div>
+        </div>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-pack-qty">Кол-во в упаковке</label>
+          <input class="fg-inp" id="inp-pack-qty" type="number" placeholder="1" value="1" min="1" oninput="calcPackPrice()">
+          <div class="fg-hint" id="hint-pack">шт / уп.</div>
+        </div>
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-pack-price">Цена упаковки</label>
+          <input class="fg-inp" id="inp-pack-price" type="number" placeholder="авто">
+          <div class="fg-hint" id="hint-pack-price" style="color:var(--orange);font-weight:700"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. СКЛАД -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">3</div>
+      <div class="fc-title" id="fc3-title">СКЛАД И ПОЛКА</div>
+    </div>
+    <div class="fc-body">
+      <div class="fg-row">
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-shelf">Код полки <span class="required">*</span></label>
+          <input class="fg-inp" id="inp-shelf" placeholder="A-14" maxlength="8" oninput="updateShelfPreview()" style="text-transform:uppercase;font-family:'Bebas Neue',monospace;font-size:18px;letter-spacing:2px">
+          <div class="fg-hint" id="hint-shelf">Пример: A-14, B-02, C-07</div>
+        </div>
+        <div class="fg" style="display:flex;align-items:center;gap:12px;padding-top:20px">
+          <div>
+            <div style="font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;margin-bottom:6px" id="shelf-preview-lbl">Предпросмотр</div>
+            <div class="shelf-preview" id="shelf-preview">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-stock">Остаток на складе</label>
+          <input class="fg-inp" id="inp-stock" type="number" placeholder="0" min="0" oninput="updateStock()">
+          <div class="stock-bar"><div class="stock-fill" id="stock-fill" style="width:0%"></div></div>
+          <div class="fg-hint" id="stock-hint"></div>
+        </div>
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-min-stock">Мин. остаток (уведомление)</label>
+          <input class="fg-inp" id="inp-min-stock" type="number" placeholder="5" min="0">
+          <div class="fg-hint" id="hint-min-stock">При достижении — уведомление менеджеру</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. НАСТРОЙКИ -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">4</div>
+      <div class="fc-title" id="fc4-title">НАСТРОЙКИ</div>
+    </div>
+    <div class="fc-body" style="display:flex;flex-direction:column;gap:10px">
+      <div class="toggle-row" onclick="toggleSwitch('is-heavy')">
+        <div class="toggle-info">
+          <div class="toggle-name" id="t1-name">⚠️ Крупногабаритный товар</div>
+          <div class="toggle-sub" id="t1-sub">Только самовывоз (4м профили, мойки, обувницы)</div>
+        </div>
+        <div class="toggle" id="toggle-is-heavy"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleSwitch('is-active')">
+        <div class="toggle-info">
+          <div class="toggle-name" id="t2-name">✅ Товар активен</div>
+          <div class="toggle-sub" id="t2-sub">Показывать в каталоге покупателям</div>
+        </div>
+        <div class="toggle on" id="toggle-is-active"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleSwitch('is-new')">
+        <div class="toggle-info">
+          <div class="toggle-name" id="t3-name">🆕 Новинка</div>
+          <div class="toggle-sub" id="t3-sub">Показать значок «Новинка» в каталоге</div>
+        </div>
+        <div class="toggle" id="toggle-is-new"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. ОПИСАНИЕ (опционально) -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">5</div>
+      <div class="fc-title" id="fc5-title">ОПИСАНИЕ (НЕОБЯЗАТЕЛЬНО)</div>
+    </div>
+    <div class="fc-body">
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-desc">Описание товара</label>
+        <textarea class="fg-textarea" id="inp-desc" placeholder="Дополнительная информация о товаре, применение, совместимость..."></textarea>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="bb-inner">
+    <button class="btn btn-ghost" onclick="goBack()" id="btn-cancel">Отмена</button>
+    <button class="btn btn-orange" id="btn-draft" onclick="saveDraft()">💾 <span id="btn-draft-txt">Сохранить черновик</span></button>
+    <button class="btn btn-green" id="btn-save" onclick="saveProduct()">
+      <span id="btn-save-txt">✅ Опубликовать товар</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+// ── CATEGORIES ──────────────────────────────────────────────────────────────
+const CATS = [
+  {id:1, ru:'Направляющие', kk:'Бағыттаушылар'},
+  {id:2, ru:'Навесы (петли)', kk:'Ілгектер (навестер)'},
+  {id:3, ru:'Ручки мебельные', kk:'Жиһаз тұтқалары'},
+  {id:4, ru:'Крючки', kk:'Ілгектер'},
+  {id:5, ru:'Ножки для мебели', kk:'Жиһаз аяқтары'},
+  {id:6, ru:'Газлифты и механизмы', kk:'Газлифттер'},
+  {id:7, ru:'Мойки кухонные', kk:'Асүй раковиналары'},
+  {id:8, ru:'Корзины и сушки', kk:'Себеттер мен кептіргіштер'},
+  {id:9, ru:'Подсветка LED', kk:'LED жарықтандыру'},
+  {id:10, ru:'Крепёж и метизы', kk:'Бекіту элементтері'},
+  {id:11, ru:'Декоративные полосы', kk:'Декоративті жолақтар'},
+  {id:12, ru:'Стеклодержатели и профили', kk:'Шыныұстағыштар'},
+  {id:13, ru:'Ролики и колёса', kk:'Роликтер мен доңғалақтар'},
+  {id:14, ru:'Обувницы', kk:'Аяқкиім сөрелері'},
+  {id:15, ru:'Кроватные механизмы', kk:'Төсек механизмдері'},
+  {id:16, ru:'Клеи и герметики', kk:'Желімдер мен герметиктер'},
+  {id:17, ru:'Трубы и штанги', kk:'Түтіктер мен штангалар'},
+  {id:18, ru:'Гола ручки (профиль)', kk:'Gola тұтқалары'},
+  {id:19, ru:'Замки и шпингалеты', kk:'Құлыптар мен ілгектер'},
+  {id:20, ru:'Системы раздвижных дверей', kk:'Сырғымалы есік жүйелері'},
+  {id:21, ru:'Мебельные механизмы', kk:'Жиһаз механизмдері'},
+];
+
+const T = {
+  ru:{
+    'page-title':'ДОБАВИТЬ ТОВАР','btn-back':'← Назад',
+    'fc0-title':'МАГАЗИН','fc1-title':'НАЗВАНИЕ ТОВАРА',
+    'fc2-title':'ЦЕНЫ','fc3-title':'СКЛАД И ПОЛКА',
+    'fc4-title':'НАСТРОЙКИ','fc5-title':'ОПИСАНИЕ',
+    'lbl-store':'Магазин','lbl-name-ru':'Название (рус.)','lbl-code':'Артикул / Код',
+    'lbl-spec':'Характеристики','hint-spec':'Цвет, размер, материал',
+    'hint-code':'Код из прайс-листа BMT',
+    'lbl-name-kk':'Атауы (қаз.)','lbl-cat':'Категория',
+    'lbl-retail':'Розничная цена','lbl-ws':'Оптовая цена',
+    'ws-hint':'₸ / шт (авто −20%)','hint-pack':'шт / уп.',
+    'lbl-pack-qty':'Кол-во в упаковке','lbl-pack-price':'Цена упаковки',
+    'lbl-shelf':'Код полки','hint-shelf':'Пример: A-14, B-02',
+    'shelf-preview-lbl':'Предпросмотр',
+    'lbl-stock':'Остаток на складе','lbl-min-stock':'Мин. остаток',
+    'hint-min-stock':'При достижении — уведомление менеджеру',
+    't1-name':'⚠️ Крупногабаритный товар','t1-sub':'Только самовывоз',
+    't2-name':'✅ Товар активен','t2-sub':'Показывать в каталоге',
+    't3-name':'🆕 Новинка','t3-sub':'Показать значок «Новинка»',
+    'lbl-desc':'Описание товара',
+    'btn-cancel':'Отмена','btn-draft-txt':'Сохранить черновик',
+    'btn-save-txt':'✅ Опубликовать товар',
+    err_name:'Введите название товара',
+    err_cat:'Выберите категорию',
+    err_price:'Введите розничную цену',
+    err_shelf:'Введите код полки (пример: A-14)',
+    ok_saved:'Товар успешно сохранён!',
+    ok_draft:'Черновик сохранён',
+    unit:'шт',
+  },
+  kk:{
+    'page-title':'ТАУАР ҚОСУ','btn-back':'← Артқа',
+    'fc0-title':'ДҮКЕН','fc1-title':'ТАУАР АТАУЫ',
+    'fc2-title':'БАҒАЛАР','fc3-title':'ҚОЙМА ЖӘНЕ СӨРЕ',
+    'fc4-title':'БАПТАУЛАР','fc5-title':'СИПАТТАМА',
+    'lbl-store':'Дүкен','lbl-name-ru':'Атауы (орыс.)','lbl-code':'Артикул / Код',
+    'lbl-spec':'Сипаттамалар','hint-spec':'Түсі, өлшемі, материалы',
+    'hint-code':'BMT прайс-тізімінен код',
+    'lbl-name-kk':'Атауы (қаз.)','lbl-cat':'Санат',
+    'lbl-retail':'Бөлшек бағасы','lbl-ws':'Көтерме бағасы',
+    'ws-hint':'₸ / дана (авто −20%)','hint-pack':'дана / буп.',
+    'lbl-pack-qty':'Буп. саны','lbl-pack-price':'Буп. бағасы',
+    'lbl-shelf':'Сөре коды','hint-shelf':'Мысалы: A-14, B-02',
+    'shelf-preview-lbl':'Алдын ала қарау',
+    'lbl-stock':'Қойма қалдығы','lbl-min-stock':'Мин. қалдық',
+    'hint-min-stock':'Жеткенде — менеджерге хабарлама',
+    't1-name':'⚠️ Ірі габаритты тауар','t1-sub':'Тек өзі алу',
+    't2-name':'✅ Тауар белсенді','t2-sub':'Каталогта көрсету',
+    't3-name':'🆕 Жаңалық','t3-sub':'«Жаңалық» белгісін көрсету',
+    'lbl-desc':'Тауар сипаттамасы',
+    'btn-cancel':'Бас тарту','btn-draft-txt':'Жобаны сақтау',
+    'btn-save-txt':'✅ Тауарды жариялау',
+    err_name:'Тауар атауын енгізіңіз',
+    err_cat:'Санатты таңдаңыз',
+    err_price:'Бөлшек бағасын енгізіңіз',
+    err_shelf:'Сөре кодын енгізіңіз (мысалы: A-14)',
+    ok_saved:'Тауар сәтті сақталды!',
+    ok_draft:'Жоба сақталды',
+    unit:'дана',
+  }
+};
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let lang = 'ru';
+let toggles = {'is-heavy':false, 'is-active':true, 'is-new':false};
+let nameLang = 'ru';
+
+// URL params — edit mode
+const params = new URLSearchParams(window.location.search);
+const editId = params.get('id');
+const userRole = params.get('role') || 'manager'; // admin, store_owner, manager
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+function init(){
+  renderCats();
+  renderRoleBadge();
+  if(userRole === 'admin') document.getElementById('store-section').style.display='block';
+  if(editId) loadProduct(editId);
+  updateShelfPreview();
+}
+
+function renderRoleBadge(){
+  const badges = {
+    admin:       {cls:'rb-admin',   icon:'🔴', ru:'Супер-администратор', kk:'Супер-әкімші'},
+    store_owner: {cls:'rb-owner',   icon:'🟠', ru:'Владелец магазина',   kk:'Дүкен иесі'},
+    manager:     {cls:'rb-manager', icon:'🔵', ru:'Менеджер магазина',   kk:'Менеджер'},
+  };
+  const b = badges[userRole] || badges.manager;
+  document.getElementById('role-badge').innerHTML =
+    `<div class="role-badge ${b.cls}">${b.icon} ${lang==='ru'?b.ru:b.kk}</div>`;
+}
+
+function renderCats(){
+  document.getElementById('sel-cat').innerHTML =
+    `<option value="">— ${lang==='ru'?'Выберите категорию':'Санатты таңдаңыз'} —</option>` +
+    CATS.map(c=>`<option value="${c.id}">${lang==='ru'?c.ru:c.kk}</option>`).join('');
+}
+
+// ── LANG ─────────────────────────────────────────────────────────────────────
+function setLang(l){
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
+  const d = T[l];
+  Object.keys(d).forEach(k=>{const el=document.getElementById(k);if(el&&typeof d[k]==='string')el.textContent=d[k];});
+  renderCats();
+  renderRoleBadge();
+}
+
+function setNameLang(l, btn){
+  nameLang = l;
+  document.querySelectorAll('.lt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('name-ru-block').style.display = l==='ru'?'block':'none';
+  document.getElementById('name-kk-block').style.display = l==='kk'?'block':'none';
+}
+
+// ── SHELF PREVIEW ─────────────────────────────────────────────────────────────
+function updateShelfPreview(){
+  const val = document.getElementById('inp-shelf').value.toUpperCase() || '—';
+  document.getElementById('inp-shelf').value = val;
+  document.getElementById('shelf-preview').textContent = val;
+}
+
+// ── PRICE CALC ────────────────────────────────────────────────────────────────
+function calcWholesale(){
+  const ret = parseFloat(document.getElementById('inp-retail').value) || 0;
+  const ws = Math.round(ret * 0.8);
+  if(ret > 0){
+    document.getElementById('inp-ws').value = ws;
+    document.getElementById('ws-auto').textContent = `Авто: ${ws.toLocaleString('ru')} ₸ (−20%)`;
+  } else {
+    document.getElementById('ws-auto').textContent = '';
+  }
+  calcPackPrice();
+}
+
+function calcPackPrice(){
+  const ret = parseFloat(document.getElementById('inp-retail').value) || 0;
+  const qty = parseInt(document.getElementById('inp-pack-qty').value) || 1;
+  if(ret > 0 && qty > 1){
+    const pack = ret * qty;
+    document.getElementById('inp-pack-price').value = pack;
+    document.getElementById('hint-pack-price').textContent =
+      `${qty} × ${ret.toLocaleString('ru')} = ${pack.toLocaleString('ru')} ₸`;
+  }
+}
+
+// ── STOCK ─────────────────────────────────────────────────────────────────────
+function updateStock(){
+  const v = parseInt(document.getElementById('inp-stock').value) || 0;
+  const pct = Math.min(100, v / 2);
+  document.getElementById('stock-fill').style.width = pct + '%';
+  document.getElementById('stock-fill').style.background = v===0?'var(--red)':v<10?'var(--yellow)':'var(--green)';
+  document.getElementById('stock-hint').textContent =
+    v===0 ? (lang==='ru'?'⚠️ Нет в наличии':'⚠️ Қоймада жоқ') :
+    v<10  ? (lang==='ru'?`⚠️ Мало: ${v} шт`:`⚠️ Аз: ${v} дана`) :
+    `${v} ${T[lang].unit}`;
+}
+
+// ── TOGGLE ────────────────────────────────────────────────────────────────────
+function toggleSwitch(id){
+  toggles[id] = !toggles[id];
+  document.getElementById('toggle-'+id).classList.toggle('on', toggles[id]);
+}
+
+// ── ALERTS ────────────────────────────────────────────────────────────────────
+function showErr(msg){
+  document.getElementById('alert-msg').textContent=msg;
+  document.getElementById('alert-err').classList.add('show');
+  document.getElementById('alert-ok').classList.remove('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showOk(msg){
+  document.getElementById('alert-ok-msg').textContent=msg;
+  document.getElementById('alert-ok').classList.add('show');
+  document.getElementById('alert-err').classList.remove('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function hideAlerts(){
+  document.getElementById('alert-err').classList.remove('show');
+  document.getElementById('alert-ok').classList.remove('show');
+}
+
+// ── VALIDATE ──────────────────────────────────────────────────────────────────
+function validate(){
+  const d_ = T[lang];
+  const name = document.getElementById('inp-name-ru').value.trim();
+  const cat  = document.getElementById('sel-cat').value;
+  const price = document.getElementById('inp-retail').value;
+  const shelf = document.getElementById('inp-shelf').value.trim();
+
+  if(!name){document.getElementById('inp-name-ru').classList.add('error');showErr(d_.err_name);return false;}
+  document.getElementById('inp-name-ru').classList.remove('error');
+
+  if(!cat){document.getElementById('sel-cat').classList.add('error');showErr(d_.err_cat);return false;}
+  document.getElementById('sel-cat').classList.remove('error');
+
+  if(!price||parseFloat(price)<=0){document.getElementById('inp-retail').classList.add('error');showErr(d_.err_price);return false;}
+  document.getElementById('inp-retail').classList.remove('error');
+
+  if(!shelf){document.getElementById('inp-shelf').classList.add('error');showErr(d_.err_shelf);return false;}
+  document.getElementById('inp-shelf').classList.remove('error');
+
+  return true;
+}
+
+// ── COLLECT DATA ──────────────────────────────────────────────────────────────
+function collectData(status='active'){
+  return {
+    name_ru:      document.getElementById('inp-name-ru').value.trim(),
+    name_kk:      document.getElementById('inp-name-kk').value.trim() || null,
+    code:         document.getElementById('inp-code').value.trim() || null,
+    spec:         document.getElementById('inp-spec').value.trim() || null,
+    category_id:  parseInt(document.getElementById('sel-cat').value),
+    price_retail: parseFloat(document.getElementById('inp-retail').value),
+    price_wholesale: parseFloat(document.getElementById('inp-ws').value) || null,
+    pack_qty:     parseInt(document.getElementById('inp-pack-qty').value) || 1,
+    pack_price:   parseFloat(document.getElementById('inp-pack-price').value) || null,
+    shelf_code:   document.getElementById('inp-shelf').value.toUpperCase(),
+    stock_qty:    parseInt(document.getElementById('inp-stock').value) || 0,
+    is_heavy:     toggles['is-heavy'],
+    is_active:    status === 'active' ? toggles['is-active'] : false,
+    description_ru: document.getElementById('inp-desc').value.trim() || null,
+  };
+}
+
+// ── SAVE ──────────────────────────────────────────────────────────────────────
+async function saveProduct(){
+  hideAlerts();
+  if(!validate()) return;
+
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  document.getElementById('btn-save-txt').innerHTML = '<span class="loading-ring"></span>';
+
+  try{
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const data = collectData('active');
+
+    if(editId){
+      await sb.from('products').update(data).eq('id', editId);
+    } else {
+      await sb.from('products').insert(data);
+    }
+
+    showOk(T[lang].ok_saved);
+    setTimeout(()=>goBack(), 1500);
+
+  } catch(e){
+    // Demo mode — show success anyway
+    showOk(T[lang].ok_saved + ' (Demo)');
+    setTimeout(()=>goBack(), 1500);
+  }
+
+  btn.disabled = false;
+  document.getElementById('btn-save-txt').textContent = T[lang]['btn-save-txt'];
+}
+
+async function saveDraft(){
+  hideAlerts();
+  if(!document.getElementById('inp-name-ru').value.trim()){
+    showErr(T[lang].err_name); return;
+  }
+  showOk(T[lang].ok_draft);
+}
+
+function goBack(){
+  const from = params.get('from') || 'vendor.html';
+  window.location.href = from;
+}
+
+// ── LOAD PRODUCT (edit mode) ──────────────────────────────────────────────────
+async function loadProduct(id){
+  document.getElementById('page-title').textContent = lang==='ru'?'РЕДАКТИРОВАТЬ':'ӨҢДЕУ';
+  // In production: load from Supabase
+}
+
+// ── KEY SHORTCUTS ─────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e=>{
+  if((e.ctrlKey||e.metaKey) && e.key==='s'){e.preventDefault();saveProduct();}
+});
+
+window.setLang = setLang;
+window.setNameLang = setNameLang;
+window.toggleSwitch = toggleSwitch;
+window.updateShelfPreview = updateShelfPreview;
+window.calcWholesale = calcWholesale;
+window.calcPackPrice = calcPackPrice;
+window.updateStock = updateStock;
+window.saveProduct = saveProduct;
+window.saveDraft = saveDraft;
+window.goBack = goBack;
+
+init();
+</script>
+</body>
+</html>

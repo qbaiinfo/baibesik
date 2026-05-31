@@ -6,108 +6,83 @@
 <title>Baibesik.kz — Войти</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-:root{
-  --orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;
-  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;
-  --border:#e2e8f0;--light:#f8fafc;
-  --green:#10b981;--red:#ef4444;
-}
+:root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--green:#10b981;--red:#ef4444;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans',sans-serif;background:var(--dark);min-height:100vh;display:flex;flex-direction:column}
+.bg{position:fixed;inset:0;background:linear-gradient(135deg,#1a0a00 0%,#0f172a 50%,#1e293b 100%);z-index:0}
 
-/* BG */
-.bg{position:fixed;inset:0;background:linear-gradient(135deg,var(--dark) 0%,#1a0a00 50%,var(--dark2) 100%);z-index:0}
-.bg-pattern{position:fixed;inset:0;opacity:.04;background-image:repeating-linear-gradient(45deg,#f97316 0,#f97316 1px,transparent 0,transparent 50%);background-size:20px 20px;z-index:0}
-
-/* HEADER */
 .top-bar{position:relative;z-index:10;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
 .logo{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--orange);letter-spacing:2px;text-decoration:none}
 .logo span{color:#fff}
 .lang-btns{display:flex;gap:6px}
-.lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Noto Sans',sans-serif;transition:all .2s}
+.lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Noto Sans',sans-serif}
 .lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
 
-/* MAIN */
 .main{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;z-index:10}
 
-/* CARD */
-.card{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.4)}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.5)}
 .card-head{background:linear-gradient(135deg,var(--orange) 0%,var(--orange-dark) 100%);padding:28px;text-align:center}
 .card-icon{font-size:36px;margin-bottom:8px}
 .card-title{font-family:'Bebas Neue',sans-serif;font-size:26px;color:#fff;letter-spacing:2px}
 .card-sub{font-size:13px;color:rgba(255,255,255,.8);margin-top:4px}
 .card-body{padding:28px}
 
-/* FORM */
-.fg{margin-bottom:16px}
-.fg-lbl{font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
-.fg-inp-wrap{position:relative}
-.fg-inp{width:100%;padding:12px 14px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;font-size:14px;font-family:'Noto Sans',sans-serif;color:#fff;outline:none;transition:all .2s}
-.fg-inp::placeholder{color:#64748b}
-.fg-inp:focus{border-color:var(--orange);background:rgba(249,115,22,.05)}
-.fg-inp.error{border-color:var(--red)}
-.fg-inp-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:#64748b;cursor:pointer;user-select:none}
-
-/* PHONE PREFIX */
-.phone-wrap{display:flex;gap:8px}
-.phone-prefix{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;color:#94a3b8;font-size:14px;font-weight:700;white-space:nowrap;font-family:'Noto Sans',sans-serif}
-.phone-inp{flex:1}
-
-/* ROLE CHIPS */
 .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
 .role-chip{border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.03)}
-.role-chip:hover{border-color:var(--orange);background:rgba(249,115,22,.08)}
-.role-chip.selected{border-color:var(--orange);background:rgba(249,115,22,.12)}
+.role-chip:hover{border-color:var(--orange)}
+.role-chip.selected{border-color:var(--orange);background:rgba(249,115,22,.1)}
 .role-icon{font-size:22px;display:block;margin-bottom:4px}
 .role-name{font-size:12px;font-weight:700;color:#fff}
-.role-sub{font-size:10px;color:#64748b;margin-top:2px}
+.role-sub{font-size:10px;color:#64748b;margin-top:1px}
 .role-chip.selected .role-name{color:var(--orange)}
 
-/* BUTTONS */
-.btn-main{width:100%;background:linear-gradient(135deg,var(--orange) 0%,var(--orange-dark) 100%);color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s;letter-spacing:.5px;position:relative;overflow:hidden}
-.btn-main:hover{opacity:.9;transform:translateY(-1px)}
-.btn-main:active{transform:translateY(0)}
-.btn-main:disabled{opacity:.5;pointer-events:none}
-.btn-main .spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
-.btn-main.loading .btn-text{display:none}
-.btn-main.loading .spinner{display:block}
+.fg{margin-bottom:14px}
+.fg-lbl{font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.phone-wrap{display:flex;gap:8px}
+.phone-prefix{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;color:#94a3b8;font-size:14px;font-weight:700}
+.fg-inp-wrap{position:relative}
+.fg-inp{width:100%;padding:12px 14px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;font-size:14px;font-family:'Noto Sans',sans-serif;color:#fff;outline:none;transition:all .2s}
+.fg-inp::placeholder{color:#475569}
+.fg-inp:focus{border-color:var(--orange)}
+.fg-inp-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:#64748b;cursor:pointer}
+
+.forgot{text-align:right;margin-bottom:16px;margin-top:-8px}
+.forgot a{font-size:12px;color:#64748b;text-decoration:none}
+
+.btn-main{width:100%;background:linear-gradient(135deg,var(--orange) 0%,var(--orange-dark) 100%);color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Noto Sans',sans-serif;letter-spacing:.5px;transition:all .2s}
+.btn-main:hover{opacity:.9}
+.btn-main:disabled{opacity:.4;pointer-events:none}
+.loading-ring{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* DIVIDER */
 .divider{display:flex;align-items:center;gap:12px;margin:18px 0}
-.divider-line{flex:1;height:1px;background:rgba(255,255,255,.08)}
-.divider-text{font-size:12px;color:#64748b;font-weight:600;white-space:nowrap}
+.div-line{flex:1;height:1px;background:rgba(255,255,255,.08)}
+.div-txt{font-size:12px;color:#64748b;font-weight:600}
 
-/* LINKS */
-.link-row{text-align:center;margin-top:16px;font-size:13px;color:#64748b}
+.link-row{text-align:center;font-size:13px;color:#64748b}
 .link-row a{color:var(--orange);text-decoration:none;font-weight:700}
-.link-row a:hover{text-decoration:underline}
 
-/* ALERT */
-.alert{border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;margin-bottom:16px;display:none;align-items:center;gap:8px}
+.alert{border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;margin-bottom:14px;display:none;align-items:center;gap:8px}
 .alert.show{display:flex}
-.alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5}
-.alert-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#6ee7b7}
+.alert-error{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#fca5a5}
+.alert-success{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#6ee7b7}
 
-/* DEMO ACCOUNTS */
+/* DEMO */
 .demo-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px;margin-top:16px}
 .demo-title{font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.demo-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:all .15s}
+.demo-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer}
 .demo-item:last-child{border-bottom:none}
 .demo-item:hover{opacity:.8}
 .demo-role{font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px}
-.demo-phone{font-size:11px;color:#64748b;font-family:monospace}
+.demo-ph{font-size:11px;color:#64748b;font-family:monospace}
 .demo-fill{font-size:10px;font-weight:700;color:var(--orange);background:rgba(249,115,22,.1);padding:2px 8px;border-radius:4px}
 
-/* FOOTER */
 footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11px;color:#334155}
 </style>
 </head>
 <body>
 <div class="bg"></div>
-<div class="bg-pattern"></div>
 
-<!-- TOP BAR -->
 <div class="top-bar">
   <a href="index.html" class="logo">BAI<span>BESIK</span></a>
   <div class="lang-btns">
@@ -116,7 +91,6 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
   <div class="card">
     <div class="card-head">
@@ -126,276 +100,152 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
     </div>
     <div class="card-body">
 
-      <!-- ROLE SELECT -->
-      <div id="role-section">
-        <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px" id="role-lbl">Кто вы?</div>
-        <div class="role-grid" id="role-grid"></div>
-      </div>
+      <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px" id="role-lbl">Кто вы?</div>
+      <div class="role-grid" id="role-grid"></div>
 
-      <!-- ALERT -->
-      <div class="alert alert-error" id="alert-error">⚠️ <span id="alert-text">Ошибка</span></div>
-      <div class="alert alert-success" id="alert-success">✅ <span id="alert-ok-text">Успешно!</span></div>
+      <div class="alert alert-error" id="alert-err">⚠️ <span id="alert-msg"></span></div>
+      <div class="alert alert-success" id="alert-ok">✅ <span id="alert-ok-msg"></span></div>
 
-      <!-- FORM -->
       <div class="fg">
-        <label class="fg-lbl" id="lbl-phone">Номер телефона</label>
+        <label class="fg-lbl" id="lbl-ph">Номер телефона</label>
         <div class="phone-wrap">
           <div class="phone-prefix">+7</div>
-          <input class="fg-inp phone-inp" id="inp-phone" type="tel" placeholder="707 123 4567" maxlength="10" inputmode="numeric">
+          <input class="fg-inp" id="inp-ph" type="tel" placeholder="707 123 4567" maxlength="10" inputmode="numeric">
         </div>
       </div>
 
       <div class="fg">
-        <label class="fg-lbl" id="lbl-pass">Пароль</label>
+        <label class="fg-lbl" id="lbl-pw">Пароль</label>
         <div class="fg-inp-wrap">
-          <input class="fg-inp" id="inp-pass" type="password" placeholder="••••••••">
-          <span class="fg-inp-icon" onclick="togglePass()">👁</span>
+          <input class="fg-inp" id="inp-pw" type="password" placeholder="••••••••">
+          <span class="fg-inp-icon" onclick="togglePw()">👁</span>
         </div>
       </div>
 
-      <div style="text-align:right;margin-bottom:16px;margin-top:-8px">
-        <a href="#" style="font-size:12px;color:#64748b;text-decoration:none" id="forgot-link">Забыли пароль?</a>
-      </div>
+      <div class="forgot"><a href="#" id="forgot-lnk">Забыли пароль?</a></div>
 
       <button class="btn-main" id="btn-login" onclick="doLogin()">
-        <span class="btn-text" id="btn-text">Войти →</span>
-        <div class="spinner"></div>
+        <span id="btn-txt">Войти →</span>
       </button>
 
       <div class="divider">
-        <div class="divider-line"></div>
-        <span class="divider-text" id="div-text">или</span>
-        <div class="divider-line"></div>
+        <div class="div-line"></div>
+        <span class="div-txt" id="div-txt">или</span>
+        <div class="div-line"></div>
       </div>
 
-      <div class="link-row" id="reg-link-row">
-        <span id="no-acc">Нет аккаунта?</span> <a href="register.html" id="reg-link">Зарегистрироваться</a>
-      </div>
+      <div class="link-row"><span id="no-acc">Нет аккаунта?</span> <a href="register.html" id="reg-lnk">Зарегистрироваться</a></div>
 
-      <!-- DEMO ACCOUNTS -->
       <div class="demo-box">
-        <div class="demo-title" id="demo-title">🧪 Тестовые аккаунты</div>
+        <div class="demo-title" id="demo-ttl">🧪 Тестовые аккаунты</div>
         <div id="demo-list"></div>
       </div>
 
     </div>
   </div>
 </div>
+<footer>© 2026 Baibesik.kz</footer>
 
-<footer>© 2026 Baibesik.kz — Байбесік базары</footer>
-
-<script type="module">
-// ─── SUPABASE ────────────────────────────────────────────────────────────────
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
+<script>
+// ─── CONFIG — BURAYA KENDİ KEY'İNİ YAZ ───────────────────────────────────
 const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MTI5MTUsImV4cCI6MjA2NDE4ODkxNX0.placeholder';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80'; // eyJ... ile başlayan key
+// ─────────────────────────────────────────────────────────────────────────
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// ─── DATA ─────────────────────────────────────────────────────────────────────
-const ROLES = [
-  { id:'customer',   icon:'🛒', ru:'Покупатель',    kk:'Сатып алушы',   sub_ru:'Розничный',      sub_kk:'Бөлшек' },
-  { id:'wholesale',  icon:'📦', ru:'Оптовик',       kk:'Көтермеші',     sub_ru:'Оптовый',        sub_kk:'Көтерме' },
-  { id:'manager',    icon:'🏪', ru:'Менеджер',      kk:'Менеджер',      sub_ru:'Сотрудник магазина', sub_kk:'Дүкен қызметкері' },
-  { id:'warehouse',  icon:'🏭', ru:'Склад',         kk:'Қойма',         sub_ru:'Складской',      sub_kk:'Қойма жұмысшысы' },
+const ROLES=[
+  {id:'customer', icon:'🛒', ru:'Покупатель',  kk:'Сатып алушы', sub_ru:'Розничный',         sub_kk:'Бөлшек'},
+  {id:'wholesale',icon:'📦', ru:'Оптовик',     kk:'Көтермеші',   sub_ru:'Оптовый',           sub_kk:'Көтерме'},
+  {id:'manager',  icon:'🏪', ru:'Менеджер',    kk:'Менеджер',    sub_ru:'Сотрудник магазина', sub_kk:'Дүкен қызметкері'},
+  {id:'warehouse',icon:'🏭', ru:'Склад',       kk:'Қойма',       sub_ru:'Складской',         sub_kk:'Қойма жұмысшысы'},
 ];
 
-const DEMO_ACCOUNTS = [
-  { role:'customer',  icon:'🛒', phone:'7001111111', pass:'test123', ru:'Покупатель',   kk:'Сатып алушы' },
-  { role:'wholesale', icon:'📦', phone:'7002222222', pass:'test123', ru:'Оптовик',      kk:'Көтермеші' },
-  { role:'manager',   icon:'🏪', phone:'7003333333', pass:'test123', ru:'Менеджер',     kk:'Менеджер' },
-  { role:'warehouse', icon:'🏭', phone:'7004444444', pass:'test123', ru:'Склад',        kk:'Қойма' },
+const DEMOS=[
+  {icon:'🛒',ph:'7001111111',pw:'test123',ru:'Покупатель',   kk:'Сатып алушы'},
+  {icon:'📦',ph:'7002222222',pw:'test123',ru:'Оптовик',      kk:'Көтермеші'},
+  {icon:'🏪',ph:'7003333333',pw:'test123',ru:'Менеджер',     kk:'Менеджер'},
+  {icon:'🏭',ph:'7004444444',pw:'test123',ru:'Склад',        kk:'Қойма'},
 ];
 
-const ROUTES = {
-  super_admin: 'admin.html',
-  store_owner: 'vendor.html',
-  manager:     'vendor.html',
-  warehouse:   'depo_panel.html',
-  wholesale:   'toptanci_dashboard.html',
-  customer:    'musteri_dashboard.html',
+const ROUTES={customer:'musteri_dashboard.html',wholesale:'toptanci_dashboard.html',manager:'vendor.html',warehouse:'depo_panel.html',super_admin:'admin.html',store_owner:'vendor.html'};
+
+const T={
+  ru:{'card-title':'ВОЙТИ В АККАУНТ','card-sub':'Baibesik.kz — Байбесік базары','role-lbl':'Кто вы?','lbl-ph':'Номер телефона','lbl-pw':'Пароль','forgot-lnk':'Забыли пароль?','btn-txt':'Войти →','div-txt':'или','no-acc':'Нет аккаунта?','reg-lnk':'Зарегистрироваться','demo-ttl':'🧪 Тестовые аккаунты',err_empty:'Заполните телефон и пароль',err_phone:'Введите 10-значный номер',err_wrong:'Неверный телефон или пароль',ok_login:'Вход выполнен! Перенаправляем...',fill_txt:'Заполнить'},
+  kk:{'card-title':'АККАУНТҚА КІРу','card-sub':'Baibesik.kz — Байбесік базары','role-lbl':'Сіз кімсіз?','lbl-ph':'Телефон нөмірі','lbl-pw':'Құпия сөз','forgot-lnk':'Құпия сөзді ұмыттыңыз ба?','btn-txt':'Кіру →','div-txt':'немесе','no-acc':'Аккаунт жоқ па?','reg-lnk':'Тіркелу','demo-ttl':'🧪 Тест аккаунттары',err_empty:'Телефон мен құпия сөзді толтырыңыз',err_phone:'10 санды нөмір енгізіңіз',err_wrong:'Қате телефон немесе құпия сөз',ok_login:'Кіру сәтті! Бағытталуда...',fill_txt:'Толтыру'},
 };
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
-let lang = 'ru';
-let selectedRole = 'customer';
+let lang='ru', selRole='customer';
+function d(){return T[lang];}
+function $(id){return document.getElementById(id);}
 
-// ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
-const T = {
-  ru:{
-    'card-title':'ВОЙТИ В АККАУНТ','card-sub':'Baibesik.kz — Байбесік базары',
-    'role-lbl':'Кто вы?','lbl-phone':'Номер телефона','lbl-pass':'Пароль',
-    'forgot-link':'Забыли пароль?','btn-text':'Войти →','div-text':'или',
-    'no-acc':'Нет аккаунта?','reg-link':'Зарегистрироваться',
-    'demo-title':'🧪 Тестовые аккаунты',
-    err_empty:'Заполните телефон и пароль',
-    err_phone:'Введите корректный номер (10 цифр)',
-    err_wrong:'Неверный телефон или пароль',
-    err_notfound:'Пользователь не найден',
-    ok_login:'Вход выполнен! Перенаправляем...',
-  },
-  kk:{
-    'card-title':'АККАУНТҚА КІРу','card-sub':'Baibesik.kz — Байбесік базары',
-    'role-lbl':'Сіз кімсіз?','lbl-phone':'Телефон нөмірі','lbl-pass':'Құпия сөз',
-    'forgot-link':'Құпия сөзді ұмыттыңыз ба?','btn-text':'Кіру →','div-text':'немесе',
-    'no-acc':'Аккаунт жоқ па?','reg-link':'Тіркелу',
-    'demo-title':'🧪 Тест аккаунттары',
-    err_empty:'Телефон мен құпия сөзді толтырыңыз',
-    err_phone:'Дұрыс нөмір енгізіңіз (10 сан)',
-    err_wrong:'Қате телефон немесе құпия сөз',
-    err_notfound:'Пайдаланушы табылмады',
-    ok_login:'Кіру сәтті! Бағытталуда...',
-  }
-};
-
-// ─── LANG ─────────────────────────────────────────────────────────────────────
-function setLang(l) {
-  lang = l;
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().toLowerCase() === l));
-  const d = T[l];
-  ['card-title','card-sub','lbl-phone','lbl-pass','btn-text','div-text','no-acc','reg-link','demo-title'].forEach(k => {
-    const el = document.getElementById(k); if(el) el.textContent = d[k] || '';
-  });
-  document.getElementById('forgot-link').textContent = d['forgot-link'];
-  document.getElementById('role-lbl').textContent = d['role-lbl'];
-  renderRoles();
-  renderDemo();
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
+  ['card-title','card-sub','role-lbl','lbl-ph','lbl-pw','forgot-lnk','btn-txt','div-txt','no-acc','reg-lnk','demo-ttl'].forEach(k=>{const el=$(k);if(el)el.textContent=d()[k]||'';});
+  renderRoles();renderDemo();
 }
-window.setLang = setLang;
 
-// ─── ROLES ────────────────────────────────────────────────────────────────────
-function renderRoles() {
-  document.getElementById('role-grid').innerHTML = ROLES.map(r => `
-    <div class="role-chip ${selectedRole === r.id ? 'selected' : ''}" onclick="selectRole('${r.id}')">
+function renderRoles(){
+  $('role-grid').innerHTML=ROLES.map(r=>`
+    <div class="role-chip${selRole===r.id?' selected':''}" onclick="selRole='${r.id}';renderRoles()">
       <span class="role-icon">${r.icon}</span>
-      <div class="role-name">${lang==='ru' ? r.ru : r.kk}</div>
-      <div class="role-sub">${lang==='ru' ? r.sub_ru : r.sub_kk}</div>
+      <div class="role-name">${lang==='ru'?r.ru:r.kk}</div>
+      <div class="role-sub">${lang==='ru'?r.sub_ru:r.sub_kk}</div>
     </div>`).join('');
 }
-window.selectRole = function(id) { selectedRole = id; renderRoles(); };
 
-// ─── DEMO ─────────────────────────────────────────────────────────────────────
-function renderDemo() {
-  document.getElementById('demo-list').innerHTML = DEMO_ACCOUNTS.map(a => `
-    <div class="demo-item" onclick="fillDemo('${a.phone}','${a.pass}')">
-      <div class="demo-role">${a.icon} ${lang==='ru' ? a.ru : a.kk}</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="demo-phone">+7 ${a.phone.slice(1)}</span>
-        <span class="demo-fill">${lang==='ru'?'Заполнить':'Толтыру'}</span>
+function renderDemo(){
+  $('demo-list').innerHTML=DEMOS.map(a=>`
+    <div class="demo-item" onclick="fillDemo('${a.ph}','${a.pw}')">
+      <div class="demo-role">${a.icon} ${lang==='ru'?a.ru:a.kk}</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="demo-ph">+7 ${a.ph.slice(1)}</span>
+        <span class="demo-fill">${d().fill_txt}</span>
       </div>
     </div>`).join('');
 }
-window.fillDemo = function(phone, pass) {
-  document.getElementById('inp-phone').value = phone;
-  document.getElementById('inp-pass').value = pass;
+
+function fillDemo(ph,pw){$('inp-ph').value=ph;$('inp-pw').value=pw;hideAlerts();}
+function togglePw(){const el=$('inp-pw');el.type=el.type==='password'?'text':'password';}
+function showErr(msg){$('alert-msg').textContent=msg;$('alert-err').classList.add('show');$('alert-ok').classList.remove('show');}
+function showOk(msg){$('alert-ok-msg').textContent=msg;$('alert-ok').classList.add('show');$('alert-err').classList.remove('show');}
+function hideAlerts(){$('alert-err').classList.remove('show');$('alert-ok').classList.remove('show');}
+
+async function doLogin(){
+  const d_=d();
   hideAlerts();
-};
+  const ph=$('inp-ph').value.replace(/\D/g,'');
+  const pw=$('inp-pw').value;
+  if(!ph||!pw){showErr(d_.err_empty);return;}
+  if(ph.length<10){showErr(d_.err_phone);return;}
 
-// ─── UI HELPERS ───────────────────────────────────────────────────────────────
-window.togglePass = function() {
-  const inp = document.getElementById('inp-pass');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-};
-function showError(msg) {
-  const el = document.getElementById('alert-error');
-  document.getElementById('alert-text').textContent = msg;
-  el.classList.add('show');
-  document.getElementById('alert-success').classList.remove('show');
-}
-function showSuccess(msg) {
-  const el = document.getElementById('alert-success');
-  document.getElementById('alert-ok-text').textContent = msg;
-  el.classList.add('show');
-  document.getElementById('alert-error').classList.remove('show');
-}
-function hideAlerts() {
-  document.getElementById('alert-error').classList.remove('show');
-  document.getElementById('alert-success').classList.remove('show');
-}
-function setLoading(on) {
-  const btn = document.getElementById('btn-login');
-  btn.classList.toggle('loading', on);
-  btn.disabled = on;
-}
+  const btn=$('btn-login');
+  btn.disabled=true;
+  $('btn-txt').innerHTML='<span class="loading-ring"></span>';
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
-window.doLogin = async function() {
-  hideAlerts();
-  const d = T[lang];
-  const phone = document.getElementById('inp-phone').value.trim().replace(/\D/g,'');
-  const pass  = document.getElementById('inp-pass').value;
+  try{
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 
-  // Validation
-  if (!phone || !pass) { showError(d.err_empty); return; }
-  if (phone.length < 10) { showError(d.err_phone); return; }
+    const {data,error}=await sb.auth.signInWithPassword({email:ph+'@baibesik.kz',password:pw});
 
-  setLoading(true);
+    if(error){showErr(d_.err_wrong);btn.disabled=false;$('btn-txt').textContent=d_['btn-txt'];return;}
 
-  try {
-    // Email formatı: telefon@baibesik.kz
-    const email = phone + '@baibesik.kz';
+    const {data:user}=await sb.from('users').select('role,full_name').eq('id',data.user.id).single();
+    showOk(`${d_.ok_login} ${user?.full_name||''}`);
+    setTimeout(()=>{window.location.href=ROUTES[user?.role]||'musteri_dashboard.html';},1200);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-
-    if (error) {
-      if (error.message.includes('Invalid login')) {
-        showError(d.err_wrong);
-      } else {
-        showError(error.message);
-      }
-      setLoading(false);
-      return;
-    }
-
-    // Kullanıcı rolünü al
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role, full_name')
-      .eq('id', data.user.id)
-      .single();
-
-    showSuccess(`${d.ok_login} ${userData?.full_name || ''}`);
-
-    // Role göre yönlendir
-    setTimeout(() => {
-      const route = ROUTES[userData?.role] || 'musteri_dashboard.html';
-      window.location.href = route;
-    }, 1200);
-
-  } catch(err) {
-    showError(err.message || d.err_wrong);
-    setLoading(false);
-  }
-};
-
-// Enter ile giriş
-document.getElementById('inp-pass').addEventListener('keydown', e => {
-  if (e.key === 'Enter') window.doLogin();
-});
-document.getElementById('inp-phone').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('inp-pass').focus();
-});
-
-// Sadece rakam kabul et
-document.getElementById('inp-phone').addEventListener('input', function() {
-  this.value = this.value.replace(/\D/g,'').slice(0,10);
-});
-
-// ─── ALREADY LOGGED IN? ───────────────────────────────────────────────────────
-async function checkSession() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    const { data: userData } = await supabase
-      .from('users').select('role').eq('id', session.user.id).single();
-    if (userData) window.location.href = ROUTES[userData.role] || 'musteri_dashboard.html';
+  }catch(e){
+    showErr(e.message||d_.err_wrong);
+    btn.disabled=false;$('btn-txt').textContent=d()['btn-txt'];
   }
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+$('inp-ph').addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,10);});
+$('inp-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+$('inp-ph').addEventListener('keydown',e=>{if(e.key==='Enter')$('inp-pw').focus();});
+
 renderRoles();
 renderDemo();
-checkSession();
 </script>
 </body>
 </html>

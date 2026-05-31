@@ -197,10 +197,10 @@ footer { background: var(--dark); color: #94a3b8; padding: 48px 20px 24px; }
   <div class="nav-inner">
     <a href="catalog.html" class="nav-link active" id="nav-catalog">Каталог</a>
     <a href="#categories" class="nav-link" id="nav-cats">Категории</a>
-    <a href="shop.html" class="nav-link" id="nav-shops">Магазины</a>
+    <a href="catalog.html" class="nav-link" id="nav-shops">Магазины</a>
     <a href="toptanci_dashboard.html" class="nav-link" id="nav-wholesale">Оптовикам</a>
     <a href="#" class="nav-link" id="nav-delivery">Доставка</a>
-    <a href="detailed_finance_report.html" class="nav-link" id="nav-about">О нас</a>
+    <a href="admin.html" class="nav-link" id="nav-about">О нас</a>
   </div>
 </nav>
 
@@ -312,9 +312,9 @@ footer { background: var(--dark); color: #94a3b8; padding: 48px 20px 24px; }
     <div>
       <div class="footer-title" id="ft2">Магазинам</div>
       <ul class="footer-links">
-        <li><a href="shop_admin_panel.html" id="fl5">Панель магазина</a></li>
+        <li><a href="vendor.html" id="fl5">Панель магазина</a></li>
         <li><a href="vendor.html" id="fl6">Управление заказами</a></li>
-        <li><a href="shop_picking_print.html" id="fl7">Сборка заказов</a></li>
+        <li><a href="depo_panel.html" id="fl7">Сборка заказов</a></li>
         <li><a href="register.html" id="fl8">Подключить магазин</a></li>
       </ul>
     </div>
@@ -336,14 +336,14 @@ footer { background: var(--dark); color: #94a3b8; padding: 48px 20px 24px; }
 <script>
 // ── DATA ──
 const categories = [
-  { icon: '🔩', ru: 'Петли и шарниры', kk: 'Ілгектер мен шарнирлер', count: '120+' },
-  { icon: '📐', ru: 'Направляющие', kk: 'Бағыттаушылар', count: '80+' },
-  { icon: '🖐️', ru: 'Ручки и крючки', kk: 'Тұтқалар', count: '200+' },
+  { icon: '🔗', ru: 'Петли и шарниры', kk: 'Ілгектер мен шарнирлер', count: '120+' },
+  { icon: '🗄️', ru: 'Направляющие', kk: 'Бағыттаушылар', count: '80+' },
+  { icon: '🎛️', ru: 'Ручки и крючки', kk: 'Тұтқалар', count: '200+' },
   { icon: '🔒', ru: 'Замки и шпингалеты', kk: 'Құлыптар', count: '60+' },
   { icon: '🪟', ru: 'Раздвижные двери', kk: 'Сырғымалы есіктер', count: '45+' },
-  { icon: '📦', ru: 'Ящики выдвижные', kk: 'Тартпалар жүйесі', count: '55+' },
+  { icon: '🗃️', ru: 'Ящики выдвижные', kk: 'Тартпалар жүйесі', count: '55+' },
   { icon: '🛏️', ru: 'Кроватная фурнитура', kk: 'Төсек фурнитурасы', count: '40+' },
-  { icon: '🍳', ru: 'Кухонные комплект.', kk: 'Асхана жиынтықтары', count: '90+' },
+  { icon: '🚰', ru: 'Кухонные комплект.', kk: 'Асхана жиынтықтары', count: '90+' },
   { icon: '💡', ru: 'Светильники и розетки', kk: 'Шамдар мен розеткалар', count: '35+' },
   { icon: '🔧', ru: 'Метизы и крепёж', kk: 'Бекіту элементтері', count: '300+' },
   { icon: '📏', ru: 'Консоли и полкодерж.', kk: 'Сөреұстағыштар', count: '50+' },
@@ -353,7 +353,7 @@ const categories = [
 const products = [
   { icon: '🔩', name_ru: 'Петля Blum Clip Top 110°', name_kk: 'Blum Clip Top петлясы', spec: 'Антрацит / Гömme', price: '1 450', old: '1 800', badge: 'Хит' },
   { icon: '📐', name_ru: 'Направляющие Boyard 450мм', name_kk: 'Boyard бағыттаушы 450мм', spec: 'Полного выдвижения', price: '3 200', old: null, badge: null },
-  { icon: '🖐️', name_ru: 'Ручка-профиль Gola 4м', name_kk: 'Gola профильді тұтқа 4м', spec: 'Алюминий, Антрацит', price: '8 500', old: null, badge: '⚠️ Самовывоз' },
+  { icon: '🎛️', name_ru: 'Ручка-профиль Gola 4м', name_kk: 'Gola профильді тұтқа 4м', spec: 'Алюминий, Антрацит', price: '8 500', old: null, badge: '⚠️ Самовывоз' },
   { icon: '🔒', name_ru: 'Замок мебельный врезной', name_kk: 'Кіріктірілген мебель құлыбы', spec: ''+ 'Хром, 18мм', price: '650', old: null, badge: null },
   { icon: '⚙️', name_ru: 'Амортизатор газовый 80N', name_kk: 'Газдық амортизатор 80N', spec: 'Серебро / Подъём', price: '850', old: '1 100', badge: '-23%' },
   { icon: '🪟', name_ru: 'Система раздвижных дверей', name_kk: 'Сырғымалы есік жүйесі', spec: '2-дверная, до 80кг', price: '12 500', old: null, badge: null },

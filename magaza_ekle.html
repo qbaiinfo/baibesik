@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Добавить магазин</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;
+  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;
+  --border:#e2e8f0;--light:#f8fafc;
+  --green:#10b981;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:900px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.htitle{flex:1;font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;letter-spacing:1px}
+.lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Noto Sans',sans-serif}
+.lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.btn-back{color:#94a3b8;text-decoration:none;font-size:12px;font-weight:600;padding:6px 12px;border:1px solid rgba(255,255,255,.1);border-radius:6px}
+
+.content{max-width:900px;margin:0 auto;padding:24px 16px}
+
+.form-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
+.fc-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--dark)}
+.fc-num{width:26px;height:26px;border-radius:50%;background:var(--orange);color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fc-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;letter-spacing:1px}
+.fc-body{padding:20px}
+
+.fg{margin-bottom:16px}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.fg-lbl{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.required{color:var(--red)}
+.fg-inp{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none;transition:border-color .2s;background:#fff}
+.fg-inp:focus{border-color:var(--orange)}
+.fg-inp.error{border-color:var(--red)}
+.fg-sel{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none;cursor:pointer;background:#fff}
+.fg-hint{font-size:11px;color:var(--gray);margin-top:4px}
+.fg-textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none;resize:vertical;min-height:70px;transition:border-color .2s}
+.fg-textarea:focus{border-color:var(--orange)}
+
+/* STATUS CHIPS */
+.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.status-chip{border:2px solid var(--border);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
+.status-chip:hover{border-color:var(--orange)}
+.status-chip.selected-trial{border-color:var(--blue);background:rgba(59,130,246,.08)}
+.status-chip.selected-active{border-color:var(--green);background:rgba(16,185,129,.08)}
+.status-chip.selected-blocked{border-color:var(--red);background:rgba(239,68,68,.08)}
+.sc-icon{font-size:24px;display:block;margin-bottom:4px}
+.sc-name{font-size:12px;font-weight:800;color:var(--dark)}
+.sc-sub{font-size:10px;color:var(--gray);margin-top:2px}
+
+/* PAYMENT CHIPS */
+.pay-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.pay-chip{border:2px solid var(--border);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
+.pay-chip:hover{border-color:var(--orange)}
+.pay-chip.selected{border-color:var(--orange);background:var(--orange-light)}
+.pc-icon{font-size:22px;display:block;margin-bottom:4px}
+.pc-name{font-size:12px;font-weight:800;color:var(--dark)}
+
+/* OWNER SECTION */
+.owner-card{background:var(--light);border:1.5px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s}
+.owner-card:hover{border-color:var(--orange)}
+.owner-card.selected{border-color:var(--green);background:rgba(16,185,129,.05)}
+.owner-avatar{width:40px;height:40px;border-radius:50%;background:var(--orange);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.owner-info{flex:1}
+.owner-name{font-size:13px;font-weight:700;color:var(--dark)}
+.owner-phone{font-size:11px;color:var(--gray)}
+
+/* MAP PREVIEW */
+.map-preview{width:100%;height:180px;background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--orange);font-size:40px;cursor:pointer;position:relative;overflow:hidden}
+.map-preview::after{content:'📍 Нажмите чтобы выбрать на карте';position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:11px;font-weight:700;color:#94a3b8;font-family:'Noto Sans',sans-serif}
+
+/* SUBSCRIPTION */
+.sub-box{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%);border-radius:10px;padding:16px;color:#fff}
+.sub-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sub-label{font-size:12px;color:#64748b;font-weight:700}
+.sub-val{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--orange)}
+.sub-trial-badge{background:rgba(59,130,246,.2);color:#60a5fa;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--light);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:10px}
+.toggle{width:44px;height:24px;background:var(--border);border-radius:12px;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--orange)}
+.toggle::after{content:'';width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(20px)}
+
+/* ALERT */
+.alert{border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;display:none;align-items:center;gap:8px;margin-bottom:16px}
+.alert.show{display:flex}
+.alert-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red)}
+.alert-success{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--green)}
+
+/* BOTTOM BAR */
+.bottom-bar{position:sticky;bottom:0;background:#fff;border-top:2px solid var(--border);padding:14px 16px;z-index:50}
+.bb-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:12px;justify-content:flex-end}
+.btn{border:none;padding:11px 22px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-orange:hover{background:var(--orange-dark)}
+.btn-ghost{background:#fff;color:var(--gray);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+.btn:disabled{opacity:.4;pointer-events:none}
+.loading-ring{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:600px){.fg-row,.fg-row-3,.status-grid,.pay-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hi">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="htitle" id="page-title">ДОБАВИТЬ МАГАЗИН</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" onclick="setLang('kk')">KK</button>
+      <a href="admin.html" class="btn-back" id="btn-back">← Назад</a>
+    </div>
+  </div>
+</header>
+
+<div class="content">
+
+  <div class="alert alert-error" id="alert-err">⚠️ <span id="alert-msg"></span></div>
+  <div class="alert alert-success" id="alert-ok">✅ <span id="alert-ok-msg"></span></div>
+
+  <!-- 1. ОСНОВНАЯ ИНФОРМАЦИЯ -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">1</div>
+      <div class="fc-title" id="fc1">ОСНОВНАЯ ИНФОРМАЦИЯ</div>
+    </div>
+    <div class="fc-body">
+      <div class="fg-row">
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-name">Название магазина <span class="required">*</span></label>
+          <input class="fg-inp" id="inp-name" placeholder="Alik Hırdavat">
+        </div>
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-phone">Телефон <span class="required">*</span></label>
+          <input class="fg-inp" id="inp-phone" placeholder="+7 727 XXX XX XX" type="tel">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-addr">Адрес <span class="required">*</span></label>
+        <input class="fg-inp" id="inp-addr" placeholder="мкр. Байбесик, ул. 2-я, уч. 14">
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-lat">Широта (lat)</label>
+          <input class="fg-inp" id="inp-lat" placeholder="43.2558" type="number" step="0.0001">
+          <div class="fg-hint" id="hint-coords">Google Maps → правый клик → координаты</div>
+        </div>
+        <div class="fg">
+          <label class="fg-lbl" id="lbl-lng">Долгота (lng)</label>
+          <input class="fg-inp" id="inp-lng" placeholder="76.9356" type="number" step="0.0001">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-desc">Описание магазина</label>
+        <textarea class="fg-textarea" id="inp-desc" placeholder="Специализируется на мебельной фурнитуре BMT..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ВЛАДЕЛЕЦ -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">2</div>
+      <div class="fc-title" id="fc2">ВЛАДЕЛЕЦ МАГАЗИНА</div>
+    </div>
+    <div class="fc-body">
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-owner-phone">Телефон владельца <span class="required">*</span></label>
+        <div style="display:flex;gap:8px">
+          <div class="phone-prefix" style="background:var(--light);border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--gray);font-weight:700;white-space:nowrap">+7</div>
+          <input class="fg-inp" id="inp-owner-phone" placeholder="707 123 4567" type="tel" maxlength="10" inputmode="numeric" oninput="searchOwner()">
+        </div>
+        <div class="fg-hint" id="hint-owner">Владелец должен быть зарегистрирован в системе</div>
+      </div>
+      <!-- Owner result -->
+      <div id="owner-result" style="display:none"></div>
+      <div class="fg" style="margin-top:12px">
+        <label class="fg-lbl" id="lbl-managers">Менеджеры (телефоны, через запятую)</label>
+        <input class="fg-inp" id="inp-managers" placeholder="+7 701 XXX XX XX, +7 702 XXX XX XX">
+        <div class="fg-hint" id="hint-managers">До 3 менеджеров. Они получат доступ к панели магазина</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. ОПЛАТА -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">3</div>
+      <div class="fc-title" id="fc3">СПОСОБЫ ОПЛАТЫ</div>
+    </div>
+    <div class="fc-body">
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-bank">Предпочтительный банк</label>
+        <div class="pay-grid" id="pay-grid">
+          <div class="pay-chip selected" onclick="selectBank('kaspi')">
+            <span class="pc-icon">🔴</span>
+            <div class="pc-name">Kaspi QR</div>
+          </div>
+          <div class="pay-chip" onclick="selectBank('halyk')">
+            <span class="pc-icon">🟢</span>
+            <div class="pc-name">Halyk QR</div>
+          </div>
+          <div class="pay-chip" onclick="selectBank('both')">
+            <span class="pc-icon">💳</span>
+            <div class="pc-name" id="pc-both">Оба</div>
+          </div>
+        </div>
+      </div>
+      <div class="fg-row">
+        <div class="fg" id="kaspi-field">
+          <label class="fg-lbl">Kaspi Merchant ID</label>
+          <input class="fg-inp" id="inp-kaspi" placeholder="554091223">
+          <div class="fg-hint">Из личного кабинета Kaspi Business</div>
+        </div>
+        <div class="fg" id="halyk-field" style="display:none">
+          <label class="fg-lbl">Halyk Merchant ID</label>
+          <input class="fg-inp" id="inp-halyk" placeholder="HLK-889021">
+          <div class="fg-hint">Из личного кабинета Halyk Business</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. ПОДПИСКА -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">4</div>
+      <div class="fc-title" id="fc4">СТАТУС И ПОДПИСКА</div>
+    </div>
+    <div class="fc-body">
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-status">Статус подписки</label>
+        <div class="status-grid">
+          <div class="status-chip selected-trial" id="sc-trial" onclick="selectStatus('trial')">
+            <span class="sc-icon">🎁</span>
+            <div class="sc-name" id="st-trial">Пробный</div>
+            <div class="sc-sub" id="st-trial-sub">90 дней бесплатно</div>
+          </div>
+          <div class="status-chip" id="sc-active" onclick="selectStatus('active')">
+            <span class="sc-icon">✅</span>
+            <div class="sc-name" id="st-active">Активный</div>
+            <div class="sc-sub" id="st-active-sub">Платная подписка</div>
+          </div>
+          <div class="status-chip" id="sc-blocked" onclick="selectStatus('blocked')">
+            <span class="sc-icon">🚫</span>
+            <div class="sc-name" id="st-blocked">Заблокирован</div>
+            <div class="sc-sub" id="st-blocked-sub">Нет доступа</div>
+          </div>
+        </div>
+      </div>
+      <div class="sub-box" id="sub-box">
+        <div class="sub-row">
+          <span class="sub-label" id="sub-fee-lbl">Ежемесячный взнос</span>
+          <span class="sub-val">15 000 ₸</span>
+        </div>
+        <div class="sub-row">
+          <span class="sub-label" id="sub-trial-lbl">Пробный период</span>
+          <span class="sub-trial-badge" id="sub-trial-txt">90 дней бесплатно</span>
+        </div>
+        <div class="sub-row" style="margin-bottom:0">
+          <span class="sub-label" id="sub-ends-lbl">Пробный период до</span>
+          <span style="color:var(--green);font-weight:800;font-size:13px" id="sub-trial-date">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. НАСТРОЙКИ -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">5</div>
+      <div class="fc-title" id="fc5">НАСТРОЙКИ</div>
+    </div>
+    <div class="fc-body">
+      <div class="toggle-row" onclick="toggleSw('is-active')">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--dark)" id="t1">✅ Магазин активен</div>
+          <div style="font-size:11px;color:var(--gray);margin-top:2px" id="t1s">Виден покупателям в каталоге</div>
+        </div>
+        <div class="toggle on" id="toggle-is-active"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleSw('delivery')">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--dark)" id="t2">🛵 Курьерская доставка</div>
+          <div style="font-size:11px;color:var(--gray);margin-top:2px" id="t2s">InDrive и Яндекс Dostavka</div>
+        </div>
+        <div class="toggle on" id="toggle-delivery"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleSw('wholesale')">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--dark)" id="t3">📦 Оптовые продажи</div>
+          <div style="font-size:11px;color:var(--gray);margin-top:2px" id="t3s">Разрешить оптовым покупателям</div>
+        </div>
+        <div class="toggle on" id="toggle-wholesale"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="bb-inner">
+    <button class="btn btn-ghost" onclick="window.location.href='admin.html'" id="btn-cancel">Отмена</button>
+    <button class="btn btn-orange" id="btn-save" onclick="saveStore()">
+      <span id="btn-save-txt">🏪 Добавить магазин</span>
+    </button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+let lang = 'ru';
+let selBank = 'kaspi';
+let selStatus = 'trial';
+let toggles = {'is-active':true,'delivery':true,'wholesale':true};
+
+const params = new URLSearchParams(window.location.search);
+const editId = params.get('id');
+
+const T = {
+  ru:{
+    'page-title': editId?'РЕДАКТИРОВАТЬ МАГАЗИН':'ДОБАВИТЬ МАГАЗИН',
+    'btn-back':'← Назад','btn-cancel':'Отмена',
+    'fc1':'ОСНОВНАЯ ИНФОРМАЦИЯ','fc2':'ВЛАДЕЛЕЦ МАГАЗИНА',
+    'fc3':'СПОСОБЫ ОПЛАТЫ','fc4':'СТАТУС И ПОДПИСКА','fc5':'НАСТРОЙКИ',
+    'lbl-name':'Название магазина','lbl-phone':'Телефон',
+    'lbl-addr':'Адрес','lbl-lat':'Широта (lat)','lbl-lng':'Долгота (lng)',
+    'hint-coords':'Google Maps → правый клик → координаты',
+    'lbl-desc':'Описание магазина',
+    'lbl-owner-phone':'Телефон владельца',
+    'hint-owner':'Владелец должен быть зарегистрирован',
+    'lbl-managers':'Менеджеры (телефоны через запятую)',
+    'hint-managers':'До 3 менеджеров',
+    'lbl-bank':'Предпочтительный банк',
+    'pc-both':'Оба',
+    'lbl-status':'Статус подписки',
+    'st-trial':'Пробный','st-trial-sub':'90 дней бесплатно',
+    'st-active':'Активный','st-active-sub':'Платная подписка',
+    'st-blocked':'Заблокирован','st-blocked-sub':'Нет доступа',
+    'sub-fee-lbl':'Ежемесячный взнос',
+    'sub-trial-lbl':'Пробный период','sub-trial-txt':'90 дней бесплатно',
+    'sub-ends-lbl':'Пробный период до',
+    't1':'✅ Магазин активен','t1s':'Виден покупателям',
+    't2':'🛵 Курьерская доставка','t2s':'InDrive и Яндекс Dostavka',
+    't3':'📦 Оптовые продажи','t3s':'Разрешить оптовым покупателям',
+    'btn-save-txt': editId?'💾 Сохранить изменения':'🏪 Добавить магазин',
+    err_name:'Введите название магазина',
+    err_phone:'Введите телефон магазина',
+    err_addr:'Введите адрес магазина',
+    ok_saved:'Магазин успешно добавлен!',
+    ok_edited:'Изменения сохранены!',
+  },
+  kk:{
+    'page-title': editId?'ДҮКЕНДІ ӨҢДЕУ':'ДҮКЕН ҚОСУ',
+    'btn-back':'← Артқа','btn-cancel':'Бас тарту',
+    'fc1':'НЕГІЗГІ АҚПАРАТ','fc2':'ДҮКЕН ИЕСІ',
+    'fc3':'ТӨЛЕМ ТӘСІЛДЕРІ','fc4':'МӘРТЕБЕ ЖӘНЕ ЖАЗЫЛЫМ','fc5':'БАПТАУЛАР',
+    'lbl-name':'Дүкен атауы','lbl-phone':'Телефон',
+    'lbl-addr':'Мекенжай','lbl-lat':'Ендік (lat)','lbl-lng':'Бойлық (lng)',
+    'hint-coords':'Google Maps → оң жақ басу → координаттар',
+    'lbl-desc':'Дүкен сипаттамасы',
+    'lbl-owner-phone':'Иесінің телефоны',
+    'hint-owner':'Иесі жүйеде тіркелген болуы керек',
+    'lbl-managers':'Менеджерлер (үтірмен бөлу)',
+    'hint-managers':'3 менеджерге дейін',
+    'lbl-bank':'Банк артықшылығы',
+    'pc-both':'Екеуі де',
+    'lbl-status':'Жазылым мәртебесі',
+    'st-trial':'Сынақ','st-trial-sub':'90 күн тегін',
+    'st-active':'Белсенді','st-active-sub':'Ақылы жазылым',
+    'st-blocked':'Бұғатталған','st-blocked-sub':'Кіру жабық',
+    'sub-fee-lbl':'Ай сайынғы айдат',
+    'sub-trial-lbl':'Сынақ мерзімі','sub-trial-txt':'90 күн тегін',
+    'sub-ends-lbl':'Сынақ мерзімі дейін',
+    't1':'✅ Дүкен белсенді','t1s':'Сатып алушыларға көрінеді',
+    't2':'🛵 Курьер жеткізу','t2s':'InDrive және Яндекс Dostavka',
+    't3':'📦 Көтерме сату','t3s':'Көтерме сатып алушыларға рұқсат',
+    'btn-save-txt': editId?'💾 Өзгерістерді сақтау':'🏪 Дүкен қосу',
+    err_name:'Дүкен атауын енгізіңіз',
+    err_phone:'Телефон нөмірін енгізіңіз',
+    err_addr:'Мекенжайды енгізіңіз',
+    ok_saved:'Дүкен сәтті қосылды!',
+    ok_edited:'Өзгерістер сақталды!',
+  }
+};
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
+  const d=T[l];
+  Object.keys(d).forEach(k=>{const el=document.getElementById(k);if(el&&typeof d[k]==='string')el.textContent=d[k];});
+  updateTrialDate();
+}
+
+function selectBank(b){
+  selBank=b;
+  document.querySelectorAll('.pay-chip').forEach(c=>c.className='pay-chip');
+  document.querySelector(`[onclick="selectBank('${b}')"]`).classList.add('selected');
+  document.getElementById('kaspi-field').style.display = (b==='kaspi'||b==='both')?'block':'none';
+  document.getElementById('halyk-field').style.display = (b==='halyk'||b==='both')?'block':'none';
+}
+
+function selectStatus(s){
+  selStatus=s;
+  ['trial','active','blocked'].forEach(x=>{
+    document.getElementById('sc-'+x).className='status-chip'+(x===s?' selected-'+x:'');
+  });
+  updateTrialDate();
+}
+
+function updateTrialDate(){
+  if(selStatus==='trial'){
+    const d=new Date();d.setDate(d.getDate()+90);
+    document.getElementById('sub-trial-date').textContent =
+      d.toLocaleDateString(lang==='ru'?'ru-RU':'kk-KZ',{day:'numeric',month:'long',year:'numeric'});
+  } else {
+    document.getElementById('sub-trial-date').textContent='—';
+  }
+}
+
+function toggleSw(id){
+  toggles[id]=!toggles[id];
+  document.getElementById('toggle-'+id).classList.toggle('on',toggles[id]);
+}
+
+function searchOwner(){
+  const ph = document.getElementById('inp-owner-phone').value.replace(/\D/g,'');
+  const res = document.getElementById('owner-result');
+  if(ph.length>=10){
+    // Demo — show found user
+    res.style.display='block';
+    res.innerHTML=`
+      <div class="owner-card selected">
+        <div class="owner-avatar">Е</div>
+        <div class="owner-info">
+          <div class="owner-name">Ерканат Жұмабай</div>
+          <div class="owner-phone">+7 ${ph} · Клиент → Владелец</div>
+        </div>
+        <span style="color:var(--green);font-size:18px">✓</span>
+      </div>`;
+  } else {
+    res.style.display='none';
+  }
+}
+
+function showErr(msg){document.getElementById('alert-msg').textContent=msg;document.getElementById('alert-err').classList.add('show');document.getElementById('alert-ok').classList.remove('show');window.scrollTo({top:0,behavior:'smooth'});}
+function showOk(msg){document.getElementById('alert-ok-msg').textContent=msg;document.getElementById('alert-ok').classList.add('show');document.getElementById('alert-err').classList.remove('show');window.scrollTo({top:0,behavior:'smooth'});}
+
+async function saveStore(){
+  const d_=T[lang];
+  const name=document.getElementById('inp-name').value.trim();
+  const phone=document.getElementById('inp-phone').value.trim();
+  const addr=document.getElementById('inp-addr').value.trim();
+
+  if(!name){document.getElementById('inp-name').classList.add('error');showErr(d_.err_name);return;}
+  document.getElementById('inp-name').classList.remove('error');
+  if(!phone){document.getElementById('inp-phone').classList.add('error');showErr(d_.err_phone);return;}
+  document.getElementById('inp-phone').classList.remove('error');
+  if(!addr){document.getElementById('inp-addr').classList.add('error');showErr(d_.err_addr);return;}
+  document.getElementById('inp-addr').classList.remove('error');
+
+  const btn=document.getElementById('btn-save');
+  btn.disabled=true;
+  document.getElementById('btn-save-txt').innerHTML='<span class="loading-ring"></span>';
+
+  const trialDate=new Date();trialDate.setDate(trialDate.getDate()+90);
+
+  const data={
+    name,phone,address:addr,
+    lat:parseFloat(document.getElementById('inp-lat').value)||43.2558,
+    lng:parseFloat(document.getElementById('inp-lng').value)||76.9356,
+    description_ru:document.getElementById('inp-desc').value.trim()||null,
+    kaspi_merchant_id:document.getElementById('inp-kaspi').value.trim()||null,
+    halyk_merchant_id:document.getElementById('inp-halyk').value.trim()||null,
+    preferred_bank:selBank,
+    status:selStatus,
+    trial_ends_at:selStatus==='trial'?trialDate.toISOString():null,
+    is_active:toggles['is-active'],
+  };
+
+  try{
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    if(editId){
+      await sb.from('stores').update(data).eq('id',editId);
+      showOk(d_.ok_edited);
+    } else {
+      await sb.from('stores').insert(data);
+      showOk(d_.ok_saved);
+    }
+    setTimeout(()=>window.location.href='admin.html',1500);
+  } catch(e){
+    showOk(d_.ok_saved+' (Demo)');
+    setTimeout(()=>window.location.href='admin.html',1500);
+  }
+  btn.disabled=false;
+  document.getElementById('btn-save-txt').textContent=T[lang]['btn-save-txt'];
+}
+
+window.setLang=setLang;
+window.selectBank=selectBank;
+window.selectStatus=selectStatus;
+window.toggleSw=toggleSw;
+window.searchOwner=searchOwner;
+window.saveStore=saveStore;
+
+updateTrialDate();
+</script>
+</body>
+</html>
