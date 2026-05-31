@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — О нас</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;
+  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;
+  --border:#e2e8f0;--light:#f8fafc;
+  --green:#10b981;--blue:#3b82f6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+
+/* HEADER */
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:1100px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--orange);letter-spacing:2px;text-decoration:none;flex-shrink:0}
+.logo span{color:#fff}
+.hn{flex:1}
+.lang-btns{display:flex;gap:6px}
+.lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Noto Sans',sans-serif}
+.lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.btn-back{color:#94a3b8;text-decoration:none;font-size:12px;font-weight:600;padding:6px 12px;border:1px solid rgba(255,255,255,.1);border-radius:6px;transition:all .2s}
+.btn-back:hover{color:var(--orange);border-color:var(--orange)}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--dark) 0%,#1a0800 50%,var(--dark2) 100%);padding:70px 20px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba(249,115,22,.08),transparent 60%)}
+.hero::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 70% 50%,rgba(249,115,22,.06),transparent 60%)}
+.hero-inner{position:relative;z-index:1;max-width:700px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);color:var(--orange);font-size:12px;font-weight:800;padding:5px 14px;border-radius:20px;margin-bottom:20px}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:52px;color:#fff;letter-spacing:3px;line-height:1.1;margin-bottom:16px}
+.hero-title span{color:var(--orange)}
+.hero-sub{font-size:16px;color:#94a3b8;line-height:1.7;max-width:560px;margin:0 auto 28px}
+.hero-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap}
+.hs{text-align:center}
+.hs-num{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--orange);display:block}
+.hs-lbl{font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+
+/* CONTENT */
+.content{max-width:1100px;margin:0 auto;padding:60px 20px}
+
+/* SECTION */
+.section{margin-bottom:60px}
+.section-label{font-size:12px;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--dark);letter-spacing:2px;margin-bottom:16px}
+.section-text{font-size:15px;color:var(--gray);line-height:1.8;max-width:700px}
+
+/* STORY GRID */
+.story-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.story-visual{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%);border-radius:20px;padding:40px;text-align:center;position:relative;overflow:hidden}
+.story-visual::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;background:radial-gradient(circle,rgba(249,115,22,.15),transparent)}
+.sv-icon{font-size:64px;margin-bottom:16px}
+.sv-title{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--orange);letter-spacing:1px;margin-bottom:8px}
+.sv-text{font-size:13px;color:#64748b;line-height:1.6}
+
+/* VALUES GRID */
+.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.value-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:24px;transition:all .2s;border-top:4px solid var(--border)}
+.value-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.08);transform:translateY(-2px)}
+.value-card.orange{border-top-color:var(--orange)}
+.value-card.green{border-top-color:var(--green)}
+.value-card.blue{border-top-color:var(--blue)}
+.vc-icon{font-size:36px;margin-bottom:12px}
+.vc-title{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--dark);letter-spacing:1px;margin-bottom:8px}
+.vc-text{font-size:13px;color:var(--gray);line-height:1.6}
+
+/* TEAM */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}
+.team-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;transition:all .2s}
+.team-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.08);transform:translateY(-2px)}
+.tc-avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange-dark));color:#fff;font-family:'Bebas Neue',sans-serif;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.tc-name{font-size:14px;font-weight:800;color:var(--dark);margin-bottom:4px}
+.tc-role{font-size:12px;color:var(--orange);font-weight:700}
+.tc-desc{font-size:11px;color:var(--gray);margin-top:6px;line-height:1.4}
+
+/* NUMBERS */
+.numbers-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.num-card{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%);border-radius:16px;padding:24px;text-align:center}
+.nc-num{font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--orange);display:block;letter-spacing:1px}
+.nc-lbl{font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+
+/* LOCATION */
+.location-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+.location-map{background:linear-gradient(135deg,var(--dark),var(--dark2));border-radius:16px;height:220px;display:flex;align-items:center;justify-content:center;font-size:50px;position:relative;overflow:hidden}
+.location-map::after{content:'📍 мкр. Байбесик, Алматы';position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;font-weight:700;color:#94a3b8;font-family:'Noto Sans',sans-serif}
+.location-info{}
+.li-title{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--dark);letter-spacing:1px;margin-bottom:16px}
+.li-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+.li-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.li-text{font-size:13px;color:var(--gray);line-height:1.5}
+.li-text strong{color:var(--dark);font-weight:700}
+
+/* CTA */
+.cta{background:linear-gradient(135deg,var(--orange),var(--orange-dark));border-radius:20px;padding:50px 40px;text-align:center;position:relative;overflow:hidden}
+.cta::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:rgba(255,255,255,.08);border-radius:50%}
+.cta::after{content:'';position:absolute;bottom:-60px;left:-60px;width:240px;height:240px;background:rgba(255,255,255,.05);border-radius:50%}
+.cta-inner{position:relative;z-index:1}
+.cta-title{font-family:'Bebas Neue',sans-serif;font-size:40px;color:#fff;letter-spacing:2px;margin-bottom:12px}
+.cta-sub{font-size:15px;color:rgba(255,255,255,.85);margin-bottom:28px}
+.cta-btns{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.btn{padding:13px 24px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;text-decoration:none;font-family:'Noto Sans',sans-serif;transition:all .2s;display:inline-block}
+.btn-white{background:#fff;color:var(--orange-dark)}
+.btn-white:hover{background:var(--orange-light)}
+.btn-dark{background:var(--dark);color:var(--orange)}
+.btn-dark:hover{background:var(--dark2)}
+
+/* FOOTER */
+footer{background:var(--dark2);padding:30px 20px;text-align:center}
+.footer-inner{max-width:1100px;margin:0 auto}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;margin-bottom:8px}
+.footer-logo span{color:#fff}
+.footer-text{font-size:12px;color:#475569}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .story-grid,.location-grid{grid-template-columns:1fr}
+  .values-grid,.numbers-grid{grid-template-columns:1fr 1fr}
+  .hero-title{font-size:36px}
+}
+@media(max-width:600px){
+  .values-grid,.numbers-grid,.team-grid{grid-template-columns:1fr}
+  .hero-stats{gap:20px}
+  .cta-title{font-size:28px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hi">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="hn"></div>
+    <div class="lang-btns">
+      <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" onclick="setLang('kk')">KK</button>
+    </div>
+    <a href="index.html" class="btn-back" id="btn-back">← Главная</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">📍 <span id="hero-badge">Алматы, мкр. Байбесик · с 2024 года</span></div>
+    <div class="hero-title" id="hero-title">О ПРОЕКТЕ <span>BAIBESIK</span></div>
+    <div class="hero-sub" id="hero-sub">Мы создали первый онлайн-маркетплейс мебельной фурнитуры и хозтоваров для микрорайона Байбесик в Алматы. Всё, что нужно мебельщику — в одном месте.</div>
+    <div class="hero-stats">
+      <div class="hs"><span class="hs-num">50+</span><span class="hs-lbl" id="hs1">Магазинов</span></div>
+      <div class="hs"><span class="hs-num">500+</span><span class="hs-lbl" id="hs2">Товаров</span></div>
+      <div class="hs"><span class="hs-num">23</span><span class="hs-lbl" id="hs3">Категории</span></div>
+      <div class="hs"><span class="hs-num">3 мес</span><span class="hs-lbl" id="hs4">Пробный период</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ИСТОРИЯ -->
+  <div class="section">
+    <div class="story-grid">
+      <div>
+        <div class="section-label" id="story-label">Наша история</div>
+        <div class="section-title" id="story-title">КАК ВСЁ НАЧАЛОСЬ</div>
+        <div class="section-text" id="story-text">
+          Микрорайон Байбесик в Алматы — это сосредоточие десятков магазинов мебельной фурнитуры, петель, направляющих, профилей и хозтоваров. Покупатели тратили часы, обходя магазин за магазином в поисках нужного товара по лучшей цене.<br><br>
+          Мы решили это изменить. Baibesik.kz — это единая платформа, где все магазины района работают вместе. Покупатели находят товар, сравнивают цены и заказывают доставку — не выходя из дома. Магазины получают новых клиентов и современный инструмент управления заказами.
+        </div>
+      </div>
+      <div class="story-visual">
+        <div class="sv-icon">🏪</div>
+        <div class="sv-title" id="sv-title">МКР. БАЙБЕСИК</div>
+        <div class="sv-text" id="sv-text">Один из крупнейших торговых районов Алматы по мебельной фурнитуре и строительным материалам. Более 50 специализированных магазинов на нескольких улицах.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ЦИФРЫ -->
+  <div class="section">
+    <div class="section-label" id="nums-label">Цифры</div>
+    <div class="section-title" id="nums-title">BAIBESIK В ЦИФРАХ</div>
+    <div class="numbers-grid">
+      <div class="num-card">
+        <span class="nc-num">50+</span>
+        <div class="nc-lbl" id="nc1">Магазинов</div>
+      </div>
+      <div class="num-card">
+        <span class="nc-num">500+</span>
+        <div class="nc-lbl" id="nc2">Наименований</div>
+      </div>
+      <div class="num-card">
+        <span class="nc-num">15K ₸</span>
+        <div class="nc-lbl" id="nc3">Абонплата / месяц</div>
+      </div>
+      <div class="num-card">
+        <span class="nc-num">−20%</span>
+        <div class="nc-lbl" id="nc4">Оптовая скидка</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ЦЕННОСТИ -->
+  <div class="section">
+    <div class="section-label" id="val-label">Наши ценности</div>
+    <div class="section-title" id="val-title">ПОЧЕМУ МЫ</div>
+    <div class="values-grid">
+      <div class="value-card orange">
+        <div class="vc-icon">⚡</div>
+        <div class="vc-title" id="vc1-title">СКОРОСТЬ</div>
+        <div class="vc-text" id="vc1-text">Заказ принимается мгновенно. Курьер через InDrive или Яндекс Dostavka доставит товар в течение часа по Алматы.</div>
+      </div>
+      <div class="value-card green">
+        <div class="vc-icon">✅</div>
+        <div class="vc-title" id="vc2-title">ЧЕСТНОСТЬ</div>
+        <div class="vc-text" id="vc2-text">Все цены из реального прайс-листа BMT апрель 2026. Оптовые цены — минус 20% без скрытых условий.</div>
+      </div>
+      <div class="value-card blue">
+        <div class="vc-icon">🤝</div>
+        <div class="vc-title" id="vc3-title">ПАРТНЁРСТВО</div>
+        <div class="vc-text" id="vc3-text">Магазины — наши партнёры. 3 месяца бесплатного пробного периода. Ваш успех — наш успех.</div>
+      </div>
+      <div class="value-card orange">
+        <div class="vc-icon">📱</div>
+        <div class="vc-title" id="vc4-title">УДОБСТВО</div>
+        <div class="vc-text" id="vc4-text">Kaspi QR, Halyk Bank — оплата одним нажатием. Вся история заказов в личном кабинете.</div>
+      </div>
+      <div class="value-card green">
+        <div class="vc-icon">🔒</div>
+        <div class="vc-title" id="vc5-title">НАДЁЖНОСТЬ</div>
+        <div class="vc-text" id="vc5-text">Только проверенные магазины. Каждый магазин проходит верификацию перед подключением к платформе.</div>
+      </div>
+      <div class="value-card blue">
+        <div class="vc-icon">🌐</div>
+        <div class="vc-title" id="vc6-title">ДВУЯЗЫЧНОСТЬ</div>
+        <div class="vc-text" id="vc6-text">Платформа полностью на русском и казахском языках. Для удобства всех жителей Алматы.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- КОМАНДА -->
+  <div class="section">
+    <div class="section-label" id="team-label">Команда</div>
+    <div class="section-title" id="team-title">КТО МЫ</div>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="tc-avatar">А</div>
+        <div class="tc-name" id="tc1-name">Алфараби</div>
+        <div class="tc-role" id="tc1-role">Основатель и CEO</div>
+        <div class="tc-desc" id="tc1-desc">Идея, разработка и запуск платформы. Алматы, мкр. Байбесик.</div>
+      </div>
+      <div class="team-card">
+        <div class="tc-avatar" style="background:linear-gradient(135deg,var(--green),#059669)">М</div>
+        <div class="tc-name" id="tc2-name">Команда магазинов</div>
+        <div class="tc-role" id="tc2-role">Партнёры платформы</div>
+        <div class="tc-desc" id="tc2-desc">50+ магазинов микрорайона Байбесик — наши главные партнёры.</div>
+      </div>
+      <div class="team-card">
+        <div class="tc-avatar" style="background:linear-gradient(135deg,var(--blue),#1d4ed8)">К</div>
+        <div class="tc-name" id="tc3-name">Курьеры</div>
+        <div class="tc-role" id="tc3-role">InDrive + Яндекс</div>
+        <div class="tc-desc" id="tc3-desc">Быстрая доставка по всему Алматы через проверенных партнёров.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- КОНТАКТЫ -->
+  <div class="section">
+    <div class="section-label" id="loc-label">Контакты</div>
+    <div class="section-title" id="loc-title">КАК НАС НАЙТИ</div>
+    <div class="location-grid">
+      <div class="location-map">🗺️</div>
+      <div class="location-info">
+        <div class="li-title" id="li-title">Наши контакты</div>
+        <div class="li-row">
+          <div class="li-icon">📍</div>
+          <div class="li-text"><strong id="li-addr-lbl">Адрес:</strong><br><span id="li-addr">Казахстан, г. Алматы, мкр. Байбесик</span></div>
+        </div>
+        <div class="li-row">
+          <div class="li-icon">📞</div>
+          <div class="li-text"><strong id="li-phone-lbl">Телефон:</strong><br><a href="tel:+77270000000" style="color:var(--orange);text-decoration:none">+7 (727) 000-00-00</a></div>
+        </div>
+        <div class="li-row">
+          <div class="li-icon">📧</div>
+          <div class="li-text"><strong id="li-email-lbl">Email:</strong><br><a href="mailto:info@baibesik.kz" style="color:var(--orange);text-decoration:none">info@baibesik.kz</a></div>
+        </div>
+        <div class="li-row">
+          <div class="li-icon">🕐</div>
+          <div class="li-text"><strong id="li-hours-lbl">Режим работы:</strong><br><span id="li-hours">Пн–Сб: 9:00–19:00</span></div>
+        </div>
+        <div class="li-row">
+          <div class="li-icon">📱</div>
+          <div class="li-text"><strong id="li-social-lbl">Соцсети:</strong><br>
+            <a href="#" style="color:var(--orange);text-decoration:none;margin-right:12px">Instagram</a>
+            <a href="#" style="color:var(--orange);text-decoration:none">WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <div class="cta-inner">
+      <div class="cta-title" id="cta-title">ПРИСОЕДИНЯЙТЕСЬ К BAIBESIK</div>
+      <div class="cta-sub" id="cta-sub">Зарегистрируйтесь как покупатель или подключите свой магазин к платформе</div>
+      <div class="cta-btns">
+        <a href="register.html" class="btn btn-white" id="cta-btn1">🛒 Зарегистрироваться</a>
+        <a href="catalog.html" class="btn btn-dark" id="cta-btn2">📦 Смотреть каталог</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">BAI<span>BESIK</span>.KZ</div>
+    <div class="footer-text" id="footer-txt">© 2026 Baibesik.kz — Мебельная фурнитура и хозтовары. Алматы, мкр. Байбесик.</div>
+  </div>
+</footer>
+
+<script>
+const T = {
+  ru:{
+    'btn-back':'← Главная',
+    'hero-badge':'Алматы, мкр. Байбесик · с 2024 года',
+    'hero-title':'О ПРОЕКТЕ',
+    'hero-sub':'Мы создали первый онлайн-маркетплейс мебельной фурнитуры и хозтоваров для микрорайона Байбесик в Алматы.',
+    'hs1':'Магазинов','hs2':'Товаров','hs3':'Категории','hs4':'Пробный период',
+    'story-label':'Наша история','story-title':'КАК ВСЁ НАЧАЛОСЬ',
+    'story-text':'Микрорайон Байбесик — это десятки магазинов мебельной фурнитуры. Baibesik.kz объединил их на одной платформе. Покупатели находят товар и заказывают доставку — не выходя из дома. Магазины получают новых клиентов и инструмент управления заказами.',
+    'sv-title':'МКР. БАЙБЕСИК','sv-text':'Один из крупнейших торговых районов Алматы по мебельной фурнитуре. Более 50 специализированных магазинов.',
+    'nums-label':'Цифры','nums-title':'BAIBESIK В ЦИФРАХ',
+    'nc1':'Магазинов','nc2':'Наименований','nc3':'Абонплата / месяц','nc4':'Оптовая скидка',
+    'val-label':'Ценности','val-title':'ПОЧЕМУ МЫ',
+    'vc1-title':'СКОРОСТЬ','vc1-text':'Курьер через InDrive или Яндекс доставит за час.',
+    'vc2-title':'ЧЕСТНОСТЬ','vc2-text':'Цены из реального прайс-листа BMT. Без скрытых условий.',
+    'vc3-title':'ПАРТНЁРСТВО','vc3-text':'3 месяца бесплатно. Ваш успех — наш успех.',
+    'vc4-title':'УДОБСТВО','vc4-text':'Kaspi QR, Halyk Bank — оплата за секунду.',
+    'vc5-title':'НАДЁЖНОСТЬ','vc5-text':'Только проверенные магазины района.',
+    'vc6-title':'ДВУЯЗЫЧНОСТЬ','vc6-text':'Полностью на русском и казахском.',
+    'team-label':'Команда','team-title':'КТО МЫ',
+    'tc1-name':'Алфараби','tc1-role':'Основатель и CEO','tc1-desc':'Идея и запуск платформы.',
+    'tc2-name':'Магазины-партнёры','tc2-role':'Партнёры платформы','tc2-desc':'50+ магазинов Байбесика.',
+    'tc3-name':'Курьеры','tc3-role':'InDrive + Яндекс','tc3-desc':'Быстрая доставка по Алматы.',
+    'loc-label':'Контакты','loc-title':'КАК НАС НАЙТИ',
+    'li-title':'Наши контакты',
+    'li-addr-lbl':'Адрес:','li-addr':'Казахстан, г. Алматы, мкр. Байбесик',
+    'li-phone-lbl':'Телефон:','li-email-lbl':'Email:',
+    'li-hours-lbl':'Режим работы:','li-hours':'Пн–Сб: 9:00–19:00',
+    'li-social-lbl':'Соцсети:',
+    'cta-title':'ПРИСОЕДИНЯЙТЕСЬ К BAIBESIK',
+    'cta-sub':'Зарегистрируйтесь как покупатель или подключите свой магазин',
+    'cta-btn1':'🛒 Зарегистрироваться','cta-btn2':'📦 Смотреть каталог',
+    'footer-txt':'© 2026 Baibesik.kz — Мебельная фурнитура. Алматы, мкр. Байбесик.',
+  },
+  kk:{
+    'btn-back':'← Басты бет',
+    'hero-badge':'Алматы, Байбесік шаг. · 2024 жылдан',
+    'hero-title':'ЖОБА ТУРАЛЫ',
+    'hero-sub':'Біз Алматының Байбесік шағынаудандары үшін жиһаз фурнитурасының алғашқы онлайн-маркетплейсін жасадық.',
+    'hs1':'Дүкен','hs2':'Тауар','hs3':'Санат','hs4':'Сынақ мерзімі',
+    'story-label':'Біздің тарихымыз','story-title':'БАРЛЫҒЫ ҚАЛАЙ БАСТАЛДЫ',
+    'story-text':'Байбесік шаг. — жиһаз фурнитурасының ондаған дүкендері. Baibesik.kz оларды бір платформада біріктірді. Сатып алушылар үйден шықпай тауар тауып, жеткізу тапсырады.',
+    'sv-title':'БАЙБЕСІК ШАҒ.','sv-text':'Алматының ең ірі жиһаз фурнитурасы сауда ауданы. 50-ден астам мамандандырылған дүкен.',
+    'nums-label':'Сандар','nums-title':'BAIBESIK САНДАРДА',
+    'nc1':'Дүкен','nc2':'Атау','nc3':'Айлық абоненттік','nc4':'Көтерме жеңілдік',
+    'val-label':'Құндылықтар','val-title':'НЕЛІКТЕН БІЗ',
+    'vc1-title':'ЖЫЛДАМДЫҚ','vc1-text':'InDrive немесе Яндекс арқылы курьер бір сағатта жеткізеді.',
+    'vc2-title':'АДАЛДЫҚ','vc2-text':'BMT нақты прайс-тізімінен бағалар. Жасырын шарттарсыз.',
+    'vc3-title':'СЕРІКТЕСТІК','vc3-text':'3 ай тегін. Сіздің жетістігіңіз — біздің жетістігіміз.',
+    'vc4-title':'ЫҢҒАЙЛЫЛЫҚ','vc4-text':'Kaspi QR, Halyk Bank — бір секундта төлем.',
+    'vc5-title':'СЕНІМДІЛІК','vc5-text':'Тек тексерілген дүкендер.',
+    'vc6-title':'ҚОСТІЛДІЛІК','vc6-text':'Орысша және қазақша толық.',
+    'team-label':'Команда','team-title':'БІЗ КІМБІЗ',
+    'tc1-name':'Алфараби','tc1-role':'Негізін қалаушы, CEO','tc1-desc':'Платформаның идеясы мен іске қосылуы.',
+    'tc2-name':'Серіктес дүкендер','tc2-role':'Платформа серіктестері','tc2-desc':'50+ Байбесік дүкені.',
+    'tc3-name':'Курьерлер','tc3-role':'InDrive + Яндекс','tc3-desc':'Алматы бойынша жылдам жеткізу.',
+    'loc-label':'Байланыс','loc-title':'БІЗДІ ҚАЛАЙ ТАБУҒА БОЛАДЫ',
+    'li-title':'Біздің байланыстарымыз',
+    'li-addr-lbl':'Мекенжай:','li-addr':'Қазақстан, Алматы, Байбесік шаг.',
+    'li-phone-lbl':'Телефон:','li-email-lbl':'Email:',
+    'li-hours-lbl':'Жұмыс уақыты:','li-hours':'Дс–Сб: 9:00–19:00',
+    'li-social-lbl':'Әлеуметтік желілер:',
+    'cta-title':'BAIBESIK-КЕ ҚОСЫЛЫҢЫЗ',
+    'cta-sub':'Сатып алушы ретінде тіркеліңіз немесе дүкеніңізді қосыңыз',
+    'cta-btn1':'🛒 Тіркелу','cta-btn2':'📦 Каталогты қарау',
+    'footer-txt':'© 2026 Baibesik.kz — Жиһаз фурнитурасы. Алматы, Байбесік шаг.',
+  }
+};
+
+let lang = 'ru';
+function setLang(l){
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
+  const d = T[l];
+  Object.keys(d).forEach(k=>{
+    const el = document.getElementById(k);
+    if(el) el.textContent = d[k] || '';
+  });
+  // Fix hero title
+  if(l==='ru'){
+    document.getElementById('hero-title').innerHTML = 'О ПРОЕКТЕ <span style="color:var(--orange)">BAIBESIK</span>';
+  } else {
+    document.getElementById('hero-title').innerHTML = '<span style="color:var(--orange)">BAIBESIK</span> ЖОБАСЫ ТУРАЛЫ';
+  }
+}
+window.setLang = setLang;
+</script>
+</body>
+</html>
