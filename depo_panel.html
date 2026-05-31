@@ -611,6 +611,50 @@ document.getElementById('print-overlay').addEventListener('click', function(e){
 
 // ─── INIT ─────────────────────────────────────────────────────────────────
 renderOrders();
+
+// ─── SUPABASE — GERÇEK KULLANICI ─────────────────────────────────────────────
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+async function loadDepoUser() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) { window.location.href = 'login.html?staff=1'; return; }
+
+    const {data:user} = await sb.from('users').select('*').eq('id', session.user.id).single();
+    if(!user) return;
+
+    if(!['warehouse','manager','store_owner','super_admin'].includes(user.role)) {
+      window.location.href = 'musteri_dashboard.html';
+      return;
+    }
+
+    const name = user.full_name || 'Сотрудник';
+    const {data:member} = await sb.from('store_members')
+      .select('stores(name)')
+      .eq('user_id', session.user.id)
+      .single();
+
+    const storeName = member?.stores?.name || 'Baibesik';
+    const hname = document.getElementById('h-name');
+    if(hname) hname.textContent = `${storeName} — Склад`;
+
+    // Logout
+    const hr = document.querySelector('.hr');
+    if(hr && !document.getElementById('logout-btn')) {
+      const btn = document.createElement('button');
+      btn.id = 'logout-btn';
+      btn.textContent = '🚪';
+      btn.style.cssText = 'background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:14px';
+      btn.onclick = async () => { await sb.auth.signOut(); window.location.href = 'login.html?staff=1'; };
+      hr.appendChild(btn);
+    }
+  } catch(e) { console.log('Demo mod:', e.message); }
+}
+loadDepoUser();
 </script>
 </body>
 </html>
