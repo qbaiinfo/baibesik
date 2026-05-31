@@ -712,8 +712,95 @@ function renderAll(){
   renderAddrs();
 }
 
+// ─── SUPABASE — GERÇEK KULLANICI ─────────────────────────────────────────
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+async function loadCurrentUser() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Session kontrol
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Kullanıcı verisini çek
+    const {data:user} = await sb.from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if(user) {
+      const name = user.full_name || 'Пользователь';
+      const initial = name.charAt(0).toUpperCase();
+      const phone = user.phone || '';
+      const role = user.role || 'customer';
+
+      // Rol kontrolü - sadece customer ve wholesale
+      if(['manager','warehouse','store_owner','super_admin'].includes(role)) {
+        window.location.href = 'vendor.html';
+        return;
+      }
+
+      // İsim güncelle
+      const nameEls = ['h-name','p-name','inp-name'];
+      nameEls.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.textContent = name;
+        if(id === 'inp-name' && el) el.value = name;
+      });
+
+      // Avatar
+      const av = document.getElementById('pav');
+      if(av) av.textContent = initial;
+
+      // Meta bilgi
+      const meta = document.getElementById('p-meta');
+      if(meta) meta.textContent = '📱 ' + phone;
+
+      // Rozet — toptancı mı?
+      const badge = document.getElementById('p-badge');
+      if(badge) {
+        badge.textContent = role === 'wholesale'
+          ? (lang==='ru'?'📦 Оптовый покупатель':'📦 Көтерме сатып алушы')
+          : (lang==='ru'?'🛒 Розничный покупатель':'🛒 Бөлшек сатып алушы');
+      }
+
+      // Profil formu
+      const phoneInp = document.getElementById('inp-phone');
+      if(phoneInp) phoneInp.value = phone;
+
+      // Logout butonu ekle
+      addLogoutBtn(sb);
+    }
+  } catch(e) {
+    console.log('Session yok, demo mod:', e.message);
+  }
+}
+
+function addLogoutBtn(sb) {
+  const hr = document.querySelector('.hr');
+  if(hr && !document.getElementById('logout-btn')) {
+    const btn = document.createElement('button');
+    btn.id = 'logout-btn';
+    btn.textContent = '🚪';
+    btn.title = 'Выйти';
+    btn.style.cssText = 'background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:14px';
+    btn.onclick = async () => {
+      await sb.auth.signOut();
+      window.location.href = 'login.html';
+    };
+    hr.appendChild(btn);
+  }
+}
+
 // ─── INIT ────────────────────────────────────────────────────────────────
 renderAll();
+loadCurrentUser();
 </script>
 </body>
 </html>
