@@ -477,29 +477,11 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
 
 <script>
 // ─── DATA ───────────────────────────────────────────────
-const storeAccess = [
-  { id:1, name:'Alik Hırdavat', icon:'🔧', color:'#f97316', category:'Петли, направляющие', status:'active', discount:15, fee:5000, products:142 },
-  { id:2, name:'Serikcan Market', icon:'🏪', color:'#3b82f6', category:'Ручки, крепёж, профили', status:'active', discount:12, fee:5000, products:98 },
-  { id:3, name:'Bolat Aksesuar', icon:'🪑', color:'#8b5cf6', category:'Системы раздвижных дверей', status:'pending', discount:20, fee:5000, products:77 },
-];
+const storeAccess = []; // demo temizlendi
 
-const products = [
-  { id:1, storeId:1, storeName:'Alik Hırdavat', icon:'🔩', ru:'Петля Blum Clip Top 110°', kk:'Blum Clip Top 110° петлясы', spec:'Антрацит, гömme', retail:1450, wholesale:1100, heavy:false },
-  { id:2, storeId:1, storeName:'Alik Hırdavat', icon:'🔩', ru:'Петля Samet 35мм', kk:'Samet 35мм петлясы', spec:'Хром, 3D', retail:680, wholesale:520, heavy:false },
-  { id:3, storeId:1, storeName:'Alik Hırdavat', icon:'🧲', ru:'Доводчик Blum Blumotion', kk:'Blum Blumotion жетегі', spec:'Для Clip Top', retail:650, wholesale:500, heavy:false },
-  { id:4, storeId:2, storeName:'Serikcan Market', icon:'📐', ru:'Направляющие Boyard 450мм', kk:'Boyard 450мм бағыттаушы', spec:'Полного выдвижения', retail:3200, wholesale:2500, heavy:false },
-  { id:5, storeId:2, storeName:'Serikcan Market', icon:'🖐️', ru:'Ручка-профиль Gola 4м', kk:'Gola 4м тұтқа', spec:'Алюминий, L-тип', retail:8500, wholesale:6500, heavy:true },
-  { id:6, storeId:2, storeName:'Serikcan Market', icon:'🔧', ru:'Конфирмат 7x50 (100шт)', kk:'Конфирмат 7x50 (100дана)', spec:'Оцинкованный', retail:450, wholesale:320, heavy:false },
-  { id:7, storeId:2, storeName:'Serikcan Market', icon:'🔒', ru:'Замок врезной мебельный', kk:'Кіріктірілген жиһаз құлыбы', spec:'Хром, 18мм', retail:650, wholesale:490, heavy:false },
-  { id:8, storeId:1, storeName:'Alik Hırdavat', icon:'📦', ru:'Ящик Legrabox Pure 500мм', kk:'Legrabox Pure 500мм', spec:'Белый, H=92мм', retail:9800, wholesale:7800, heavy:false },
-];
+const products = []; // demo temizlendi
 
-const myOrders = [
-  { id:'BBS-9941', date:'27.05.2026', shop:'Serikcan Market', items:'Направляющие Boyard ×4, Конфирмат ×200', pay:'kaspi', total:22500, status:'delivery' },
-  { id:'BBS-9932', date:'24.05.2026', shop:'Alik Hırdavat', items:'Петля Blum ×20, Доводчик ×20', pay:'kaspi', total:43000, status:'done' },
-  { id:'BBS-9920', date:'20.05.2026', shop:'Serikcan Market', items:'Gola профиль ×5, Замок ×10', pay:'halyk', total:39450, status:'done' },
-  { id:'BBS-9905', date:'15.05.2026', shop:'Alik Hırdavat', items:'Ящик Legrabox ×4', pay:'kaspi', total:31200, status:'done' },
-];
+const myOrders = []; // demo temizlendi
 
 // ─── STATE ───
 let lang = 'ru';

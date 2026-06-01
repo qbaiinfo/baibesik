@@ -336,31 +336,9 @@ footer { background: var(--dark); color: #94a3b8; padding: 48px 20px 24px; }
 
 <script>
 // ── DATA ──
-const categories = [
-  { icon: '🔗', ru: 'Петли и шарниры', kk: 'Ілгектер мен шарнирлер', count: '120+' },
-  { icon: '🗄️', ru: 'Направляющие', kk: 'Бағыттаушылар', count: '80+' },
-  { icon: '🎛️', ru: 'Ручки и крючки', kk: 'Тұтқалар', count: '200+' },
-  { icon: '🔒', ru: 'Замки и шпингалеты', kk: 'Құлыптар', count: '60+' },
-  { icon: '🪟', ru: 'Раздвижные двери', kk: 'Сырғымалы есіктер', count: '45+' },
-  { icon: '🗃️', ru: 'Ящики выдвижные', kk: 'Тартпалар жүйесі', count: '55+' },
-  { icon: '🛏️', ru: 'Кроватная фурнитура', kk: 'Төсек фурнитурасы', count: '40+' },
-  { icon: '🚰', ru: 'Кухонные комплект.', kk: 'Асхана жиынтықтары', count: '90+' },
-  { icon: '💡', ru: 'Светильники и розетки', kk: 'Шамдар мен розеткалар', count: '35+' },
-  { icon: '🔧', ru: 'Метизы и крепёж', kk: 'Бекіту элементтері', count: '300+' },
-  { icon: '📏', ru: 'Консоли и полкодерж.', kk: 'Сөреұстағыштар', count: '50+' },
-  { icon: '⚙️', ru: 'Мебельные механизмы', kk: 'Жиһаз механизмдері', count: '70+' }
-];
+const categories = []; // demo temizlendi
 
-const products = [
-  { icon: '🔩', name_ru: 'Петля Blum Clip Top 110°', name_kk: 'Blum Clip Top петлясы', spec: 'Антрацит / Гömme', price: '1 450', old: '1 800', badge: 'Хит' },
-  { icon: '📐', name_ru: 'Направляющие Boyard 450мм', name_kk: 'Boyard бағыттаушы 450мм', spec: 'Полного выдвижения', price: '3 200', old: null, badge: null },
-  { icon: '🎛️', name_ru: 'Ручка-профиль Gola 4м', name_kk: 'Gola профильді тұтқа 4м', spec: 'Алюминий, Антрацит', price: '8 500', old: null, badge: '⚠️ Самовывоз' },
-  { icon: '🔒', name_ru: 'Замок мебельный врезной', name_kk: 'Кіріктірілген мебель құлыбы', spec: ''+ 'Хром, 18мм', price: '650', old: null, badge: null },
-  { icon: '⚙️', name_ru: 'Амортизатор газовый 80N', name_kk: 'Газдық амортизатор 80N', spec: 'Серебро / Подъём', price: '850', old: '1 100', badge: '-23%' },
-  { icon: '🪟', name_ru: 'Система раздвижных дверей', name_kk: 'Сырғымалы есік жүйесі', spec: '2-дверная, до 80кг', price: '12 500', old: null, badge: null },
-  { icon: '📦', name_ru: 'Ящик Legrabox Pure', name_kk: 'Legrabox Pure тартпасы', spec: 'Белый, 500мм, L', price: '9 800', old: null, badge: 'Новинка' },
-  { icon: '🔧', name_ru: 'Конфирмат 7x50 (100шт)', name_kk: 'Конфирмат 7x50 (100дана)', spec: 'Оцинкованный', price: '450', old: null, badge: null }
-];
+const products = []; // demo temizlendi
 
 // ── TRANSLATIONS ──
 const t = {

@@ -416,49 +416,11 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 
 <script>
 // ─── DATA ──────────────────────────────────────────────────────────────────
-const ORDERS = [
-  {
-    id:'BBS-9942', date:'27.05.2026', shop:'Alik Hırdavat', status:'delivery',
-    pay:'kaspi', delivery:'courier',
-    items:[
-      {name_ru:'Петля Blum Clip Top 110°', name_kk:'Blum Clip Top 110° петлясы', qty:4, price:1450},
-      {name_ru:'Доводчик Blumotion', name_kk:'Blumotion жетегі', qty:4, price:650},
-    ],
-    amount:8400,
-    track:[{done:true},{done:true},{done:true},{done:false}],
-    courier:'InDrive #4492',
-    address_ru:'ул. Акжол, д. 14',
-  },
-  {
-    id:'BBS-9940', date:'26.05.2026', shop:'Serikcan Market', status:'ready',
-    pay:'halyk', delivery:'courier',
-    items:[
-      {name_ru:'Конфирмат 7×50 (100шт)', name_kk:'Конфирмат 7×50 (100дана)', qty:2, price:450},
-      {name_ru:'Ручка кнопка Matt Black', name_kk:'Matt Black тұтқасы', qty:6, price:380},
-    ],
-    amount:3180,
-    track:[{done:true},{done:true},{done:false},{done:false}],
-    courier:null,
-    address_ru:'ул. Акжол, д. 14',
-  },
-];
+const ORDERS = []; // demo temizlendi
 
-const HISTORY = [
-  {id:'BBS-9936', date:'26.05.2026', shop:'Alik Hırdavat', pay:'kaspi', delivery:'courier', amount:14200, status:'done'},
-  {id:'BBS-9932', date:'24.05.2026', shop:'Serikcan Market', pay:'kaspi', delivery:'courier', amount:9800, status:'done'},
-  {id:'BBS-9920', date:'20.05.2026', shop:'Alik Hırdavat', pay:'halyk', delivery:'courier', amount:22500, status:'done'},
-  {id:'BBS-9905', date:'15.05.2026', shop:'Serikcan Market', pay:'cash', delivery:'pickup', amount:4500, status:'done'},
-  {id:'BBS-9890', date:'10.05.2026', shop:'Alik Hırdavat', pay:'kaspi', delivery:'courier', amount:31200, status:'done'},
-];
+const HISTORY = []; // demo temizlendi
 
-const FAVS = [
-  {id:1, icon:'🔩', name_ru:'Петля Blum Clip Top 110°', name_kk:'Blum Clip Top 110° петлясы', price:1450},
-  {id:2, icon:'📐', name_ru:'Направляющие Boyard 450мм', name_kk:'Boyard 450мм бағыттаушы', price:3200},
-  {id:3, icon:'🖐️', name_ru:'Ручка-профиль Gola 4м', name_kk:'Gola 4м тұтқа', price:8500},
-  {id:4, icon:'💡', name_ru:'Лента LED 12V 10м', name_kk:'LED лента 12В 10м', price:2300},
-  {id:5, icon:'🧱', name_ru:'Латунь 2см 5м золото', name_kk:'Алтын латунь жолақ 2см', price:1600},
-  {id:6, icon:'🦿', name_ru:'Ножка хром рег. 10см', name_kk:'Хром реттелетін 10см', price:299},
-];
+const FAVS = []; // demo temizlendi
 
 let NOTIFS = [
   {id:1, icon:'🛵', type:'delivery', title_ru:'Заказ #BBS-9942 в пути!', title_kk:'#BBS-9942 тапсырыс жолда!', sub_ru:'Курьер InDrive выехал. Ожидайте в течение 20 минут.', sub_kk:'InDrive курьер жолға шықты. 20 минут күтіңіз.', time:'14:32', isNew:true},

@@ -617,59 +617,15 @@ body { font-family: 'Noto Sans', sans-serif; background: var(--dark); color: var
 
 <script>
 // ─── DATA ───────────────────────────────────────────────
-const stores = [
-  { id:1, name:'Alik Hırdavat', owner:'Алихан Сейтов', avatar:'🔧', color:'#f97316', status:'active', trialLeft:0, revenue:945000, orders:142, subscriptionFee:15000, phone:'+77017001122' },
-  { id:2, name:'Serikcan Market', owner:'Серикжан Бекова', avatar:'🏪', color:'#3b82f6', status:'active', trialLeft:0, revenue:780000, orders:98, subscriptionFee:15000, phone:'+77027002233' },
-  { id:3, name:'Ahmet Elite', owner:'Ахмет Кали', avatar:'⭐', color:'#10b981', status:'trial', trialLeft:67, revenue:320000, orders:44, subscriptionFee:0, phone:'+77037003344' },
-  { id:4, name:'Bolat Aksesuar', owner:'Болат Мухамедов', avatar:'🪑', color:'#8b5cf6', status:'active', trialLeft:0, revenue:610000, orders:77, subscriptionFee:15000, phone:'+77047004455' },
-  { id:5, name:'Nur Furnitura', owner:'Нуржан Алиев', avatar:'🛋️', color:'#f59e0b', status:'trial', trialLeft:45, revenue:190000, orders:26, subscriptionFee:0, phone:'+77057005566' },
-  { id:6, name:'Mebel Pro', owner:'Асель Омарова', avatar:'📦', color:'#ef4444', status:'expired', trialLeft:0, revenue:0, orders:0, subscriptionFee:0, phone:'+77067006677' },
-  { id:7, name:'Дизайн Плюс', owner:'Дастан Жаксыбеков', avatar:'🎨', color:'#06b6d4', status:'active', trialLeft:0, revenue:420000, orders:55, subscriptionFee:15000, phone:'+77077007788' },
-  { id:8, name:'Kazakh Furniture', owner:'Назым Сатыбалды', avatar:'🏠', color:'#84cc16', status:'expired', trialLeft:0, revenue:0, orders:0, subscriptionFee:0, phone:'+77087008899' },
-  { id:9, name:'Almaty Hardware', owner:'Тимур Бейсенов', avatar:'🔩', color:'#f97316', status:'active', trialLeft:0, revenue:530000, orders:68, subscriptionFee:15000, phone:'+77097009900' },
-  { id:10, name:'Smart Mebel', owner:'Айгерим Токова', avatar:'💡', color:'#a855f7', status:'trial', trialLeft:82, revenue:145000, orders:19, subscriptionFee:0, phone:'+77107010011' },
-  { id:11, name:'Max Профиль', owner:'Максат Ержан', avatar:'📐', color:'#0ea5e9', status:'expired', trialLeft:0, revenue:0, orders:0, subscriptionFee:0, phone:'+77117011122' },
-  { id:12, name:'Гранд Фурнитура', owner:'Гульнар Сакен', avatar:'🌟', color:'#10b981', status:'active', trialLeft:0, revenue:890000, orders:115, subscriptionFee:15000, phone:'+77127012233' },
-];
+const stores = []; // demo temizlendi — gerçek veri Supabase'den
 
-const orders = [
-  { id:'BBS-9942', date:'27.05.2026', shop:'Alik Hırdavat', client:'Ерканат Жұмабай', type:'retail', pay:'kaspi', amount:5800, status:'done' },
-  { id:'BBS-9941', date:'27.05.2026', shop:'Serikcan Market', client:'Болат Мамытов', type:'wholesale', pay:'cash', amount:22500, status:'ready' },
-  { id:'BBS-9940', date:'26.05.2026', shop:'Ahmet Elite', client:'Зарина Ахметова', type:'retail', pay:'halyk', amount:3400, status:'delivery' },
-  { id:'BBS-9939', date:'26.05.2026', shop:'Болат Aksesuar', client:'Нұрлан Сейтқали', type:'wholesale', pay:'kaspi', amount:48000, status:'done' },
-  { id:'BBS-9938', date:'26.05.2026', shop:'Alik Hırdavat', client:'Айдар Бекенов', type:'retail', pay:'halyk', amount:14200, status:'done' },
-  { id:'BBS-9937', date:'25.05.2026', shop:'Serikcan Market', client:'Мадина Жаксыбай', type:'retail', pay:'kaspi', amount:8900, status:'delivery' },
-  { id:'BBS-9936', date:'25.05.2026', shop:'Гранд Фурнитура', client:'Тимур Алиев', type:'wholesale', pay:'kaspi', amount:75000, status:'new' },
-  { id:'BBS-9935', date:'25.05.2026', shop:'Almaty Hardware', client:'Асыл Бекова', type:'retail', pay:'cash', amount:4500, status:'new' },
-];
+const orders = []; // demo temizlendi — gerçek veri Supabase'den
 
-const customers = [
-  { name:'Ерканат Жұмабай', type:'retail', orders:24, total:185000, date:'15.01.2026' },
-  { name:'Болат Мамытов', type:'wholesale', orders:18, total:1240000, date:'03.02.2026' },
-  { name:'Нұрлан Сейтқали', type:'wholesale', orders:31, total:2100000, date:'10.12.2025' },
-  { name:'Зарина Ахметова', type:'retail', orders:9, total:67000, date:'22.03.2026' },
-  { name:'Айдар Бекенов', type:'retail', orders:12, total:95000, date:'08.01.2026' },
-  { name:'Мадина Жаксыбай', type:'retail', orders:7, total:43000, date:'01.04.2026' },
-  { name:'Тимур Алиев', type:'wholesale', orders:22, total:980000, date:'20.11.2025' },
-  { name:'Асыл Бекова', type:'retail', orders:5, total:28000, date:'15.04.2026' },
-];
+const customers = []; // demo temizlendi — gerçek veri Supabase'den
 
-const financeRows = [
-  { date:'27.05.2026', id:'BBS-9942', shop:'Alik Hırdavat', pay:'kaspi', revenue:5800, cost:3400, courier:800, profit:1600 },
-  { date:'26.05.2026', id:'BBS-9941', shop:'Serikcan Market', pay:'cash', revenue:9000, cost:5100, courier:0, profit:3900 },
-  { date:'26.05.2026', id:'BBS-9938', shop:'Alik Hırdavat', pay:'halyk', revenue:14200, cost:9000, courier:800, profit:4400 },
-  { date:'25.05.2026', id:'BBS-9935', shop:'Serikcan Market', pay:'kaspi', revenue:22500, cost:14000, courier:1200, profit:7300 },
-  { date:'24.05.2026', id:'BBS-9932', shop:'Гранд Фурнитура', pay:'kaspi', revenue:75000, cost:48000, courier:2400, profit:24600 },
-  { date:'24.05.2026', id:'BBS-9931', shop:'Almaty Hardware', pay:'halyk', revenue:8900, cost:5500, courier:800, profit:2600 },
-];
+const financeRows = []; // demo temizlendi
 
-const catList = [
-  {icon:'🔩',ru:'Мебельные петли и шарниры',kk:'Жиһаз ілгектері', count:78},
-  {icon:'📐',ru:'Направляющие',kk:'Бағыттаушылар', count:67},
-  {icon:'🖐️',ru:'Мебельные ручки и крючки',kk:'Жиһаз тұтқалары', count:95},
-  {icon:'🔒',ru:'Замки мебельные',kk:'Жиһаз құлыптары', count:56},
-  {icon:'📦',ru:'Системы выдвижных ящиков',kk:'Тартпалар жүйесі', count:52},
-];
+const catList = []; // demo temizlendi — gerçek veri Supabase'den
 
 // ─── TRANSLATIONS ───
 const T = {

@@ -143,56 +143,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 
 <script>
 // ── МАГАЗИНЫ ───────────────────────────────────────────────────────────────
-const STORES = [
-  {
-    id:'alik', icon:'🔩', bg:'#1a0a00',
-    name_ru:'Alik Hırdavat', name_kk:'Alik Hırdavat',
-    addr_ru:'ул. 2-я, уч. 14', addr_kk:'2-ші көше, 14 учаске',
-    tags_ru:['Петли','Направляющие','Крепёж','BMT'], tags_kk:['Петлялар','Бағыттаушылар','Бекіту','BMT'],
-    rating:4.9, orders:120, isOpen:true,
-    kaspi:true, halyk:false, delivery:true, wholesale:true,
-  },
-  {
-    id:'serik', icon:'🪛', bg:'#001a0a',
-    name_ru:'Serikcan Market', name_kk:'Serikcan Market',
-    addr_ru:'ул. Акжол, д. 7', addr_kk:'Ақжол көшесі, 7',
-    tags_ru:['Ручки','Ножки','Газлифты','Гола'], tags_kk:['Тұтқалар','Аяқтар','Газлифттер','Gola'],
-    rating:4.7, orders:85, isOpen:true,
-    kaspi:true, halyk:true, delivery:true, wholesale:true,
-  },
-  {
-    id:'nurzhan', icon:'💡', bg:'#0a0a1a',
-    name_ru:'Нұржан Светотехника', name_kk:'Нұржан Жарықтехника',
-    addr_ru:'ул. Центральная, д. 3', addr_kk:'Орталық көше, 3',
-    tags_ru:['LED подсветка','Датчики','Блоки питания'], tags_kk:['LED жарық','Сенсорлар','Қоректендіргіш'],
-    rating:4.8, orders:210, isOpen:true,
-    kaspi:true, halyk:true, delivery:true, wholesale:false,
-  },
-  {
-    id:'bauyr', icon:'🪞', bg:'#1a1a00',
-    name_ru:'Бауыржан Декор', name_kk:'Бауыржан Декор',
-    addr_ru:'ул. Байбесик, д. 12', addr_kk:'Байбесік көшесі, 12',
-    tags_ru:['Стеклодержатели','Декор','Латунь'], tags_kk:['Шыныұстағыш','Декор','Латунь'],
-    rating:4.6, orders:60, isOpen:false,
-    kaspi:true, halyk:false, delivery:false, wholesale:false,
-  },
-  {
-    id:'arman', icon:'🔧', bg:'#001a1a',
-    name_ru:'Арман Инструмент', name_kk:'Арман Құрал-жабдық',
-    addr_ru:'ул. 3-я, уч. 8', addr_kk:'3-ші көше, 8 учаске',
-    tags_ru:['Крепёж','Метизы','Конфирмат','Шурупы'], tags_kk:['Бекіту','Метиздер','Конфирмат'],
-    rating:4.5, orders:40, isOpen:true,
-    kaspi:false, halyk:true, delivery:false, wholesale:true,
-  },
-  {
-    id:'zarina', icon:'🛁', bg:'#1a000a',
-    name_ru:'Зарина Комплект', name_kk:'Зарина Комплект',
-    addr_ru:'ул. Акжол, д. 22', addr_kk:'Ақжол көшесі, 22',
-    tags_ru:['Мойки','Корзины','Сушки','Обувницы'], tags_kk:['Раковиналар','Себеттер','Кептіргіштер'],
-    rating:4.7, orders:95, isOpen:true,
-    kaspi:true, halyk:true, delivery:true, wholesale:false,
-  },
-];
+const STORES = []; // demo temizlendi
 
 let lang='ru', activeFilter='all';
 
