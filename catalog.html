@@ -151,6 +151,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.sidebar.open{display:flex}.mob-toggle{display:block}}
 @media(max-width:600px){.prod-grid{grid-template-columns:repeat(2,1fr)}.hi{flex-wrap:wrap}.search-bar{order:3;width:100%}}
 </style>
+<script src="cart.js"></script>
 </head>
 <body>
 
@@ -783,12 +784,9 @@ renderCats();
 doFilter();
 loadSupabaseProducts(); // Supabase'den ürünleri arka planda yükle
 
-// LocalStorage'dan sepeti yükle
-try {
-  const saved = JSON.parse(localStorage.getItem('baibesik_cart')||'[]');
-  saved.forEach(i=>cartItems.push(i));
-  updateCartUI();
-} catch(e){}
+// Cart modülünden sepeti yükle
+Cart.get().forEach(i=>cartItems.push(i));
+updateCartUI();
 </script>
 </body>
 </html>

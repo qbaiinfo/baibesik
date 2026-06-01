@@ -166,6 +166,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 @media(max-width:900px){.layout{grid-template-columns:1fr}.summary{position:static}}
 @media(max-width:600px){.pay-grid,.cargo-grid,.city-grid{grid-template-columns:1fr 1fr}.fg-row{grid-template-columns:1fr}}
 </style>
+<script src="cart.js"></script>
 </head>
 <body>
 
@@ -414,21 +415,19 @@ const KZ_CITIES = [
 const TEST_STORE_ID = 'aaaaaaaa-0000-0000-0000-000000000001';
 const TEST_STORE_NAME = 'TEST Mağaza (Silinebilir)';
 
-// LocalStorage'dan sepeti yükle
+// Cart modülünden yükle (catalog'dan seçilen ürünler)
+let cart = [];
 function loadCartFromStorage() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('baibesik_cart') || '[]');
-    if(saved && saved.length > 0) return saved;
-  } catch(e) {}
-  // Sepet boşsa demo ürünler göster
+  const saved = Cart.get();
+  if(saved && saved.length > 0) return saved;
+  // Sepet boşsa demo ürünler
   return [
     {id:1,storeId:TEST_STORE_ID,storeName:TEST_STORE_NAME,icon:'🔗',ru:'Петля Blum Clip Top 110°',kk:'Blum Clip Top 110°',spec:'уп.20шт',price:475,qty:2,heavy:false},
     {id:2,storeId:TEST_STORE_ID,storeName:TEST_STORE_NAME,icon:'⬆️',ru:'Газлифт белый N80 (уп.100шт)',kk:'Ақ газлифт N80',spec:'100шт/уп',price:220,qty:1,heavy:false},
     {id:3,storeId:TEST_STORE_ID,storeName:TEST_STORE_NAME,icon:'🎛️',ru:'Тандем полный 450мм Boyard',kk:'Толық тандем 450мм',spec:'уп.10шт',price:3950,qty:1,heavy:false},
   ];
 }
-
-let cart = loadCartFromStorage();
+cart = loadCartFromStorage();
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let lang='kk', step=1, city='almaty', delivery='courier', cargo='kazpost', pay='kaspi', selCity='';
@@ -621,11 +620,12 @@ function renderCart(){
 
 function changeQty(id,delta){
   const item=cart.find(i=>i.id===id);
-  if(item)item.qty=Math.max(1,item.qty+delta);
+  if(item){ item.qty=Math.max(1,item.qty+delta); Cart.save(cart); }
   renderCart();
 }
 function removeItem(id){
   cart=cart.filter(i=>i.id!==id);
+  Cart.save(cart);
   renderCart();
 }
 
@@ -864,7 +864,7 @@ async function placeOrder(){
       // 4. Sepeti temizle (localStorage'da varsa)
       console.log('✅ Sipariş kaydedildi:', orderId);
     // Sepeti temizle
-    localStorage.removeItem('baibesik_cart');
+    Cart.clear();
     cart.length = 0;
     }
   } catch(e){ console.log('Demo mod:', e.message); }
@@ -892,6 +892,29 @@ window.changeQty=changeQty;
 window.removeItem=removeItem;
 window.goStep=goStep;
 window.placeOrder=placeOrder;
+
+// Kullanıcı giriş yapmamışsa login'e yönlendir
+(async ()=>{
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) {
+      // Giriş yapılmamış - sadece uyar, yönlendirme yok
+      console.log('Giriş yapılmamış - demo mod');
+    } else {
+      // İsim ve telefonu forma doldur
+      const {data:user} = await sb.from('users')
+        .select('full_name,phone').eq('id',session.user.id).single();
+      if(user) {
+        const nameInp = document.getElementById('inp-name');
+        const phoneInp = document.getElementById('inp-phone');
+        if(nameInp && user.full_name) nameInp.value = user.full_name;
+        if(phoneInp && user.phone) phoneInp.value = user.phone;
+      }
+    }
+  } catch(e) { console.log('Auth check:', e.message); }
+})();
 
 renderCart();
 updateSummary();
