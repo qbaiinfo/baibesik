@@ -578,7 +578,7 @@ async function loadSupabaseProducts() {
 
     if(error || !products || products.length === 0) {
       // Supabase'den ürün yok
-    document.getElementById('b-sub').textContent = lang==='ru' ? 'Ürünler Supabase\'den yükleniyor...' : 'Тауарлар жүктелуде...';
+    document.getElementById('b-sub').textContent = lang==='ru' ? 'Загрузка товаров...' : 'Тауарлар жүктелуде...';
     console.log('Supabase ürün yok');
       return;
     }
