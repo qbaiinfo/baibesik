@@ -410,11 +410,14 @@ const KZ_CITIES = [
 ];
 
 // ── DEMO КОРЗИНА ─────────────────────────────────────────────────────────────
+// TEST мağaza ID — Supabase'deki gerçek ID
+const TEST_STORE_ID = 'aaaaaaaa-0000-0000-0000-000000000001';
+const TEST_STORE_NAME = 'TEST Mağaza (Silinebilir)';
+
 let cart = [
-  {id:1,storeId:'alik',storeName:'Alik Hırdavat',icon:'🔗',ru:'Петля Blum Clip Top 110°',kk:'Blum Clip Top 110°',spec:'уп.20шт',price:475,qty:2,heavy:false},
-  {id:2,storeId:'alik',storeName:'Alik Hırdavat',icon:'⬆️',ru:'Газлифт белый N80 (уп.100шт)',kk:'Ақ газлифт N80',spec:'100шт/уп',price:220,qty:1,heavy:false},
-  {id:3,storeId:'serik',storeName:'Serikcan Market',icon:'🎛️',ru:'Тандем полный 450мм Boyard',kk:'Толық тандем 450мм',spec:'уп.10шт',price:3950,qty:1,heavy:false},
-  {id:4,storeId:'alik',storeName:'Alik Hırdavat',icon:'🎚️',ru:'Гола ручка ЗОЛОТО 6м',kk:'АЛТЫН Gola тұтқа 6м',spec:'6м',price:6850,qty:1,heavy:true},
+  {id:1,storeId:TEST_STORE_ID,storeName:TEST_STORE_NAME,icon:'🔗',ru:'Петля Blum Clip Top 110°',kk:'Blum Clip Top 110°',spec:'уп.20шт',price:475,qty:2,heavy:false},
+  {id:2,storeId:TEST_STORE_ID,storeName:TEST_STORE_NAME,icon:'⬆️',ru:'Газлифт белый N80 (уп.100шт)',kk:'Ақ газлифт N80',spec:'100шт/уп',price:220,qty:1,heavy:false},
+  {id:3,storeId:TEST_STORE_ID,storeName:TEST_STORE_NAME,icon:'🎛️',ru:'Тандем полный 450мм Boyard',kk:'Толық тандем 450мм',spec:'уп.10шт',price:3950,qty:1,heavy:false},
 ];
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
