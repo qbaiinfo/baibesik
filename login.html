@@ -168,7 +168,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const ROUTES = {
   super_admin:'admin.html',
-  store_owner:'vendor.html',
+  store_owner:'store_owner.html',
   manager:'vendor.html',
   warehouse:'depo_panel.html',
   wholesale:'toptanci_dashboard.html',
@@ -208,7 +208,7 @@ const T = {
   }
 };
 
-let lang='kk';
+let lang='ru';
 let mode='customer'; // 'customer' or 'staff'
 
 // URL param: ?staff=1 → автоматически открыть вкладку сотрудника
@@ -304,7 +304,8 @@ async function doLogin(){
     }
 
     showOk(`${d_.ok_login} ${user?.full_name||''}`);
-    setTimeout(()=>window.location.href=ROUTES[role]||'musteri_dashboard.html',1000);
+    const nextUrl = new URLSearchParams(window.location.search).get('next');
+    setTimeout(()=>window.location.href=nextUrl||(ROUTES[role]||'musteri_dashboard.html'),1000);
 
   }catch(e){
     showErr(e.message||d_.err_wrong);

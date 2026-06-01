@@ -114,6 +114,17 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 </style>
 </head>
 <body>
+<script>
+// Auth koruma - giriş yapılmamışsa login'e yönlendir
+(async()=>{
+  try{
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='login.html?next='+encodeURIComponent(window.location.pathname.split('/').pop());}
+  }catch(e){console.log('Auth check:',e.message);}
+})();
+</script>
 
 <header>
   <div class="hi">
@@ -326,7 +337,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
 
-let lang = 'kk';
+let lang = 'ru';
 let selBank = 'kaspi';
 let selStatus = 'trial';
 let toggles = {'is-active':true,'delivery':true,'wholesale':true};

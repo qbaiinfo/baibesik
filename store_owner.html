@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Панель владельца</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="cart.js"></script>
+<style>
+:root{--orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--border:#e2e8f0;--light:#f8fafc;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:1200px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.htitle{flex:1}
+.store-name{font-size:11px;color:#94a3b8;font-weight:600}
+.owner-name{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px}
+.hbtns{display:flex;gap:8px;align-items:center}
+.lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Noto Sans',sans-serif}
+.lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.btn-sm{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:'Noto Sans',sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-red{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+
+/* TABS */
+.tabs{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:57px;z-index:99}
+.tabs-inner{max-width:1200px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+.tab-btn{padding:14px 16px;font-size:13px;font-weight:700;color:var(--gray);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;font-family:'Noto Sans',sans-serif;white-space:nowrap;transition:all .2s}
+.tab-btn.active{color:var(--orange);border-bottom-color:var(--orange)}
+.tab-btn:hover{color:var(--orange)}
+
+/* CONTENT */
+.content{max-width:1200px;margin:0 auto;padding:20px 16px}
+.tab-section{display:none}
+.tab-section.active{display:block}
+
+/* CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;border-top:3px solid var(--border)}
+.stat-card.orange{border-top-color:var(--orange)}
+.stat-card.green{border-top-color:var(--green)}
+.stat-card.blue{border-top-color:var(--blue)}
+.stat-card.red{border-top-color:var(--red)}
+.stat-lbl{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--dark);letter-spacing:1px}
+.stat-sub{font-size:11px;color:var(--gray);margin-top:4px}
+
+.section-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.sc-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sc-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--dark);letter-spacing:1px}
+.sc-body{padding:18px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;border-bottom:2px solid var(--border);text-align:left}
+td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--light)}
+
+/* STAFF */
+.staff-card{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.staff-card:last-child{border-bottom:none}
+.staff-av{width:38px;height:38px;border-radius:50%;background:var(--orange);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.staff-info{flex:1}
+.staff-name{font-size:13px;font-weight:700;color:var(--dark)}
+.staff-role{font-size:11px;color:var(--gray)}
+.badge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;border:1px solid}
+.b-manager{background:rgba(59,130,246,.1);color:var(--blue);border-color:rgba(59,130,246,.2)}
+.b-warehouse{background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.2)}
+.b-owner{background:rgba(249,115,22,.1);color:var(--orange);border-color:rgba(249,115,22,.2)}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-head{background:var(--dark);padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange);letter-spacing:1px}
+.modal-close{background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer}
+.modal-body{padding:20px}
+.fg{margin-bottom:14px}
+.fg-lbl{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.fg-inp{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none}
+.fg-inp:focus{border-color:var(--orange)}
+.fg-sel{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none;cursor:pointer;background:#fff}
+.btn-main{width:100%;background:var(--orange);color:#fff;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Noto Sans',sans-serif;margin-top:4px}
+.btn-main:hover{background:var(--orange-dark)}
+
+/* AI WIDGET */
+.ai-box{background:linear-gradient(135deg,var(--dark) 0%,#1e293b 100%);border-radius:12px;padding:20px;margin-bottom:16px}
+.ai-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange);letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ai-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.ai-item:last-child{border-bottom:none}
+.ai-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.ai-text{font-size:13px;color:#cbd5e1;line-height:1.5;flex:1}
+.ai-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.ai-warn{background:rgba(245,158,11,.2);color:#fbbf24}
+.ai-good{background:rgba(16,185,129,.2);color:#34d399}
+.ai-info{background:rgba(59,130,246,.2);color:#60a5fa}
+
+/* ALERT */
+.alert{border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;display:none;align-items:center;gap:8px;margin-bottom:14px}
+.alert.show{display:flex}
+.alert-success{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--green)}
+.alert-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red)}
+
+.loading-ring{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:768px){.stat-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.stat-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<script>
+(async()=>{
+  try{
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='login.html?next=store_owner.html';}
+  }catch(e){}
+})();
+</script>
+
+<header>
+  <div class="hi">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="htitle">
+      <div class="store-name" id="store-name-label">ПАНЕЛЬ ВЛАДЕЛЬЦА</div>
+      <div class="owner-name" id="h-name">Мой магазин</div>
+    </div>
+    <div class="hbtns">
+      <button class="lang-btn active" data-lang="ru" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+      <a href="vendor.html" class="btn-sm btn-orange" id="btn-vendor">🏪 Менеджер панель</a>
+      <button class="btn-sm btn-red" onclick="doSignOut()" id="btn-logout">🚪</button>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tabs-inner">
+    <button class="tab-btn active" onclick="showTab('overview',this)" id="t-overview">📊 Обзор</button>
+    <button class="tab-btn" onclick="showTab('staff',this)" id="t-staff">👥 Сотрудники</button>
+    <button class="tab-btn" onclick="showTab('products',this)" id="t-products">📦 Товары</button>
+    <button class="tab-btn" onclick="showTab('orders',this)" id="t-orders">🛒 Заказы</button>
+    <button class="tab-btn" onclick="showTab('analytics',this)" id="t-analytics">🤖 AI Аналитика</button>
+    <button class="tab-btn" onclick="showTab('settings',this)" id="t-settings">⚙️ Настройки</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ОБЗОР -->
+  <div class="tab-section active" id="sec-overview">
+    <div class="stat-grid">
+      <div class="stat-card orange">
+        <div class="stat-lbl" id="lbl-orders">Новых заказов</div>
+        <div class="stat-val" id="stat-orders">0</div>
+        <div class="stat-sub" id="sub-orders">Ожидают обработки</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-lbl" id="lbl-revenue">Выручка сегодня</div>
+        <div class="stat-val" id="stat-revenue">0 ₸</div>
+        <div class="stat-sub" id="sub-revenue">За сегодня</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-lbl" id="lbl-products">Активных товаров</div>
+        <div class="stat-val" id="stat-products">0</div>
+        <div class="stat-sub" id="sub-products">В каталоге</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-lbl" id="lbl-low-stock">Мало на складе</div>
+        <div class="stat-val" id="stat-low-stock">0</div>
+        <div class="stat-sub" id="sub-low-stock">Требует пополнения</div>
+      </div>
+    </div>
+
+    <!-- AI Uyarıları -->
+    <div class="ai-box">
+      <div class="ai-title">🤖 <span id="ai-title">AI Аналитика</span></div>
+      <div id="ai-items">
+        <div class="ai-item">
+          <div class="ai-icon">⏳</div>
+          <div class="ai-text" id="ai-loading">Загрузка данных...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Son siparişler -->
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title" id="recent-title">ПОСЛЕДНИЕ ЗАКАЗЫ</div>
+        <button class="btn-sm btn-orange" onclick="showTab('orders', document.getElementById('t-orders'))" id="btn-all-orders">Все заказы →</button>
+      </div>
+      <div class="sc-body" id="recent-orders-body">
+        <div style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- СОТРУДНИКИ -->
+  <div class="tab-section" id="sec-staff">
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title" id="staff-title">СОТРУДНИКИ МАГАЗИНА</div>
+        <button class="btn-sm btn-orange" onclick="openAddStaff()" id="btn-add-staff">+ Добавить</button>
+      </div>
+      <div class="sc-body" id="staff-list">
+        <div style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ТОВАРЫ -->
+  <div class="tab-section" id="sec-products">
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title" id="prod-title">МОИ ТОВАРЫ</div>
+        <a href="urun_ekle.html?role=owner&from=store_owner.html" class="btn-sm btn-orange" id="btn-add-prod">+ Добавить товар</a>
+      </div>
+      <div class="sc-body">
+        <table>
+          <thead>
+            <tr>
+              <th id="th-name">Название</th>
+              <th id="th-price">Цена</th>
+              <th id="th-stock">Остаток</th>
+              <th id="th-shelf">Полка</th>
+              <th id="th-status">Статус</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="products-body">
+            <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ЗАКАЗЫ -->
+  <div class="tab-section" id="sec-orders">
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title" id="orders-title">ВСЕ ЗАКАЗЫ</div>
+      </div>
+      <div class="sc-body">
+        <table>
+          <thead>
+            <tr>
+              <th id="th-order">Заказ</th>
+              <th id="th-client">Клиент</th>
+              <th id="th-amount">Сумма</th>
+              <th id="th-status2">Статус</th>
+              <th id="th-date">Дата</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body">
+            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI ANALYTICS -->
+  <div class="tab-section" id="sec-analytics">
+    <div class="ai-box">
+      <div class="ai-title">🤖 <span id="ai-full-title">AI Аналитика и рекомендации</span></div>
+      <div id="ai-full-items">
+        <div class="ai-item">
+          <div class="ai-icon">⏳</div>
+          <div class="ai-text">Анализируем данные вашего магазина...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- НАСТРОЙКИ -->
+  <div class="tab-section" id="sec-settings">
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title" id="settings-title">НАСТРОЙКИ МАГАЗИНА</div>
+      </div>
+      <div class="sc-body">
+        <div class="fg"><label class="fg-lbl" id="lbl-sname">Название магазина</label><input class="fg-inp" id="inp-sname" placeholder="Мой магазин"></div>
+        <div class="fg"><label class="fg-lbl" id="lbl-sphone">Телефон</label><input class="fg-inp" id="inp-sphone" placeholder="+7 727 XXX XX XX"></div>
+        <div class="fg"><label class="fg-lbl" id="lbl-saddr">Адрес</label><input class="fg-inp" id="inp-saddr" placeholder="мкр. Байбесик..."></div>
+        <button class="btn-main" id="btn-save-settings" onclick="saveSettings()" style="max-width:200px">💾 Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ADD STAFF MODAL -->
+<div class="overlay" id="staff-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="add-staff-title">ДОБАВИТЬ СОТРУДНИКА</div>
+      <button class="modal-close" onclick="closeStaffModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-success" id="staff-ok">✅ <span id="staff-ok-msg"></span></div>
+      <div class="alert alert-error" id="staff-err">⚠️ <span id="staff-err-msg"></span></div>
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-staff-phone">Телефон сотрудника</label>
+        <div style="display:flex;gap:8px">
+          <div style="background:var(--light);border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;color:var(--gray);font-weight:700">+7</div>
+          <input class="fg-inp" id="inp-staff-phone" type="tel" placeholder="707 XXX XX XX" maxlength="10" style="flex:1">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-staff-role">Роль</label>
+        <select class="fg-sel" id="sel-staff-role">
+          <option value="manager">👔 Менеджер</option>
+          <option value="warehouse">🏭 Складской работник</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-staff-name">Имя (необязательно)</label>
+        <input class="fg-inp" id="inp-staff-name" placeholder="Имя сотрудника">
+      </div>
+      <button class="btn-main" onclick="addStaff()" id="btn-do-add-staff">➕ Добавить сотрудника</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+let lang='ru', sb=null, currentUser=null, currentStore=null;
+
+const T={
+  ru:{
+    'store-name-label':'ПАНЕЛЬ ВЛАДЕЛЬЦА',
+    't-overview':'📊 Обзор','t-staff':'👥 Сотрудники',
+    't-products':'📦 Товары','t-orders':'🛒 Заказы',
+    't-analytics':'🤖 AI Аналитика','t-settings':'⚙️ Настройки',
+    'btn-vendor':'🏪 Панель менеджера','btn-add-staff':'+ Добавить',
+    'btn-add-prod':'+ Добавить товар','btn-all-orders':'Все заказы →',
+    'lbl-orders':'Новых заказов','sub-orders':'Ожидают обработки',
+    'lbl-revenue':'Выручка сегодня','sub-revenue':'За сегодня',
+    'lbl-products':'Активных товаров','sub-products':'В каталоге',
+    'lbl-low-stock':'Мало на складе','sub-low-stock':'Требует пополнения',
+    'ai-title':'AI Аналитика','recent-title':'ПОСЛЕДНИЕ ЗАКАЗЫ',
+    'staff-title':'СОТРУДНИКИ МАГАЗИНА','prod-title':'МОИ ТОВАРЫ',
+    'orders-title':'ВСЕ ЗАКАЗЫ','settings-title':'НАСТРОЙКИ МАГАЗИНА',
+    'ai-full-title':'AI Аналитика и рекомендации',
+    'add-staff-title':'ДОБАВИТЬ СОТРУДНИКА',
+    'lbl-staff-phone':'Телефон сотрудника','lbl-staff-role':'Роль',
+    'lbl-staff-name':'Имя (необязательно)','btn-do-add-staff':'➕ Добавить',
+    'lbl-sname':'Название магазина','lbl-sphone':'Телефон','lbl-saddr':'Адрес',
+    'btn-save-settings':'💾 Сохранить',
+    'th-name':'Название','th-price':'Цена','th-stock':'Остаток',
+    'th-shelf':'Полка','th-status':'Статус',
+    'th-order':'Заказ','th-client':'Клиент','th-amount':'Сумма',
+    'th-status2':'Статус','th-date':'Дата',
+    role_manager:'Менеджер',role_warehouse:'Склад',role_owner:'Владелец',
+    status_new:'Новый',status_preparing:'Собирается',status_ready:'Готов',
+    status_delivery:'Доставка',status_done:'Выполнен',
+    btn_edit:'✏️',btn_delete:'🗑️',
+    empty_staff:'Нет сотрудников',empty_products:'Нет товаров',empty_orders:'Нет заказов',
+    low_stock_warn:'⚠️ Заканчивается',in_stock:'✅ В наличии',
+  },
+  kk:{
+    'store-name-label':'ДҮКЕН ИЕСІнің ПАНЕЛІ',
+    't-overview':'📊 Шолу','t-staff':'👥 Қызметкерлер',
+    't-products':'📦 Тауарлар','t-orders':'🛒 Тапсырыстар',
+    't-analytics':'🤖 AI Талдау','t-settings':'⚙️ Баптаулар',
+    'btn-vendor':'🏪 Менеджер панелі','btn-add-staff':'+ Қосу',
+    'btn-add-prod':'+ Тауар қосу','btn-all-orders':'Барлық тапсырыс →',
+    'lbl-orders':'Жаңа тапсырыс','sub-orders':'Күтуде',
+    'lbl-revenue':'Бүгінгі түсім','sub-revenue':'Бүгін',
+    'lbl-products':'Белсенді тауар','sub-products':'Каталогта',
+    'lbl-low-stock':'Қоймада аз','sub-low-stock':'Толтыру керек',
+    'ai-title':'AI Талдау','recent-title':'СОҢҒЫ ТАПСЫРЫСТАР',
+    'staff-title':'ДҮКЕН ҚЫЗМЕТКЕРЛЕРІ','prod-title':'МЕНІҢ ТАУАРЛАРЫМ',
+    'orders-title':'БАРЛЫҚ ТАПСЫРЫСТАР','settings-title':'ДҮКЕН БАПТАУЛАРЫ',
+    'ai-full-title':'AI Талдау және ұсыныстар',
+    'add-staff-title':'ҚЫЗМЕТКЕР ҚОСУ',
+    'lbl-staff-phone':'Қызметкер телефоны','lbl-staff-role':'Рөлі',
+    'lbl-staff-name':'Аты (міндетті емес)','btn-do-add-staff':'➕ Қосу',
+    'lbl-sname':'Дүкен атауы','lbl-sphone':'Телефон','lbl-saddr':'Мекенжай',
+    'btn-save-settings':'💾 Сақтау',
+    'th-name':'Атауы','th-price':'Баға','th-stock':'Қалдық',
+    'th-shelf':'Сөре','th-status':'Мәртебе',
+    'th-order':'Тапсырыс','th-client':'Клиент','th-amount':'Сомасы',
+    'th-status2':'Мәртебе','th-date':'Күні',
+    role_manager:'Менеджер',role_warehouse:'Қойма',role_owner:'Иесі',
+    status_new:'Жаңа',status_preparing:'Жиналуда',status_ready:'Дайын',
+    status_delivery:'Жолда',status_done:'Орындалды',
+    btn_edit:'✏️',btn_delete:'🗑️',
+    empty_staff:'Қызметкер жоқ',empty_products:'Тауар жоқ',empty_orders:'Тапсырыс жоқ',
+    low_stock_warn:'⚠️ Таусылуда',in_stock:'✅ Бар',
+  }
+};
+
+function d(){return T[lang];}
+function $(id){return document.getElementById(id);}
+function fmt(n){return Math.round(n).toLocaleString('ru');}
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
+  const d_=d();
+  Object.keys(d_).forEach(k=>{
+    if(typeof d_[k]==='string'){const el=$(k);if(el)el.textContent=d_[k];}
+  });
+  if(currentStore) $('h-name').textContent=currentStore.name;
+  loadStaff();
+  loadProducts();
+}
+
+function showTab(id, btn){
+  document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  $('sec-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='staff') loadStaff();
+  if(id==='products') loadProducts();
+  if(id==='orders') loadOrders();
+  if(id==='analytics') loadAI();
+  if(id==='settings') loadSettings();
+}
+
+// INIT
+async function init(){
+  const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+  sb=createClient(SUPABASE_URL, SUPABASE_KEY);
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return;}
+
+  // Kullanıcı bilgisi
+  const {data:user}=await sb.from('users').select('*').eq('id',session.user.id).single();
+  if(!user){window.location.href='login.html';return;}
+  currentUser=user;
+
+  // Store bilgisi
+  const {data:members}=await sb.from('store_members')
+    .select('store_id,role,stores(*)').eq('user_id',session.user.id);
+  if(members && members.length){
+    currentStore=members[0].stores;
+    $('h-name').textContent=currentStore?.name||user.full_name;
+  }
+
+  // Logout butonu
+  const logoutBtn=$('btn-logout');
+  if(logoutBtn) logoutBtn.onclick=doSignOut;
+
+  loadOverview();
+}
+
+async function loadOverview(){
+  if(!currentStore) return;
+  const storeId=currentStore.id;
+
+  // Siparişler
+  const {data:orders}=await sb.from('orders')
+    .select('*').eq('store_id',storeId);
+  const newOrders=(orders||[]).filter(o=>o.status==='new').length;
+  $('stat-orders').textContent=newOrders;
+
+  // Bugünkü gelir
+  const today=new Date().toISOString().split('T')[0];
+  const todayOrders=(orders||[]).filter(o=>o.created_at?.startsWith(today)&&o.status==='done');
+  const revenue=todayOrders.reduce((s,o)=>s+parseFloat(o.total||0),0);
+  $('stat-revenue').textContent=fmt(revenue)+' ₸';
+
+  // Ürünler
+  const {data:prods}=await sb.from('products')
+    .select('*').eq('store_id',storeId).eq('is_active',true);
+  $('stat-products').textContent=(prods||[]).length;
+
+  // Az stok
+  const lowStock=(prods||[]).filter(p=>(p.stock_qty||0)<(p.min_stock||5)&&(p.stock_qty||0)>0).length;
+  const noStock=(prods||[]).filter(p=>(p.stock_qty||0)===0).length;
+  $('stat-low-stock').textContent=lowStock+noStock;
+
+  // Son siparişler
+  const recent=(orders||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,5);
+  renderRecentOrders(recent);
+
+  // AI
+  generateAI(prods||[], orders||[]);
+}
+
+function renderRecentOrders(orders){
+  const statusColors={new:'#f97316',preparing:'#3b82f6',ready:'#10b981',delivery:'#8b5cf6',done:'#64748b'};
+  const statusText={new:'Новый',preparing:'Собирается',ready:'Готов',delivery:'Доставка',done:'Готово'};
+  $('recent-orders-body').innerHTML=orders.length?orders.map(o=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:800;color:var(--orange)">#${o.order_number}</div>
+        <div style="font-size:11px;color:var(--gray)">${o.recipient_name||'—'} · ${new Date(o.created_at).toLocaleDateString('ru')}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;font-weight:800">${fmt(o.total||0)} ₸</div>
+        <div style="font-size:10px;font-weight:800;color:${statusColors[o.status]||'#64748b'}">${statusText[o.status]||o.status}</div>
+      </div>
+    </div>`).join('')
+    :'<div style="text-align:center;padding:20px;color:var(--gray)">'+d().empty_orders+'</div>';
+}
+
+function generateAI(products, orders){
+  const items=[];
+  
+  // Az stok uyarısı
+  const critical=products.filter(p=>(p.stock_qty||0)===0);
+  const low=products.filter(p=>(p.stock_qty||0)>0&&(p.stock_qty||0)<5);
+  if(critical.length) items.push({icon:'🚨',text:`${critical.length} товар закончился! Срочно пополните склад: ${critical.slice(0,3).map(p=>p.name_ru).join(', ')}`,badge:'ai-warn',label:'Срочно'});
+  if(low.length) items.push({icon:'⚠️',text:`${low.length} товара заканчивается. Рекомендуется заказ: ${low.slice(0,3).map(p=>p.name_ru).join(', ')}`,badge:'ai-warn',label:'Внимание'});
+  
+  // Satış analizi
+  const doneOrders=orders.filter(o=>o.status==='done');
+  if(doneOrders.length>0){
+    items.push({icon:'📈',text:`Выполнено ${doneOrders.length} заказов. Средний чек: ${fmt(doneOrders.reduce((s,o)=>s+parseFloat(o.total||0),0)/doneOrders.length)} ₸`,badge:'ai-good',label:'Хорошо'});
+  }
+  
+  // Yeni siparişler
+  const newOrds=orders.filter(o=>o.status==='new');
+  if(newOrds.length>0) items.push({icon:'🔔',text:`${newOrds.length} новых заказов ожидают обработки. Нажмите «Начать сборку» в панели менеджера.`,badge:'ai-info',label:'Инфо'});
+  
+  if(!items.length) items.push({icon:'✅',text:'Всё хорошо! Склад пополнен, заказы обработаны.',badge:'ai-good',label:'Хорошо'});
+  
+  const html=items.map(i=>`<div class="ai-item"><div class="ai-icon">${i.icon}</div><div class="ai-text">${i.text}</div><span class="ai-badge ${i.badge}">${i.label}</span></div>`).join('');
+  $('ai-items').innerHTML=html;
+  $('ai-full-items').innerHTML=html;
+}
+
+async function loadStaff(){
+  if(!currentStore) return;
+  const {data:members}=await sb.from('store_members')
+    .select('*,users(full_name,phone,role)').eq('store_id',currentStore.id);
+  const d_=d();
+  $('staff-list').innerHTML=(members&&members.length)?members.map(m=>{
+    const u=m.users;
+    const roleTxt={manager:d_.role_manager,warehouse:d_.role_warehouse,owner:d_.role_owner}[m.role]||m.role;
+    const roleClass={manager:'b-manager',warehouse:'b-warehouse',owner:'b-owner'}[m.role]||'b-manager';
+    const initial=(u?.full_name||'?').charAt(0).toUpperCase();
+    const isOwner=m.role==='owner'&&m.user_id===currentUser?.id;
+    return `<div class="staff-card">
+      <div class="staff-av">${initial}</div>
+      <div class="staff-info">
+        <div class="staff-name">${u?.full_name||'—'}</div>
+        <div class="staff-role">${u?.phone||'—'}</div>
+      </div>
+      <span class="badge ${roleClass}">${roleTxt}</span>
+      ${!isOwner?`<button class="btn-sm btn-red" onclick="removeStaff('${m.user_id}')" style="margin-left:8px">${d_.btn_delete}</button>`:''}
+    </div>`;
+  }).join('')
+  :`<div style="text-align:center;padding:20px;color:var(--gray)">${d_().empty_staff}</div>`;
+}
+
+async function addStaff(){
+  const ph=$('inp-staff-phone').value.replace(/\D/g,'');
+  const role=$('sel-staff-role').value;
+  const name=$('inp-staff-name').value.trim();
+  if(!ph||ph.length<9){showStaffErr('Введите телефон');return;}
+
+  const btn=$('btn-do-add-staff');
+  btn.disabled=true;btn.innerHTML='<span class="loading-ring"></span>';
+
+  try{
+    // Auth user oluştur veya bul
+    const email=ph+'@baibesik.kz';
+    let userId=null;
+
+    // users tablosunda ara
+    const {data:existing}=await sb.from('users').select('id').eq('phone','+7'+ph).maybeSingle();
+    if(existing){userId=existing.id;}
+    else{
+      // Yeni kullanıcı oluştur
+      const {data:newUser,error:authErr}=await sb.auth.signUp({
+        email, password:'Baibesik'+ph+'!',
+        options:{data:{full_name:name||ph,phone:'+7'+ph}}
+      });
+      if(authErr)throw authErr;
+      if(newUser.user){
+        await sb.from('users').insert({id:newUser.user.id,phone:'+7'+ph,full_name:name||ph,role});
+        userId=newUser.user.id;
+      }
+    }
+
+    if(!userId)throw new Error('Не удалось создать пользователя');
+
+    // store_members'a ekle
+    const {error:memberErr}=await sb.from('store_members')
+      .insert({store_id:currentStore.id,user_id:userId,role});
+    if(memberErr&&!memberErr.message.includes('duplicate'))throw memberErr;
+
+    // Role güncelle
+    await sb.from('users').update({role}).eq('id',userId);
+
+    showStaffOk(lang==='ru'?`Сотрудник добавлен! Телефон: +7${ph}, пароль: Baibesik${ph}!`:`Қызметкер қосылды! Телефон: +7${ph}`);
+    loadStaff();
+  }catch(e){
+    showStaffErr(e.message);
+  }
+  btn.disabled=false;btn.textContent=d()['btn-do-add-staff'];
+}
+
+async function removeStaff(userId){
+  if(!confirm(lang==='ru'?'Удалить сотрудника?':'Қызметкерді жою?'))return;
+  await sb.from('store_members').delete()
+    .eq('store_id',currentStore.id).eq('user_id',userId);
+  loadStaff();
+}
+
+async function loadProducts(){
+  if(!currentStore) return;
+  const {data:prods}=await sb.from('products')
+    .select('*').eq('store_id',currentStore.id).order('created_at',{ascending:false});
+  const d_=d();
+  $('products-body').innerHTML=(prods&&prods.length)?prods.map(p=>{
+    const stockColor=(p.stock_qty||0)===0?'var(--red)':(p.stock_qty||0)<5?'var(--yellow)':'var(--green)';
+    const stockText=(p.stock_qty||0)===0?d_.low_stock_warn:(p.stock_qty||0)+'шт';
+    return `<tr>
+      <td><strong>${p.name_ru}</strong><br><small style="color:var(--gray)">${p.spec||''}</small></td>
+      <td style="font-weight:800">${fmt(p.price_retail)} ₸</td>
+      <td style="color:${stockColor};font-weight:700">${stockText}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;color:var(--orange)">${p.shelf_code||'—'}</td>
+      <td><span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;background:${p.is_active?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)'};color:${p.is_active?'var(--green)':'var(--red)'}">${p.is_active?'✅ Активен':'❌ Скрыт'}</span></td>
+      <td>
+        <a href="urun_ekle.html?id=${p.id}&role=owner&from=store_owner.html" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--gray)">✏️</a>
+      </td>
+    </tr>`;
+  }).join('')
+  :`<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--gray)">${d_.empty_products}</td></tr>`;
+}
+
+async function loadOrders(){
+  if(!currentStore) return;
+  const {data:orders}=await sb.from('orders')
+    .select('*').eq('store_id',currentStore.id).order('created_at',{ascending:false});
+  const d_=d();
+  const statusColors={new:'#f97316',preparing:'#3b82f6',ready:'#10b981',delivery:'#8b5cf6',done:'#64748b'};
+  $('orders-body').innerHTML=(orders&&orders.length)?orders.map(o=>`<tr>
+    <td style="font-family:'Bebas Neue',sans-serif;color:var(--orange)">#${o.order_number}</td>
+    <td>${o.recipient_name||'—'}<br><small style="color:var(--gray)">${o.recipient_phone||''}</small></td>
+    <td style="font-weight:800">${fmt(o.total||0)} ₸</td>
+    <td style="color:${statusColors[o.status]||'#64748b'};font-weight:700">${d_['status_'+o.status]||o.status}</td>
+    <td style="color:var(--gray);font-size:12px">${new Date(o.created_at).toLocaleDateString('ru')}</td>
+  </tr>`).join('')
+  :`<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--gray)">${d_.empty_orders}</td></tr>`;
+}
+
+function loadAI(){
+  if(currentStore) loadOverview();
+}
+
+function loadSettings(){
+  if(currentStore){
+    $('inp-sname').value=currentStore.name||'';
+    $('inp-sphone').value=currentStore.phone||'';
+    $('inp-saddr').value=currentStore.address||'';
+  }
+}
+
+async function saveSettings(){
+  if(!currentStore)return;
+  const name=$('inp-sname').value.trim();
+  const phone=$('inp-sphone').value.trim();
+  const address=$('inp-saddr').value.trim();
+  await sb.from('stores').update({name,phone,address}).eq('id',currentStore.id);
+  currentStore={...currentStore,name,phone,address};
+  $('h-name').textContent=name;
+  alert(lang==='ru'?'Сохранено!':'Сақталды!');
+}
+
+function openAddStaff(){$('staff-modal').classList.add('open');}
+function closeStaffModal(){$('staff-modal').classList.remove('open');}
+function showStaffOk(msg){$('staff-ok-msg').textContent=msg;$('staff-ok').classList.add('show');$('staff-err').classList.remove('show');}
+function showStaffErr(msg){$('staff-err-msg').textContent=msg;$('staff-err').classList.add('show');$('staff-ok').classList.remove('show');}
+async function doSignOut(){
+  const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+  const sb2=createClient(SUPABASE_URL,SUPABASE_KEY);
+  await sb2.auth.signOut();
+  window.location.href='login.html';
+}
+
+// Modal kapanması
+$('staff-modal').addEventListener('click',e=>{if(e.target===$('staff-modal'))closeStaffModal();});
+
+window.setLang=setLang;window.showTab=showTab;
+window.openAddStaff=openAddStaff;window.closeStaffModal=closeStaffModal;
+window.addStaff=addStaff;window.removeStaff=removeStaff;
+window.saveSettings=saveSettings;window.doSignOut=doSignOut;
+
+init();
+</script>
+</body>
+</html>

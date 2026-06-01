@@ -181,6 +181,17 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 <script src="cart.js"></script>
 </head>
 <body>
+<script>
+// Auth koruma - giriş yapılmamışsa login'e yönlendir
+(async()=>{
+  try{
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='login.html?next='+encodeURIComponent(window.location.pathname.split('/').pop());}
+  }catch(e){console.log('Auth check:',e.message);}
+})();
+</script>
 
 <!-- HEADER -->
 <header>
@@ -463,7 +474,7 @@ const ADDRS = [
 ];
 
 // ─── STATE ──────────────────────────────────────────────────────────────────
-let lang = 'kk';
+let lang = 'ru';
 
 // ─── TRANSLATIONS ───────────────────────────────────────────────────────────
 const T = {
@@ -743,7 +754,7 @@ async function loadCurrentUser() {
 
       // Rol kontrolü - sadece customer ve wholesale
       if(['manager','warehouse','store_owner','super_admin'].includes(role)) {
-        window.location.href = 'vendor.html';
+        window.location.href = user.role === 'store_owner' ? 'store_owner.html' : 'vendor.html';
         return;
       }
 

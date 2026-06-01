@@ -313,8 +313,8 @@ footer { background: var(--dark); color: #94a3b8; padding: 48px 20px 24px; }
     <div>
       <div class="footer-title" id="ft2">Магазинам</div>
       <ul class="footer-links">
-        <li><a href="vendor.html" id="fl5">Панель магазина</a></li>
-        <li><a href="vendor.html" id="fl6">Управление заказами</a></li>
+        <li><a href="vendor.html" onclick="return checkAuth(event, this)" id="fl5">Панель магазина</a></li>
+        <li><a href="vendor.html" onclick="return checkAuth(event, this)" id="fl6">Управление заказами</a></li>
         <li><a href="depo_panel.html" id="fl7">Сборка заказов</a></li>
         <li><a href="register.html" id="fl8">Подключить магазин</a></li>
       </ul>
@@ -420,7 +420,7 @@ const t = {
   }
 };
 
-let lang = 'kk';
+let lang = 'ru';
 let cartCount = 0;
 
 function setLang(l) {
@@ -493,6 +493,23 @@ document.getElementById('search-input').addEventListener('keydown', e => { if(e.
 
 // init
 renderCats(); renderProds();
+</script>
+
+<script>
+async function checkAuth(e, link) {
+  e.preventDefault();
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(
+      'https://fciofuexujtxxjlamxno.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80'
+    );
+    const {data:{session}} = await sb.auth.getSession();
+    if(session) { window.location.href = link.href; }
+    else { window.location.href = 'login.html?next=' + encodeURIComponent(link.href); }
+  } catch(err) { window.location.href = 'login.html'; }
+  return false;
+}
 </script>
 </body>
 </html>
