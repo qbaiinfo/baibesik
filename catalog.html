@@ -605,7 +605,7 @@ function doFilter(){
   else if(sort==='name') list.sort((a,b)=>(lang==='ru'?a.ru:a.kk).localeCompare(lang==='ru'?b.ru:b.kk));
 
   // count
-  document.getElementById('res-cnt').innerHTML=`${d.res-cnt_pre||d['res-cnt_pre']} <strong>${list.length}</strong>`;
+  document.getElementById('res-cnt').innerHTML=(d['res-cnt_pre']||'Найдено:')+' <strong>'+list.length+'</strong>';
   document.getElementById('b-cnt').textContent=list.length;
 
   // paginate
@@ -640,15 +640,11 @@ function renderProds(list,d){
 function gridCard(p,d){
   const price=cust==='wholesale'?p.ws:p.price;
   const name=lang==='ru'?p.ru:p.kk;
-  const imgContent = p.image_url
-    ? `<img src="${p.image_url}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:0">`
-    : p.icon;
   return `
     <div class="prod-card">
-      <div class="pimg">${imgContent}
-        ${p.heavy?`<span class="pbadge pb-heavy">${d.heavy_lbl}</span>`:''}
-        ${p.pack_qty>1&&!p.image_url?`<span class="pbadge pb-pack" style="top:${p.heavy?'28px':'8px'}">${p.pack_qty}шт/уп</span>`:''}
-        ${p.is_db?`<span class="pbadge pb-new" style="top:8px;right:8px;left:auto">🏪</span>`:''}
+      <div class="pimg">${p.image_url ? '<img src="'+p.image_url+'" style="width:100%;height:100%;object-fit:cover">' : p.icon}
+        ${p.heavy?'<span class="pbadge pb-heavy">'+d.heavy_lbl+'</span>':''}
+        ${p.pack_qty>1?'<span class="pbadge pb-pack" style="top:'+(p.heavy?'28px':'8px')+'">'+p.pack_qty+'шт/уп</span>':''}
       </div>
       <div class="pbody">
         <div class="pcode">${p.code}</div>
