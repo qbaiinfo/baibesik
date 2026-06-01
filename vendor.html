@@ -901,6 +901,71 @@ document.getElementById('courier-modal').addEventListener('click', function(e) {
 
 // ─── INIT ────────────────────────────────────────────────
 renderAll();
+
+// ─── SUPABASE — GERÇEK KULLANICI ─────────────────────────
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+async function loadVendorUser() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Session kontrol
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) { window.location.href = 'login.html?staff=1'; return; }
+
+    // Kullanıcı bilgisi
+    const {data:user} = await sb.from('users')
+      .select('*').eq('id', session.user.id).single();
+
+    if(!user) { window.location.href = 'login.html?staff=1'; return; }
+
+    // Müşteri girerse yönlendir
+    if(user.role === 'customer' || user.role === 'wholesale') {
+      window.location.href = user.role === 'wholesale'
+        ? 'toptanci_dashboard.html' : 'musteri_dashboard.html';
+      return;
+    }
+
+    const name = user.full_name || 'Сотрудник';
+
+    // store_members'dan store_id al
+    const {data:members} = await sb.from('store_members')
+      .select('store_id, role').eq('user_id', session.user.id);
+
+    let storeName = 'Baibesik';
+    if(members && members.length > 0) {
+      const {data:store} = await sb.from('stores')
+        .select('name').eq('id', members[0].store_id).single();
+      if(store) storeName = store.name;
+    }
+
+    // Header güncelle
+    const hname = document.getElementById('h-name');
+    if(hname) hname.textContent = storeName + ' — ' + name;
+
+    const hlabel = document.getElementById('h-label');
+    if(hlabel) hlabel.textContent = lang==='ru' ? 'Панель магазина' : 'Дүкен панелі';
+
+    // Çıkış butonu ekle
+    const hr = document.querySelector('.header-right');
+    if(hr && !document.getElementById('logout-btn')) {
+      const btn = document.createElement('button');
+      btn.id = 'logout-btn';
+      btn.title = 'Выйти';
+      btn.textContent = '🚪';
+      btn.style.cssText = 'background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:14px;margin-left:6px';
+      btn.onclick = async () => { await sb.auth.signOut(); window.location.href = 'login.html?staff=1'; };
+      hr.appendChild(btn);
+    }
+
+  } catch(e) {
+    console.log('Demo mod:', e.message);
+  }
+}
+
+loadVendorUser();
 </script>
 </body>
 </html>
