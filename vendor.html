@@ -949,15 +949,30 @@ async function loadVendorUser() {
 
     const name = user.full_name || 'Сотрудник';
 
-    // store_members'dan store_id al
+    // store_members + stores birlikte çek
     const {data:members} = await sb.from('store_members')
-      .select('store_id, role').eq('user_id', session.user.id);
+      .select('store_id, role, stores(id, name)')
+      .eq('user_id', session.user.id);
 
     let storeName = 'Baibesik';
     if(members && members.length > 0) {
-      const {data:store} = await sb.from('stores')
-        .select('name').eq('id', members[0].store_id).single();
-      if(store) storeName = store.name;
+      // İlk mağazayı al
+      const firstMember = members[0];
+      if(firstMember.stores && firstMember.stores.name) {
+        storeName = firstMember.stores.name;
+      } else if(firstMember.store_id) {
+        // Fallback: ayrı sorgu
+        const {data:store} = await sb.from('stores')
+          .select('name').eq('id', firstMember.store_id).maybeSingle();
+        if(store) storeName = store.name;
+      }
+    }
+    
+    // URL'de store param varsa onu kullan
+    const storeParam = new URLSearchParams(window.location.search).get('store');
+    if(storeParam && members) {
+      const found = members.find(m => m.store_id === storeParam);
+      if(found && found.stores) storeName = found.stores.name;
     }
 
     // Header güncelle
