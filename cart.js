@@ -4,9 +4,7 @@
 // ============================================================
 
 const CART_KEY = 'baibesik_cart';
-const SESSION_KEY = 'baibesik_session';
-const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+// SUPABASE_URL ve SUPABASE_KEY her sayfanın kendi script'inde tanımlı
 
 // ── SEPET İŞLEMLERİ ──────────────────────────────────────────
 const Cart = {
@@ -65,7 +63,7 @@ const Session = {
   async get() {
     try {
       const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-      const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+      const sb = createClient(window.SUPABASE_URL||"https://fciofuexujtxxjlamxno.supabase.co", window.SUPABASE_KEY||"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80");
       const {data:{session}} = await sb.auth.getSession();
       return session;
     } catch(e) { return null; }
@@ -73,7 +71,7 @@ const Session = {
   async getUser() {
     try {
       const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-      const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+      const sb = createClient(window.SUPABASE_URL||"https://fciofuexujtxxjlamxno.supabase.co", window.SUPABASE_KEY||"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80");
       const {data:{session}} = await sb.auth.getSession();
       if(!session) return null;
       const {data:user} = await sb.from('users')
@@ -89,5 +87,3 @@ window.addEventListener('DOMContentLoaded', () => Cart.updateUI());
 // Global erişim için
 window.Cart = Cart;
 window.Session = Session;
-window.SUPABASE_URL = SUPABASE_URL;
-window.SUPABASE_KEY = SUPABASE_KEY;
