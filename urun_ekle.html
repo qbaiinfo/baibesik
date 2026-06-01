@@ -100,6 +100,13 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 .loading-ring{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* IMAGE UPLOAD */
+.img-upload-slot{aspect-ratio:1;min-height:100px;border:2px dashed var(--border);border-radius:10px;cursor:pointer;overflow:hidden;background:var(--light);transition:all .2s;position:relative}
+.img-upload-slot:hover{border-color:var(--orange);background:var(--orange-light)}
+.img-slot-inner{width:100%;height:100%;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.img-upload-slot img{width:100%;height:100%;object-fit:cover}
+.img-del-btn{position:absolute;top:4px;right:4px;background:rgba(239,68,68,.9);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:900}
+
 /* IMAGE PREVIEW */
 .img-preview{width:100%;aspect-ratio:1;border:2px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--gray);cursor:pointer;transition:all .2s;overflow:hidden;background:var(--light)}
 .img-preview:hover{border-color:var(--orange);color:var(--orange)}
@@ -126,8 +133,8 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
     <a href="index.html" class="logo">BAI<span>BESIK</span></a>
     <div class="htitle" id="page-title">ДОБАВИТЬ ТОВАР</div>
     <div style="display:flex;gap:8px;align-items:center">
-      <button class="lang-btn active" onclick="setLang('ru')">RU</button>
-      <button class="lang-btn" onclick="setLang('kk')">KK</button>
+      <button class="lang-btn active" onclick="setLang('kk')">ҚАЗ</button>
+      <button class="lang-btn" onclick="setLang('ru')">РУС</button>
       <a href="vendor.html" class="btn-back" id="btn-back">← Назад</a>
     </div>
   </div>
@@ -169,8 +176,8 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
     </div>
     <div class="fc-body">
       <div class="lang-tabs">
-        <button class="lt active" onclick="setNameLang('ru',this)">🇷🇺 Русский</button>
-        <button class="lt" onclick="setNameLang('kk',this)">🇰🇿 Қазақша</button>
+        <button class="lt active" onclick="setNameLang('ru',this)">РУС</button>
+        <button class="lt" onclick="setNameLang('kk',this)">ҚАЗ</button>
       </div>
       <div id="name-ru-block">
         <div class="fg-row">
@@ -305,7 +312,44 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
     </div>
   </div>
 
-  <!-- 6. ОПИСАНИЕ (опционально) -->
+  <!-- 6. ФОТО ТОВАРА -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-num">5</div>
+      <div class="fc-title" id="fc5b-title">ТАУАР СУРЕТІ / ФОТО</div>
+    </div>
+    <div class="fc-body">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px" id="img-grid">
+        <div class="img-upload-slot" id="slot-0" onclick="triggerUpload(0)">
+          <div class="img-slot-inner" id="slot-inner-0">
+            <div style="font-size:28px;margin-bottom:6px">📷</div>
+            <div style="font-size:11px;color:var(--gray);font-weight:700" id="img-main-lbl">Негізгі фото</div>
+          </div>
+          <input type="file" id="file-0" accept="image/*" style="display:none" onchange="handleUpload(0,this)">
+        </div>
+        <div class="img-upload-slot" id="slot-1" onclick="triggerUpload(1)">
+          <div class="img-slot-inner" id="slot-inner-1"><div style="font-size:24px;color:#cbd5e1">+</div></div>
+          <input type="file" id="file-1" accept="image/*" style="display:none" onchange="handleUpload(1,this)">
+        </div>
+        <div class="img-upload-slot" id="slot-2" onclick="triggerUpload(2)">
+          <div class="img-slot-inner" id="slot-inner-2"><div style="font-size:24px;color:#cbd5e1">+</div></div>
+          <input type="file" id="file-2" accept="image/*" style="display:none" onchange="handleUpload(2,this)">
+        </div>
+        <div class="img-upload-slot" id="slot-3" onclick="triggerUpload(3)">
+          <div class="img-slot-inner" id="slot-inner-3"><div style="font-size:24px;color:#cbd5e1">+</div></div>
+          <input type="file" id="file-3" accept="image/*" style="display:none" onchange="handleUpload(3,this)">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--gray)" id="img-hint">
+        📌 JPG, PNG, WebP · Ең көбі 5MB · Бірінші фото — каталогтағы негізгі
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:var(--blue);font-weight:700;display:none" id="img-uploading">
+        ⏳ Жүктелуде...
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. ОПИСАНИЕ (опционально) -->
   <div class="form-card">
     <div class="fc-head">
       <div class="fc-num">5</div>
@@ -426,7 +470,7 @@ const T = {
 };
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let lang = 'ru';
+let lang = 'kk';
 let toggles = {'is-heavy':false, 'is-active':true, 'is-new':false};
 let nameLang = 'ru';
 
@@ -586,6 +630,7 @@ function collectData(status='active'){
     is_heavy:     toggles['is-heavy'],
     is_active:    status === 'active' ? toggles['is-active'] : false,
     description_ru: document.getElementById('inp-desc').value.trim() || null,
+    image_url: uploadedImages[0] || null,
   };
 }
 
@@ -646,6 +691,55 @@ document.addEventListener('keydown', e=>{
   if((e.ctrlKey||e.metaKey) && e.key==='s'){e.preventDefault();saveProduct();}
 });
 
+// ── IMAGE UPLOAD ──────────────────────────────────────────────────────────
+const uploadedImages = [null, null, null, null];
+
+function triggerUpload(idx) {
+  document.getElementById('file-'+idx).click();
+}
+
+async function handleUpload(idx, input) {
+  const file = input.files[0];
+  if(!file) return;
+
+  // Preview hemen göster
+  const reader = new FileReader();
+  reader.onload = e => {
+    const slot = document.getElementById('slot-'+idx);
+    slot.innerHTML = `<img src="${e.target.result}" alt="ürün resmi"><button class="img-del-btn" onclick="removeImage(${idx},event)">✕</button><input type="file" id="file-${idx}" accept="image/*" style="display:none" onchange="handleUpload(${idx},this)">`;
+  };
+  reader.readAsDataURL(file);
+
+  // Supabase'e yükle
+  document.getElementById('img-uploading').style.display='block';
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const ext = file.name.split('.').pop();
+    const path = `products/${Date.now()}_${idx}.${ext}`;
+    const {data, error} = await sb.storage.from('product-images').upload(path, file, {upsert:true});
+    if(!error) {
+      const {data:url} = sb.storage.from('product-images').getPublicUrl(path);
+      uploadedImages[idx] = url.publicUrl;
+    }
+  } catch(e) {
+    console.log('Upload error:', e.message);
+  }
+  document.getElementById('img-uploading').style.display='none';
+}
+
+function removeImage(idx, e) {
+  e.stopPropagation();
+  uploadedImages[idx] = null;
+  const slot = document.getElementById('slot-'+idx);
+  slot.innerHTML = `<div class="img-slot-inner"><div style="font-size:24px;color:#cbd5e1">+</div></div><input type="file" id="file-${idx}" accept="image/*" style="display:none" onchange="handleUpload(${idx},this)">`;
+}
+
+window.triggerUpload = triggerUpload;
+window.handleUpload = handleUpload;
+window.removeImage = removeImage;
+
+// ────────────────────────────────────────────────────────────────────────────
 window.setLang = setLang;
 window.setNameLang = setNameLang;
 window.toggleSwitch = toggleSwitch;

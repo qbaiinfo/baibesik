@@ -136,8 +136,8 @@ footer{background:var(--dark2);padding:30px 20px;text-align:center}
     <a href="index.html" class="logo">BAI<span>BESIK</span></a>
     <div class="hn"></div>
     <div class="lang-btns">
-      <button class="lang-btn active" onclick="setLang('ru')">RU</button>
-      <button class="lang-btn" onclick="setLang('kk')">KK</button>
+      <button class="lang-btn active" onclick="setLang('kk')">ҚАЗ</button>
+      <button class="lang-btn" onclick="setLang('ru')">РУС</button>
     </div>
     <a href="index.html" class="btn-back" id="btn-back">← Главная</a>
   </div>
@@ -393,7 +393,7 @@ const T = {
   }
 };
 
-let lang = 'ru';
+let lang = 'kk';
 function setLang(l){
   lang = l;
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
