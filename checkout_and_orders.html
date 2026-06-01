@@ -785,25 +785,71 @@ async function placeOrder(){
 
     if(session){
       const groups=groupByStore();
+      let orderNum=1;
+
       for(const[storeId,group] of Object.entries(groups)){
         const sub=group.items.reduce((s,i)=>s+i.price*i.qty,0);
         const cargoCost=city==='other'?CARGO_PRICES[cargo]:0;
-        await sb.from('orders').insert({
-          order_number:orderId,
-          customer_id:session.user.id,
-          delivery_address:$('inp-street').value,
-          recipient_name:$('inp-name').value,
-          recipient_phone:$('inp-phone').value,
-          comment:$('inp-comment').value,
-          payment_method:pay,
-          delivery_type:city==='almaty'?delivery:'cargo',
-          courier_service:city==='almaty'&&delivery==='courier'?'indrive':null,
-          subtotal:sub,
-          delivery_cost:cargoCost,
-          total:sub+cargoCost,
-          status:'new',
-        });
+        const deliveryAddr=delivery==='pickup'?'Самовывоз':($('inp-street').value||'');
+
+        // 1. Siparişi kaydet
+        const {data:order,error:orderErr}=await sb.from('orders').insert({
+          order_number: orderNum===1 ? orderId : orderId+'-'+orderNum,
+          customer_id: session.user.id,
+          store_id: storeId,
+          delivery_address: deliveryAddr,
+          delivery_lat: null,
+          delivery_lng: null,
+          recipient_name: $('inp-name').value||'',
+          recipient_phone: $('inp-phone').value||'',
+          comment: $('inp-comment').value||'',
+          payment_method: pay,
+          payment_status: 'pending',
+          delivery_type: city==='almaty'?delivery:'cargo',
+          courier_service: city==='almaty'&&delivery==='courier'?'indrive':null,
+          subtotal: sub,
+          delivery_cost: cargoCost,
+          total: sub+cargoCost,
+          status: 'new',
+        }).select().single();
+
+        if(orderErr){ console.error('Order error:', orderErr); continue; }
+
+        // 2. Sipariş kalemlerini kaydet
+        const items=group.items.map(i=>({
+          order_id: order.id,
+          product_id: null,
+          product_name: lang==='ru'?i.ru:i.kk,
+          product_spec: i.spec,
+          quantity: i.qty,
+          unit_price: i.price,
+          total_price: i.price*i.qty,
+        }));
+        await sb.from('order_items').insert(items);
+
+        // 3. Müdüre bildirim gönder
+        const {data:managers}=await sb.from('store_members')
+          .select('user_id').eq('store_id',storeId)
+          .in('role',['owner','manager']);
+
+        if(managers&&managers.length){
+          const notifs=managers.map(m=>({
+            user_id: m.user_id,
+            type: 'order',
+            title_ru: `Новый заказ ${order.order_number}`,
+            title_kk: `Жаңа тапсырыс ${order.order_number}`,
+            body_ru: `Сумма: ${sub.toLocaleString()} ₸ · ${pay==='cash'?'Наличные':'QR оплата'}`,
+            body_kk: `Сомасы: ${sub.toLocaleString()} ₸`,
+            order_id: order.id,
+          }));
+          await sb.from('notifications').insert(notifs);
+        }
+
+        orderNum++;
       }
+
+      // 4. Sepeti temizle (localStorage'da varsa)
+      console.log('✅ Sipariş kaydedildi:', orderId);
     }
   } catch(e){ console.log('Demo mod:', e.message); }
 

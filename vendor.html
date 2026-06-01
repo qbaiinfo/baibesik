@@ -966,6 +966,80 @@ async function loadVendorUser() {
 }
 
 loadVendorUser();
+
+// ─── GERÇEK SİPARİŞLERİ YÜKLE ────────────────────────────────────────────────
+async function loadRealOrders() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+
+    // Store ID al
+    const {data:members} = await sb.from('store_members')
+      .select('store_id').eq('user_id', session.user.id);
+    if(!members || !members.length) return;
+
+    const storeId = members[0].store_id;
+
+    // Gerçek siparişleri çek
+    const {data:dbOrders} = await sb.from('orders')
+      .select('*, order_items(*), users(full_name, phone)')
+      .eq('store_id', storeId)
+      .order('created_at', {ascending: false})
+      .limit(50);
+
+    if(!dbOrders || !dbOrders.length) return;
+
+    // Demo orders'ı DB siparişleriyle değiştir
+    const realOrders = dbOrders.map(o => ({
+      id: o.order_number,
+      client: o.users?.full_name || o.recipient_name || 'Müşteri',
+      phone: o.users?.phone || o.recipient_phone || '',
+      address: o.delivery_address || '',
+      pay: o.payment_method || 'kaspi',
+      delivery: o.delivery_type === 'cargo' ? 'pickup' : (o.delivery_type || 'courier'),
+      status: o.status || 'new',
+      amount: parseFloat(o.total) || 0,
+      date: new Date(o.created_at).toLocaleDateString('ru-RU'),
+      items: (o.order_items||[]).map(i => ({
+        name_ru: i.product_name,
+        name_kk: i.product_name,
+        qty: i.quantity,
+        price: parseFloat(i.unit_price)
+      }))
+    }));
+
+    // orders array'ini güncelle
+    orders.length = 0;
+    realOrders.forEach(o => orders.push(o));
+    renderOrders();
+
+    // Stat kartlarını güncelle
+    const newCount = realOrders.filter(o=>o.status==='new').length;
+    const prepCount = realOrders.filter(o=>o.status==='preparing').length;
+    const delCount = realOrders.filter(o=>o.status==='delivery').length;
+    const todayTotal = realOrders
+      .filter(o=>o.date===new Date().toLocaleDateString('ru-RU'))
+      .reduce((s,o)=>s+o.amount, 0);
+
+    const s1=document.getElementById('s1-val');
+    const s2=document.getElementById('s2-val');
+    const s3=document.getElementById('s3-val');
+    const s4=document.getElementById('s4-val');
+    if(s1)s1.textContent=newCount;
+    if(s2)s2.textContent=prepCount;
+    if(s3)s3.textContent=delCount;
+    if(s4)s4.textContent=todayTotal.toLocaleString('ru');
+
+    console.log('✅ '+realOrders.length+' gerçek sipariş yüklendi');
+  } catch(e) {
+    console.log('Demo siparişler kullanılıyor:', e.message);
+  }
+}
+
+loadRealOrders();
 </script>
 </body>
 </html>
