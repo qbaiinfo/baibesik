@@ -258,12 +258,12 @@ body { font-family: 'Noto Sans', sans-serif; background: var(--dark); color: var
   <!-- TOPBAR -->
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:12px">
-      <button onclick="document.getElementById('sidebar').classList.toggle('open')" style="display:none;background:none;border:none;color:white;font-size:20px;cursor:pointer" id="menu-toggle">☰</button>
+      <button onclick="toggleSidebar()" style="display:none;background:none;border:none;color:white;font-size:20px;cursor:pointer" id="menu-toggle">☰</button>
       <div class="page-title" id="page-title">ОБЗОР СИСТЕМЫ</div>
     </div>
     <div class="topbar-right">
-      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">ҚАЗ</button>
-      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">РУС</button>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">RU</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">KK</button>
       <button class="notif-btn">🔔<span class="notif-dot"></span></button>
       <a href="index.html" class="btn-back" id="btn-back">← Сайт</a>
     </div>
@@ -975,6 +975,11 @@ window.addEventListener('resize', () => {
   document.getElementById('menu-toggle').style.display = window.innerWidth<900 ? 'block' : 'none';
 });
 window.dispatchEvent(new Event('resize'));
+
+function toggleSidebar(){
+  const sidebar = document.querySelector('.sidebar') || document.querySelector('.nav-sidebar');
+  if(sidebar) sidebar.classList.toggle('open');
+}
 
 // ─── INIT ───
 initChart();

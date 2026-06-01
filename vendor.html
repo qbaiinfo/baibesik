@@ -184,8 +184,8 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
     </div>
     <div class="header-right">
       <div class="online-dot"><div class="dot"></div><span id="online-txt">Онлайн</span></div>
-      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">ҚАЗ</button>
-      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">РУС</button>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">RU</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">KK</button>
       <a href="index.html" class="btn-back" id="btn-back">← Сайт</a>
     </div>
   </div>
@@ -1074,6 +1074,82 @@ async function loadRealOrders() {
 }
 
 loadRealOrders();
+
+// ── WS Modal & Customer functions ──────────────────────────────────────────
+let wsCurrentUser = null;
+
+function closeWsModal(){
+  const m=document.getElementById('ws-modal');
+  if(m)m.classList.remove('open');
+  wsCurrentUser=null;
+}
+
+function openWsModal(id,name,phone,isWs){
+  wsCurrentUser={id,name,phone,isWs};
+  const m=document.getElementById('ws-modal');
+  if(!m)return;
+  const n=document.getElementById('ws-user-name');
+  const p=document.getElementById('ws-user-phone');
+  const rb=document.getElementById('ws-btn-remove');
+  if(n)n.textContent=name;
+  if(p)p.textContent=phone;
+  if(rb)rb.style.display=isWs?'block':'none';
+  m.classList.add('open');
+}
+
+function searchCustomers(q){
+  const list=document.getElementById('customers-list');
+  if(!list)return;
+  import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm').then(({createClient})=>{
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    sb.from('users').select('id,full_name,phone,role')
+      .or('role.eq.customer,role.eq.wholesale')
+      .then(({data:users})=>{
+        let f=users||[];
+        if(q){const ql=q.toLowerCase();f=f.filter(u=>(u.full_name||'').toLowerCase().includes(ql)||(u.phone||'').includes(q));}
+        list.innerHTML=f.length?f.map(u=>{
+          const isWs=u.role==='wholesale';
+          return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'+
+            '<div style="width:34px;height:34px;border-radius:50%;background:'+(isWs?'var(--green)':'var(--orange)')+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">'+((u.full_name||'?')[0])+'</div>'+
+            '<div style="flex:1"><div style="font-size:13px;font-weight:700">'+(u.full_name||'—')+'</div><div style="font-size:11px;color:var(--gray)">'+(u.phone||'—')+'</div></div>'+
+            (isWs?'<span style="font-size:10px;font-weight:800;background:rgba(16,185,129,.1);color:var(--green);padding:2px 8px;border-radius:20px">📦 '+(lang==='ru'?'Оптовик':'Көтермеші')+'</span>':'')+
+            '<button style="font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;cursor:pointer" onclick="openWsModal(''+u.id+'',''+(u.full_name||'')+'',''+(u.phone||'')+'','+isWs+')">'+(isWs?'⚙️':'📦 '+(lang==='ru'?'Опт':'Көтерме'))+'</button>'+
+          '</div>';
+        }).join(''):'<div style="text-align:center;padding:20px;color:var(--gray)">'+(lang==='ru'?'Клиенты не найдены':'Клиент жоқ')+'</div>';
+      });
+  }).catch(()=>{
+    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--gray)">Демо режим</div>';
+  });
+}
+
+async function setWholesale(){
+  if(!wsCurrentUser)return;
+  const pct=parseInt(document.getElementById('ws-discount')?.value||20);
+  try{
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    await sb.from('users').update({role:'wholesale'}).eq('id',wsCurrentUser.id);
+    closeWsModal();
+    searchCustomers(document.getElementById('cust-search')?.value||'');
+    alert((lang==='ru'?wsCurrentUser.name+' теперь оптовый клиент!':wsCurrentUser.name+' енді көтермеші!'));
+  }catch(e){closeWsModal();alert('Ошибка: '+e.message);}
+}
+
+async function removeWholesale(){
+  if(!wsCurrentUser)return;
+  try{
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    await sb.from('users').update({role:'customer'}).eq('id',wsCurrentUser.id);
+    closeWsModal();
+    searchCustomers('');
+  }catch(e){closeWsModal();}
+}
+
+window.closeWsModal=closeWsModal;window.openWsModal=openWsModal;
+window.searchCustomers=searchCustomers;window.setWholesale=setWholesale;
+window.removeWholesale=removeWholesale;
+
 </script>
 </body>
 </html>

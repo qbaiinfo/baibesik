@@ -129,13 +129,12 @@ tr:hover td{background:var(--light)}
   <div class="hi">
     <a href="index.html" class="logo">BAI<span>BESIK</span></a>
     <div class="htitle">
-      <div class="store-name" id="store-name-label">ПАНЕЛЬ ВЛАДЕЛЬЦА</div>
-      <div class="owner-name" id="h-name">Мой магазин</div>
+      <div class="store-name" id="store-name-label">ДҮКЕН ИЕСІнің ПАНЕЛІ</div>
+      <div class="owner-name" id="h-name">Байбесік</div>
     </div>
     <div class="hbtns">
       <button class="lang-btn active" data-lang="ru" onclick="setLang('ru')">RU</button>
       <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
-      <a href="vendor.html" class="btn-sm btn-orange" id="btn-vendor">🏪 Менеджер панель</a>
       <button class="btn-sm btn-red" onclick="doSignOut()" id="btn-logout">🚪</button>
     </div>
   </div>
@@ -343,7 +342,7 @@ const T={
     't-overview':'📊 Обзор','t-staff':'👥 Сотрудники',
     't-products':'📦 Товары','t-orders':'🛒 Заказы',
     't-analytics':'🤖 AI Аналитика','t-settings':'⚙️ Настройки',
-    'btn-vendor':'🏪 Панель менеджера','btn-add-staff':'+ Добавить',
+    'btn-add-staff':'+ Добавить',
     'btn-add-prod':'+ Добавить товар','btn-all-orders':'Все заказы →',
     'lbl-orders':'Новых заказов','sub-orders':'Ожидают обработки',
     'lbl-revenue':'Выручка сегодня','sub-revenue':'За сегодня',
@@ -374,7 +373,7 @@ const T={
     't-overview':'📊 Шолу','t-staff':'👥 Қызметкерлер',
     't-products':'📦 Тауарлар','t-orders':'🛒 Тапсырыстар',
     't-analytics':'🤖 AI Талдау','t-settings':'⚙️ Баптаулар',
-    'btn-vendor':'🏪 Менеджер панелі','btn-add-staff':'+ Қосу',
+    'btn-add-staff':'+ Қосу',
     'btn-add-prod':'+ Тауар қосу','btn-all-orders':'Барлық тапсырыс →',
     'lbl-orders':'Жаңа тапсырыс','sub-orders':'Күтуде',
     'lbl-revenue':'Бүгінгі түсім','sub-revenue':'Бүгін',
@@ -447,7 +446,8 @@ async function init(){
     .select('store_id,role,stores(*)').eq('user_id',session.user.id);
   if(members && members.length){
     currentStore=members[0].stores;
-    $('h-name').textContent=currentStore?.name||user.full_name;
+    $('h-name').textContent = (currentStore?.name||'') + ' — ' + (user.full_name||'');
+  $('store-name-label').textContent = lang==='ru' ? 'ПАНЕЛЬ ВЛАДЕЛЬЦА' : 'ДҮКЕН ИЕСІнің ПАНЕЛІ';
   }
 
   // Logout butonu
