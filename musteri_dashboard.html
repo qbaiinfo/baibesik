@@ -748,7 +748,7 @@ async function loadCurrentUser() {
       }
 
       // İsim güncelle
-      const nameEls = ['h-name','p-name','inp-name'];
+      const nameEls = ['p-name','inp-name'];
       nameEls.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.textContent = name;

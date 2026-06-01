@@ -192,7 +192,7 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
     <a href="index.html" class="logo">BAI<span>BESIK</span></a>
     <div class="header-mid">
       <div class="worker-label" id="h-label">Qoima işçisi paneli</div>
-      <div class="worker-name" id="h-name">Alik Hırdavat — Деpo №1</div>
+      <div class="worker-name" id="h-name">Байбесік — Қойма</div>
     </div>
     <div class="header-right">
       <div class="pulse-dot"></div>
@@ -286,7 +286,7 @@ let printOrderId = null;
 // ─── TRANSLATIONS ─────────────────────────────────────────────────────────
 const T = {
   ru: {
-    'h-label':'Панель складского работника', 'h-name':'Alik Hırdavat — Склад №1',
+    'h-label':'Панель складского работника', 
     'tl-active':'Активные', 'tl-done':'Выполненные',
     's1':'Новых заказов', 's2':'В сборке', 's3':'Готово сегодня', 's4':'Позиций собрано',
     'print-modal-title':'🖨️ Лист сборки',
@@ -307,12 +307,12 @@ const T = {
     toast_uncheck:'Позиция снята',
     pcs:'шт',
     from_shelf:'Полка:',
-    print_store:'Магазин: Alik Hırdavat',
+    print_store:'Магазин: Байбесик',
     print_worker:'Работник: _______________',
     print_check:'✓ Проверил:',
   },
   kk: {
-    'h-label':'Қойма жұмысшысы панелі', 'h-name':'Alik Hırdavat — Қойма №1',
+    'h-label':'Қойма жұмысшысы панелі', 
     'tl-active':'Белсенді', 'tl-done':'Орындалған',
     's1':'Жаңа тапсырыстар', 's2':'Жинауда', 's3':'Бүгін дайын', 's4':'Позиция жиналды',
     'print-modal-title':'🖨️ Жинау парағы',
@@ -333,7 +333,7 @@ const T = {
     toast_uncheck:'Позиция алынды',
     pcs:'дана',
     from_shelf:'Сөре:',
-    print_store:'Дүкен: Alik Hırdavat',
+    print_store:'Дүкен: Байбесік',
     print_worker:'Жұмысшы: _______________',
     print_check:'✓ Тексерді:',
   }
@@ -559,7 +559,7 @@ function showTab(id, el) {
 function setLang(l) {
   lang = l;
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active', b.getAttribute('data-lang')===l));
-  const keys = ['h-label','h-name','tl-active','tl-done','s1','s2','s3','s4','print-modal-title','btn-do-print','btn-close-print'];
+  const keys = ['h-label','tl-active','tl-done','s1','s2','s3','s4','print-modal-title','btn-do-print','btn-close-print'];
   keys.forEach(k=>{ const el=document.getElementById(k); if(el) el.textContent=T[l][k]||''; });
   renderOrders();
   renderDone();
@@ -594,14 +594,34 @@ async function loadDepoUser() {
     }
 
     const name = user.full_name || 'Сотрудник';
-    const {data:member} = await sb.from('store_members')
-      .select('stores(name)')
-      .eq('user_id', session.user.id)
-      .single();
+    // Store adını REST API ile çek
+    let storeName = lang==='ru' ? 'Байбесик' : 'Байбесік';
+    let storeId = null;
+    try {
+      const r1 = await fetch(
+        SUPABASE_URL+'/rest/v1/store_members?user_id=eq.'+session.user.id+'&select=store_id&limit=1',
+        {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}}
+      );
+      const m1 = await r1.json();
+      if(m1 && m1.length && m1[0].store_id) {
+        storeId = m1[0].store_id;
+        const r2 = await fetch(
+          SUPABASE_URL+'/rest/v1/stores?id=eq.'+storeId+'&select=name&limit=1',
+          {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}}
+        );
+        const m2 = await r2.json();
+        if(m2 && m2.length && m2[0].name) storeName = m2[0].name;
+      }
+    } catch(e2) { console.log('Store fetch:', e2.message); }
 
-    const storeName = member?.stores?.name || 'Baibesik';
-    const hname = document.getElementById('h-name');
-    if(hname) hname.textContent = `${storeName} — Склад`;
+    // Header güncelle
+    function updateDepoHeader() {
+      const hname = document.getElementById('h-name');
+      if(hname) hname.textContent = storeName + ' — ' + (lang==='ru'?'Склад':'Қойма');
+    }
+    updateDepoHeader();
+    setTimeout(updateDepoHeader, 500);
+    setTimeout(updateDepoHeader, 1500);
 
     // Logout
     const hr = document.querySelector('.hr');
