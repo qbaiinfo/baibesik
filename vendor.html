@@ -159,20 +159,8 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
   .courier-btns { grid-template-columns: 1fr; }
 }
 </style>
-<script src="cart.js"></script>
 </head>
 <body>
-<script>
-// Auth koruma - giriş yapılmamışsa login'e yönlendir
-(async()=>{
-  try{
-    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-    const sb=createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
-    const {data:{session}}=await sb.auth.getSession();
-    if(!session){window.location.href='login.html?next='+encodeURIComponent(window.location.pathname.split('/').pop());}
-  }catch(e){console.log('Auth check:',e.message);}
-})();
-</script>
 
 <!-- HEADER -->
 <header>
@@ -180,12 +168,12 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
     <a href="index.html" class="logo">BAI<span>BESIK</span></a>
     <div class="header-center">
       <div class="shop-label" id="h-label">Панель магазина</div>
-      <div class="shop-name" id="h-name">Байбесік</div>
+      <div class="shop-name" id="h-name">Загрузка...</div>
     </div>
     <div class="header-right">
       <div class="online-dot"><div class="dot"></div><span id="online-txt">Онлайн</span></div>
-      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">RU</button>
-      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">KK</button>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">ҚАЗ</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">РУС</button>
       <a href="index.html" class="btn-back" id="btn-back">← Сайт</a>
     </div>
   </div>
@@ -449,11 +437,91 @@ const STORE = {
 };
 
 // ─── DATA ───────────────────────────────────────────────
-const orders = []; // Supabase'den yükleniyor
+const orders = [
+  {
+    id: 'BBS-9942', status: 'new',
+    client: 'Ерканат Жұмабай', phone: '+7 707 123 4567',
+    address_ru: 'ул. Акжол, д. 14', address_kk: 'Ақжол көшесі, 14 үй',
+    lat: 43.2480, lng: 76.9150,
+    pay: 'kaspi', delivery: 'courier',
+    items: [
+      { name_ru: 'Петля Blum Clip Top', name_kk: 'Blum Clip Top петлясы', qty: 4, price: 1450 },
+      { name_ru: 'Доводчик Blumotion', name_kk: 'Blumotion жетегі', qty: 4, price: 650 },
+    ],
+    amount: 8400,
+  },
+  {
+    id: 'BBS-9941', status: 'new',
+    client: 'Болат Мамытов', phone: '+7 701 200 3344',
+    address_ru: 'ул. Ынтымак, д. 7', address_kk: 'Ынтымақ көшесі, 7 үй',
+    lat: 43.2620, lng: 76.9420,
+    pay: 'cash', delivery: 'pickup',
+    items: [
+      { name_ru: 'Направляющие Boyard 450мм', name_kk: 'Boyard 450мм бағыттаушы', qty: 10, price: 3200 },
+    ],
+    amount: 32000,
+  },
+  {
+    id: 'BBS-9940', status: 'new',
+    client: 'Зарина Ахметова', phone: '+7 777 456 7890',
+    address_ru: 'мкр. Думан, д. 22', address_kk: 'Думан мкр., 22 үй',
+    lat: 43.2310, lng: 76.8980,
+    pay: 'halyk', delivery: 'courier',
+    items: [
+      { name_ru: 'Конфирмат 7x50 (100шт)', name_kk: 'Конфирмат 7x50 (100дана)', qty: 2, price: 450 },
+      { name_ru: 'Ручка кнопка Matt Black', name_kk: 'Matt Black батырма тұтқасы', qty: 6, price: 380 },
+    ],
+    amount: 3180,
+  },
+  {
+    id: 'BBS-9939', status: 'ready',
+    client: 'Нұрлан Сейтқали', phone: '+7 702 333 4455',
+    address_ru: 'ул. Тимирязева, д. 5', address_kk: 'Тимирязев көшесі, 5 үй',
+    lat: 43.2650, lng: 76.9500,
+    pay: 'kaspi', delivery: 'courier',
+    items: [
+      { name_ru: 'Ящик Legrabox Pure 500мм', name_kk: 'Legrabox Pure 500мм', qty: 8, price: 9800 },
+    ],
+    amount: 78400,
+  },
+  {
+    id: 'BBS-9938', status: 'ready',
+    client: 'Айдар Бекенов', phone: '+7 705 678 9012',
+    address_ru: 'ул. 1-я, д. 38', address_kk: '1-ші көше, 38 үй',
+    lat: 43.2440, lng: 76.9200,
+    pay: 'halyk', delivery: 'courier',
+    items: [
+      { name_ru: 'Система раздвижных дверей', name_kk: 'Сырғымалы есік жүйесі', qty: 1, price: 12500 },
+    ],
+    amount: 12500,
+  },
+  {
+    id: 'BBS-9937', status: 'delivery',
+    client: 'Мадина Жаксыбай', phone: '+7 708 111 2233',
+    address_ru: 'пр. Абая, д. 99', address_kk: 'Абай даңғылы, 99 үй',
+    lat: 43.2550, lng: 76.9300,
+    pay: 'kaspi', delivery: 'courier',
+    items: [
+      { name_ru: 'Петля Samet 35мм (уп.)', name_kk: 'Samet 35мм петля (буп.)', qty: 2, price: 3400 },
+    ],
+    amount: 6800,
+  },
+];
 
-const historyOrders = [];
+const historyOrders = [
+  { id:'BBS-9936', date:'26.05.2026', client:'Тимур Алиев', pay:'kaspi', delivery:'courier', amount:75000, status:'done' },
+  { id:'BBS-9935', date:'25.05.2026', client:'Асыл Бекова', pay:'cash', delivery:'pickup', amount:4500, status:'done' },
+  { id:'BBS-9934', date:'24.05.2026', client:'Данияр Омаров', pay:'halyk', delivery:'courier', amount:18200, status:'done' },
+  { id:'BBS-9933', date:'23.05.2026', client:'Гульнара Кали', pay:'kaspi', delivery:'courier', amount:9800, status:'done' },
+];
 
-const myProducts = []; // Supabase'den yükleniyor
+const myProducts = [
+  { icon:'🔩', name_ru:'Петля Blum Clip Top 110°', name_kk:'Blum Clip Top 110°', price:1450, wholesale:1100, stock:142, active:true },
+  { icon:'📐', name_ru:'Направляющие Boyard 450мм', name_kk:'Boyard 450мм', price:3200, wholesale:2500, stock:34, active:true },
+  { icon:'🖐️', name_ru:'Ручка-профиль Gola 4м', name_kk:'Gola 4м тұтқа', price:8500, wholesale:6500, stock:8, active:true },
+  { icon:'🔧', name_ru:'Конфирмат 7x50 (100шт)', name_kk:'Конфирмат 7x50', price:450, wholesale:320, stock:580, active:true },
+  { icon:'📦', name_ru:'Ящик Legrabox Pure 500мм', name_kk:'Legrabox Pure 500мм', price:9800, wholesale:7800, stock:12, active:false },
+];
 
 const financeData = [
   { date:'27.05.2026', id:'BBS-9942', pay:'kaspi', revenue:8400, courier:900, profit:2100 },
@@ -463,7 +531,7 @@ const financeData = [
 ];
 
 // ─── STATE ───────────────────────────────────────────────
-let lang = 'ru';
+let lang = 'kk';
 let currentOrder = null;
 
 // ─── TRANSLATIONS ───────────────────────────────────────
@@ -651,33 +719,26 @@ function renderOrders() {
 }
 
 // ─── ORDER ACTIONS ───────────────────────────────────────
-async function prepareOrder(id) {
+function prepareOrder(id) {
   const o = orders.find(x=>x.id===id);
-  if(!o) return;
-  
-  // Büyük sipariş → depoya gönder
-  const itemCount = o.items ? o.items.reduce((s,i)=>s+i.qty,0) : 1;
-  const toWarehouse = itemCount > 3; // 3'ten fazla kalem varsa depoya
-  
-  const newStatus = toWarehouse ? 'preparing' : 'preparing';
-  await updateOrderStatus(id, newStatus);
-  
-  if(toWarehouse) {
-    alert(lang==='ru' 
-      ? 'Заказ #'+id+' отправлен на склад для сборки!'
-      : '#'+id+' тапсырысы қоймаға жіберілді!');
+  if(o) { o.status = 'ready'; renderOrders(); }
+}
+
+function markPickupReady(id) {
+  const d = T[lang];
+  const o = orders.find(x=>x.id===id);
+  if(o) {
+    o.status = 'done';
+    renderOrders();
+    alert(`✅ ${o.client} ${lang==='ru'?'— заберёт товар из магазина. Заказ завершён.':'— тауарды дүкеннен алып кетеді. Тапсырыс аяқталды.'}`);
   }
 }
 
-async function markPickupReady(id) {
-  await updateOrderStatus(id, 'ready');
-  alert(lang==='ru'?'Товар готов! Клиент может забрать.':'Тауар дайын! Клиент ала алады.');
-  closeModal();
+function markDone(id) {
+  const o = orders.find(x=>x.id===id);
+  if(o) { o.status = 'done'; renderOrders(); }
 }
-async function markDone(id) {
-  await updateOrderStatus(id, 'done');
-  closeModal();
-}
+
 // ─── COURIER MODAL ───────────────────────────────────────
 function openCourierModal(id) {
   const o = orders.find(x=>x.id===id);
@@ -748,26 +809,7 @@ function callCourier(type) {
     }, 1500);
   }
 
-  // Supabase'de sipariş durumunu güncelle
-  try {
-    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-    // order_number ile ID bul ve güncelle
-    await sb.from('orders').update({status:'delivery'}).eq('order_number', o.id);
-    // Müşteriye bildirim
-    const {data:ord} = await sb.from('orders')
-      .select('customer_id, order_number').eq('order_number', o.id).single();
-    if(ord) {
-      await sb.from('notifications').insert({
-        user_id: ord.customer_id, type:'delivery',
-        title_ru:`Заказ ${ord.order_number} в пути!`,
-        title_kk:`${ord.order_number} тапсырыс жолда!`,
-        body_ru:'Курьер выехал к вам.',
-        body_kk:'Курьер сізге жолға шықты.',
-      });
-    }
-  } catch(e){ console.log('Status update demo:', e.message); }
-
+  // Update order status → delivery
   const idx = orders.findIndex(x=>x.id===o.id);
   if(idx >= 0) orders[idx].status = 'delivery';
 
@@ -797,10 +839,6 @@ function renderHistory() {
 
 // ─── RENDER PRODUCTS ─────────────────────────────────────
 function renderProducts() {
-  if(!myProducts.length) {
-    document.getElementById('products-body').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--gray)">' + (lang==='ru'?'Нет товаров. Нажмите «Добавить».':'Тауар жоқ. «Қосу» батырмасын басыңыз.') + '</td></tr>';
-    return;
-  }
   document.getElementById('products-body').innerHTML = myProducts.map(p => `
     <tr>
       <td><span style="font-size:16px;margin-right:8px">${p.icon}</span><span style="font-weight:700">${lang==='ru'?p.name_ru:p.name_kk}</span></td>
@@ -892,37 +930,23 @@ async function loadVendorUser() {
 
     const name = user.full_name || 'Сотрудник';
 
-    // Store adını direkt REST ile çek
-    let storeName = lang==='ru' ? 'Байбесик' : 'Байбесік';
-    try {
-      // 1. store_members'dan store_id al
-      const r1 = await fetch(
-        SUPABASE_URL+'/rest/v1/store_members?user_id=eq.'+session.user.id+'&select=store_id&limit=1',
-        {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}}
-      );
-      const m1 = await r1.json();
-      if(m1 && m1.length && m1[0].store_id) {
-        // 2. Store adını al
-        const r2 = await fetch(
-          SUPABASE_URL+'/rest/v1/stores?id=eq.'+m1[0].store_id+'&select=name&limit=1',
-          {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}}
-        );
-        const m2 = await r2.json();
-        if(m2 && m2.length && m2[0].name) storeName = m2[0].name;
-      }
-    } catch(e2) { console.log('Store fetch:', e2.message); }
+    // store_members'dan store_id al
+    const {data:members} = await sb.from('store_members')
+      .select('store_id, role').eq('user_id', session.user.id);
 
-    // Header güncelle — setInterval ile tekrar dene
-    function updateHeader() {
-      const hname = document.getElementById('h-name');
-      const hlabel = document.getElementById('h-label');
-      if(hname) { hname.textContent = storeName + ' — ' + name; }
-      if(hlabel) { hlabel.textContent = lang==='ru' ? 'Панель магазина' : 'Дүкен панелі'; }
+    let storeName = 'Baibesik';
+    if(members && members.length > 0) {
+      const {data:store} = await sb.from('stores')
+        .select('name').eq('id', members[0].store_id).single();
+      if(store) storeName = store.name;
     }
-    updateHeader();
-    // renderAll() h-name'i ezmemesi için biraz bekle
-    setTimeout(updateHeader, 500);
-    setTimeout(updateHeader, 1500);
+
+    // Header güncelle
+    const hname = document.getElementById('h-name');
+    if(hname) hname.textContent = storeName + ' — ' + name;
+
+    const hlabel = document.getElementById('h-label');
+    if(hlabel) hlabel.textContent = lang==='ru' ? 'Панель магазина' : 'Дүкен панелі';
 
     // Çıkış butonu ekle
     const hr = document.querySelector('.header-right');
@@ -942,69 +966,6 @@ async function loadVendorUser() {
 }
 
 loadVendorUser();
-
-// ─── SİPARİŞ DURUMU GÜNCELLE ─────────────────────────────────────────────────
-async function updateOrderStatus(orderNumber, newStatus) {
-  try {
-    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    const {error} = await sb.from('orders')
-      .update({status: newStatus})
-      .eq('order_number', orderNumber);
-    
-    if(error) throw error;
-
-    // Müşteriye bildirim gönder
-    const {data:ord} = await sb.from('orders')
-      .select('customer_id, order_number, id')
-      .eq('order_number', orderNumber).single();
-    
-    if(ord) {
-      const statusTexts = {
-        preparing: {ru:'Склад собирает заказ', kk:'Қойма тапсырысты жинайды'},
-        ready:     {ru:'Заказ готов к выдаче!', kk:'Тапсырыс дайын!'},
-        delivery:  {ru:'Курьер выехал к вам', kk:'Курьер сізге жолда'},
-        done:      {ru:'Заказ доставлен', kk:'Тапсырыс жеткізілді'},
-      };
-      const txt = statusTexts[newStatus];
-      if(txt) {
-        await sb.from('notifications').insert({
-          user_id: ord.customer_id, type:'order',
-          title_ru: `Заказ ${ord.order_number}: ${txt.ru}`,
-          title_kk: `${ord.order_number}: ${txt.kk}`,
-          order_id: ord.id,
-        });
-      }
-    }
-
-    // Depo paneline bildirim (preparing durumunda)
-    if(newStatus === 'preparing') {
-      const {data:warehouse} = await sb.from('store_members')
-        .select('user_id').eq('role','warehouse');
-      if(warehouse && warehouse.length) {
-        await sb.from('notifications').insert(
-          warehouse.map(w=>({
-            user_id: w.user_id, type:'order',
-            title_ru: `Новый заказ для сборки: ${orderNumber}`,
-            title_kk: `Жинауға жаңа тапсырыс: ${orderNumber}`,
-          }))
-        );
-      }
-    }
-
-    // Local state güncelle
-    const idx = orders.findIndex(x=>x.id===orderNumber);
-    if(idx>=0) { orders[idx].status=newStatus; renderOrders(); }
-    
-    console.log('✅ Durum güncellendi:', orderNumber, '→', newStatus);
-  } catch(e) {
-    console.log('Demo durum güncelleme:', e.message);
-    // Demo mode - just update local
-    const idx = orders.findIndex(x=>x.id===orderNumber);
-    if(idx>=0) { orders[idx].status=newStatus; renderOrders(); }
-  }
-}
 
 // ─── GERÇEK SİPARİŞLERİ YÜKLE ────────────────────────────────────────────────
 async function loadRealOrders() {
@@ -1073,120 +1034,12 @@ async function loadRealOrders() {
     if(s4)s4.textContent=todayTotal.toLocaleString('ru');
 
     console.log('✅ '+realOrders.length+' gerçek sipariş yüklendi');
-
-    // Ayrıca ürünleri de yükle
-    loadStoreProducts(sb, storeId);
-    
   } catch(e) {
     console.log('Demo siparişler kullanılıyor:', e.message);
   }
 }
 
-async function loadStoreProducts(sbClient, storeId) {
-  try {
-    const {data:prods} = await sbClient.from('products')
-      .select('*')
-      .eq('store_id', storeId)
-      .eq('is_active', true)
-      .order('created_at', {ascending:false});
-    
-    if(prods && prods.length) {
-      myProducts.length = 0;
-      prods.forEach(p => myProducts.push({
-        id: p.id,
-        icon: '📦',
-        name_ru: p.name_ru,
-        name_kk: p.name_kk || p.name_ru,
-        price: parseFloat(p.price_retail),
-        wholesale: parseFloat(p.price_wholesale || p.price_retail * 0.8),
-        stock: p.stock_qty || 0,
-        shelf: p.shelf_code || '—',
-        active: p.is_active,
-      }));
-      renderProducts();
-    }
-  } catch(e) {
-    console.log('Products load error:', e.message);
-  }
-}
-
 loadRealOrders();
-
-// ── WS Modal & Customer functions ──────────────────────────────────────────
-let wsCurrentUser = null;
-
-function closeWsModal(){
-  const m=document.getElementById('ws-modal');
-  if(m)m.classList.remove('open');
-  wsCurrentUser=null;
-}
-
-function openWsModal(id,name,phone,isWs){
-  wsCurrentUser={id,name,phone,isWs};
-  const m=document.getElementById('ws-modal');
-  if(!m)return;
-  const n=document.getElementById('ws-user-name');
-  const p=document.getElementById('ws-user-phone');
-  const rb=document.getElementById('ws-btn-remove');
-  if(n)n.textContent=name;
-  if(p)p.textContent=phone;
-  if(rb)rb.style.display=isWs?'block':'none';
-  m.classList.add('open');
-}
-
-function searchCustomers(q){
-  const list=document.getElementById('customers-list');
-  if(!list)return;
-  import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm').then(({createClient})=>{
-    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-    sb.from('users').select('id,full_name,phone,role')
-      .or('role.eq.customer,role.eq.wholesale')
-      .then(({data:users})=>{
-        let f=users||[];
-        if(q){const ql=q.toLowerCase();f=f.filter(u=>(u.full_name||'').toLowerCase().includes(ql)||(u.phone||'').includes(q));}
-        list.innerHTML=f.length?f.map(u=>{
-          const isWs=u.role==='wholesale';
-          return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'+
-            '<div style="width:34px;height:34px;border-radius:50%;background:'+(isWs?'var(--green)':'var(--orange)')+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">'+((u.full_name||'?')[0])+'</div>'+
-            '<div style="flex:1"><div style="font-size:13px;font-weight:700">'+(u.full_name||'—')+'</div><div style="font-size:11px;color:var(--gray)">'+(u.phone||'—')+'</div></div>'+
-            (isWs?'<span style="font-size:10px;font-weight:800;background:rgba(16,185,129,.1);color:var(--green);padding:2px 8px;border-radius:20px">📦 '+(lang==='ru'?'Оптовик':'Көтермеші')+'</span>':'')+
-            '<button style="font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;cursor:pointer" onclick="openWsModal(''+u.id+'',''+(u.full_name||'')+'',''+(u.phone||'')+'','+isWs+')">'+(isWs?'⚙️':'📦 '+(lang==='ru'?'Опт':'Көтерме'))+'</button>'+
-          '</div>';
-        }).join(''):'<div style="text-align:center;padding:20px;color:var(--gray)">'+(lang==='ru'?'Клиенты не найдены':'Клиент жоқ')+'</div>';
-      });
-  }).catch(()=>{
-    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--gray)">Демо режим</div>';
-  });
-}
-
-async function setWholesale(){
-  if(!wsCurrentUser)return;
-  const pct=parseInt(document.getElementById('ws-discount')?.value||20);
-  try{
-    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-    await sb.from('users').update({role:'wholesale'}).eq('id',wsCurrentUser.id);
-    closeWsModal();
-    searchCustomers(document.getElementById('cust-search')?.value||'');
-    alert((lang==='ru'?wsCurrentUser.name+' теперь оптовый клиент!':wsCurrentUser.name+' енді көтермеші!'));
-  }catch(e){closeWsModal();alert('Ошибка: '+e.message);}
-}
-
-async function removeWholesale(){
-  if(!wsCurrentUser)return;
-  try{
-    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-    await sb.from('users').update({role:'customer'}).eq('id',wsCurrentUser.id);
-    closeWsModal();
-    searchCustomers('');
-  }catch(e){closeWsModal();}
-}
-
-window.closeWsModal=closeWsModal;window.openWsModal=openWsModal;
-window.searchCustomers=searchCustomers;window.setWholesale=setWholesale;
-window.removeWholesale=removeWholesale;
-
 </script>
 </body>
 </html>

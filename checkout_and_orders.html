@@ -166,7 +166,6 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 @media(max-width:900px){.layout{grid-template-columns:1fr}.summary{position:static}}
 @media(max-width:600px){.pay-grid,.cargo-grid,.city-grid{grid-template-columns:1fr 1fr}.fg-row{grid-template-columns:1fr}}
 </style>
-<script src="cart.js"></script>
 </head>
 <body>
 
@@ -175,8 +174,8 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
     <a href="index.html" class="logo">BAI<span>BESIK</span></a>
     <div class="htitle" id="page-title">ОФОРМЛЕНИЕ ЗАКАЗА</div>
     <div style="display:flex;gap:8px">
-      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">RU</button>
-      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">KK</button>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">ҚАЗ</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">РУС</button>
       <a href="catalog.html" class="btn-back" id="btn-back">← Каталог</a>
     </div>
   </div>
@@ -390,7 +389,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
       <div class="modal-track" id="modal-track"></div>
       <div class="modal-sub" id="modal-sub">Ваш заказ принят. Менеджер магазина скоро свяжется с вами.</div>
       <div class="modal-btns">
-        <button class="modal-btn mb-primary" id="modal-btn1" onclick="goToOrders()">📦 Отследить</button>
+        <a href="musteri_dashboard.html" class="modal-btn mb-primary" id="modal-btn1">📦 Отследить</a>
         <a href="catalog.html" class="modal-btn mb-ghost" id="modal-btn2">Продолжить</a>
       </div>
     </div>
@@ -411,26 +410,15 @@ const KZ_CITIES = [
 ];
 
 // ── DEMO КОРЗИНА ─────────────────────────────────────────────────────────────
-// TEST мağaza ID — Supabase'deki gerçek ID
-const TEST_STORE_ID = 'aaaaaaaa-0000-0000-0000-000000000001';
-const TEST_STORE_NAME = 'TEST Mağaza (Silinebilir)';
-
-// Cart modülünden yükle (catalog'dan seçilen ürünler)
-let cart = [];
-function loadCartFromStorage() {
-  const saved = Cart.get();
-  if(saved && saved.length > 0) return saved;
-  // Sepet boşsa demo ürünler
-  return [
-    {id:1,storeId:TEST_STORE_ID,storeName:TEST_STORE_NAME,icon:'🔗',ru:'Петля Blum Clip Top 110°',kk:'Blum Clip Top 110°',spec:'уп.20шт',price:475,qty:2,heavy:false},
-    {id:2,storeId:TEST_STORE_ID,storeName:TEST_STORE_NAME,icon:'⬆️',ru:'Газлифт белый N80 (уп.100шт)',kk:'Ақ газлифт N80',spec:'100шт/уп',price:220,qty:1,heavy:false},
-    {id:3,storeId:TEST_STORE_ID,storeName:TEST_STORE_NAME,icon:'🎛️',ru:'Тандем полный 450мм Boyard',kk:'Толық тандем 450мм',spec:'уп.10шт',price:3950,qty:1,heavy:false},
-  ];
-}
-cart = loadCartFromStorage();
+let cart = [
+  {id:1,storeId:'alik',storeName:'Alik Hırdavat',icon:'🔗',ru:'Петля Blum Clip Top 110°',kk:'Blum Clip Top 110°',spec:'уп.20шт',price:475,qty:2,heavy:false},
+  {id:2,storeId:'alik',storeName:'Alik Hırdavat',icon:'⬆️',ru:'Газлифт белый N80 (уп.100шт)',kk:'Ақ газлифт N80',spec:'100шт/уп',price:220,qty:1,heavy:false},
+  {id:3,storeId:'serik',storeName:'Serikcan Market',icon:'🎛️',ru:'Тандем полный 450мм Boyard',kk:'Толық тандем 450мм',spec:'уп.10шт',price:3950,qty:1,heavy:false},
+  {id:4,storeId:'alik',storeName:'Alik Hırdavat',icon:'🎚️',ru:'Гола ручка ЗОЛОТО 6м',kk:'АЛТЫН Gola тұтқа 6м',spec:'6м',price:6850,qty:1,heavy:true},
+];
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let lang='ru', step=1, city='almaty', delivery='courier', cargo='kazpost', pay='kaspi', selCity='';
+let lang='kk', step=1, city='almaty', delivery='courier', cargo='kazpost', pay='kaspi', selCity='';
 
 const CARGO_PRICES = {kazpost:800, sdek:1500, dhl:3500};
 const CARGO_DAYS   = {
@@ -620,12 +608,11 @@ function renderCart(){
 
 function changeQty(id,delta){
   const item=cart.find(i=>i.id===id);
-  if(item){ item.qty=Math.max(1,item.qty+delta); Cart.save(cart); }
+  if(item)item.qty=Math.max(1,item.qty+delta);
   renderCart();
 }
 function removeItem(id){
   cart=cart.filter(i=>i.id!==id);
-  Cart.save(cart);
   renderCart();
 }
 
@@ -863,9 +850,6 @@ async function placeOrder(){
 
       // 4. Sepeti temizle (localStorage'da varsa)
       console.log('✅ Sipariş kaydedildi:', orderId);
-    // Sepeti temizle
-    Cart.clear();
-    cart.length = 0;
     }
   } catch(e){ console.log('Demo mod:', e.message); }
 
@@ -881,11 +865,6 @@ async function placeOrder(){
 }
 
 // ── INIT ────────────────────────────────────────────────────────────────────
-
-function goToOrders(){
-  // Always go to musteri_dashboard for order tracking
-  window.location.href = 'musteri_dashboard.html';
-}
 window.setLang=setLang;
 window.selectCity=selectCity;
 window.selectDelivery=selectDelivery;
@@ -896,31 +875,7 @@ window.pickCity=pickCity;
 window.changeQty=changeQty;
 window.removeItem=removeItem;
 window.goStep=goStep;
-window.goToOrders=goToOrders;
 window.placeOrder=placeOrder;
-
-// Kullanıcı giriş yapmamışsa login'e yönlendir
-(async ()=>{
-  try {
-    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-    const {data:{session}} = await sb.auth.getSession();
-    if(!session) {
-      // Giriş yapılmamış - sadece uyar, yönlendirme yok
-      console.log('Giriş yapılmamış - demo mod');
-    } else {
-      // İsim ve telefonu forma doldur
-      const {data:user} = await sb.from('users')
-        .select('full_name,phone').eq('id',session.user.id).single();
-      if(user) {
-        const nameInp = document.getElementById('inp-name');
-        const phoneInp = document.getElementById('inp-phone');
-        if(nameInp && user.full_name) nameInp.value = user.full_name;
-        if(phoneInp && user.phone) phoneInp.value = user.phone;
-      }
-    }
-  } catch(e) { console.log('Auth check:', e.message); }
-})();
 
 renderCart();
 updateSummary();
