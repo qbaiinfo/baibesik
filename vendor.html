@@ -437,83 +437,9 @@ const STORE = {
 };
 
 // ─── DATA ───────────────────────────────────────────────
-const orders = [
-  {
-    id: 'BBS-9942', status: 'new',
-    client: 'Ерканат Жұмабай', phone: '+7 707 123 4567',
-    address_ru: 'ул. Акжол, д. 14', address_kk: 'Ақжол көшесі, 14 үй',
-    lat: 43.2480, lng: 76.9150,
-    pay: 'kaspi', delivery: 'courier',
-    items: [
-      { name_ru: 'Петля Blum Clip Top', name_kk: 'Blum Clip Top петлясы', qty: 4, price: 1450 },
-      { name_ru: 'Доводчик Blumotion', name_kk: 'Blumotion жетегі', qty: 4, price: 650 },
-    ],
-    amount: 8400,
-  },
-  {
-    id: 'BBS-9941', status: 'new',
-    client: 'Болат Мамытов', phone: '+7 701 200 3344',
-    address_ru: 'ул. Ынтымак, д. 7', address_kk: 'Ынтымақ көшесі, 7 үй',
-    lat: 43.2620, lng: 76.9420,
-    pay: 'cash', delivery: 'pickup',
-    items: [
-      { name_ru: 'Направляющие Boyard 450мм', name_kk: 'Boyard 450мм бағыттаушы', qty: 10, price: 3200 },
-    ],
-    amount: 32000,
-  },
-  {
-    id: 'BBS-9940', status: 'new',
-    client: 'Зарина Ахметова', phone: '+7 777 456 7890',
-    address_ru: 'мкр. Думан, д. 22', address_kk: 'Думан мкр., 22 үй',
-    lat: 43.2310, lng: 76.8980,
-    pay: 'halyk', delivery: 'courier',
-    items: [
-      { name_ru: 'Конфирмат 7x50 (100шт)', name_kk: 'Конфирмат 7x50 (100дана)', qty: 2, price: 450 },
-      { name_ru: 'Ручка кнопка Matt Black', name_kk: 'Matt Black батырма тұтқасы', qty: 6, price: 380 },
-    ],
-    amount: 3180,
-  },
-  {
-    id: 'BBS-9939', status: 'ready',
-    client: 'Нұрлан Сейтқали', phone: '+7 702 333 4455',
-    address_ru: 'ул. Тимирязева, д. 5', address_kk: 'Тимирязев көшесі, 5 үй',
-    lat: 43.2650, lng: 76.9500,
-    pay: 'kaspi', delivery: 'courier',
-    items: [
-      { name_ru: 'Ящик Legrabox Pure 500мм', name_kk: 'Legrabox Pure 500мм', qty: 8, price: 9800 },
-    ],
-    amount: 78400,
-  },
-  {
-    id: 'BBS-9938', status: 'ready',
-    client: 'Айдар Бекенов', phone: '+7 705 678 9012',
-    address_ru: 'ул. 1-я, д. 38', address_kk: '1-ші көше, 38 үй',
-    lat: 43.2440, lng: 76.9200,
-    pay: 'halyk', delivery: 'courier',
-    items: [
-      { name_ru: 'Система раздвижных дверей', name_kk: 'Сырғымалы есік жүйесі', qty: 1, price: 12500 },
-    ],
-    amount: 12500,
-  },
-  {
-    id: 'BBS-9937', status: 'delivery',
-    client: 'Мадина Жаксыбай', phone: '+7 708 111 2233',
-    address_ru: 'пр. Абая, д. 99', address_kk: 'Абай даңғылы, 99 үй',
-    lat: 43.2550, lng: 76.9300,
-    pay: 'kaspi', delivery: 'courier',
-    items: [
-      { name_ru: 'Петля Samet 35мм (уп.)', name_kk: 'Samet 35мм петля (буп.)', qty: 2, price: 3400 },
-    ],
-    amount: 6800,
-  },
-];
+const orders = []; // Supabase'den yükleniyor
 
-const historyOrders = [
-  { id:'BBS-9936', date:'26.05.2026', client:'Тимур Алиев', pay:'kaspi', delivery:'courier', amount:75000, status:'done' },
-  { id:'BBS-9935', date:'25.05.2026', client:'Асыл Бекова', pay:'cash', delivery:'pickup', amount:4500, status:'done' },
-  { id:'BBS-9934', date:'24.05.2026', client:'Данияр Омаров', pay:'halyk', delivery:'courier', amount:18200, status:'done' },
-  { id:'BBS-9933', date:'23.05.2026', client:'Гульнара Кали', pay:'kaspi', delivery:'courier', amount:9800, status:'done' },
-];
+const historyOrders = [];
 
 const myProducts = [
   { icon:'🔩', name_ru:'Петля Blum Clip Top 110°', name_kk:'Blum Clip Top 110°', price:1450, wholesale:1100, stock:142, active:true },

@@ -273,50 +273,11 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
 
 <script>
 // ─── DATA ──────────────────────────────────────────────────────────────────
-const orders = [
-  {
-    id: 'BBS-9942', status: 'new',
-    client: 'Ерканат Жұмабай', phone: '+7 707 123 4567',
-    pay: 'kaspi', delivery: 'courier',
-    items: [
-      { id:1, raf:'A-14', name_ru:'Петля Blum Clip Top 110°', name_kk:'Blum Clip Top 110° петлясы', color:'Антрацит', size:'110°', qty:4, checked:false },
-      { id:2, raf:'A-14', name_ru:'Доводчик Blum Blumotion', name_kk:'Blum Blumotion жетегі', color:'Никель', size:'Стандарт', qty:4, checked:false },
-    ]
-  },
-  {
-    id: 'BBS-9941', status: 'new',
-    client: 'Болат Мамытов', phone: '+7 701 200 3344',
-    pay: 'cash', delivery: 'pickup',
-    items: [
-      { id:3, raf:'B-02', name_ru:'Направляющие Boyard 450мм', name_kk:'Boyard 450мм бағыттаушы', color:'Металлик', size:'450мм', qty:10, checked:false },
-    ]
-  },
-  {
-    id: 'BBS-9940', status: 'picking',
-    client: 'Зарина Ахметова', phone: '+7 777 456 7890',
-    pay: 'halyk', delivery: 'courier',
-    items: [
-      { id:4, raf:'D-07', name_ru:'Конфирмат 7x50 (100шт)', name_kk:'Конфирмат 7x50 (100дана)', color:'Цинк', size:'7×50мм', qty:2, checked:true },
-      { id:5, raf:'C-11', name_ru:'Ручка кнопка Matt Black Ø32', name_kk:'Matt Black батырма тұтқасы', color:'Матовый чёрный', size:'Ø32мм', qty:6, checked:false },
-      { id:6, raf:'D-07', name_ru:'Шуруп 3.5x16 (200шт)', name_kk:'Бұрандама 3.5x16 (200дана)', color:'Жёлтый цинк', size:'3.5×16мм', qty:1, checked:false },
-    ]
-  },
-  {
-    id: 'BBS-9939', status: 'picking',
-    client: 'Нұрлан Сейтқали', phone: '+7 702 333 4455',
-    pay: 'kaspi', delivery: 'courier',
-    items: [
-      { id:7, raf:'E-01', name_ru:'Ящик Legrabox Pure 500мм', name_kk:'Legrabox Pure 500мм', color:'Белый', size:'H=92мм L=500мм', qty:8, checked:true },
-      { id:8, raf:'A-14', name_ru:'Петля Blum Clip Top 110°', name_kk:'Blum Clip Top 110° петлясы', color:'Белый', size:'110°', qty:16, checked:true },
-    ]
-  },
-];
-
-const doneOrders = [
-  { id:'BBS-9938', client:'Айдар Бекенов', items:3, time:'14:22' },
-  { id:'BBS-9937', client:'Мадина Жаксыбай', items:2, time:'13:05' },
-  { id:'BBS-9936', client:'Тимур Алиев', items:5, time:'11:48' },
-];
+// Siparişler Supabase'den yükleniyor
+const activeOrders = orders; // alias
+const orders = [];      // Aktif siparişler (new, preparing)
+const doneOrders = [];  // Tamamlanan siparişler
+let doneOrders_ = [];   // DB'den gelen done siparişler
 
 // ─── STATE ────────────────────────────────────────────────────────────────
 let lang = 'kk';
