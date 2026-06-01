@@ -801,6 +801,62 @@ function addLogoutBtn(sb) {
 // ─── INIT ────────────────────────────────────────────────────────────────
 renderAll();
 loadCurrentUser();
+
+// ─── GERÇEK SİPARİŞLER ───────────────────────────────────────────────────────
+async function loadMyOrders() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+
+    const {data:orders} = await sb.from('orders')
+      .select('*, order_items(*)')
+      .eq('customer_id', session.user.id)
+      .order('created_at', {ascending:false})
+      .limit(10);
+
+    if(!orders || !orders.length) return;
+
+    // Sipariş listesini güncelle
+    const container = document.getElementById('orders-list');
+    if(!container) return;
+
+    const statusIcons = {
+      new:'🔔', preparing:'⚙️', ready:'✅', delivery:'🛵', done:'🎉', cancelled:'❌'
+    };
+    const statusRu = {
+      new:'Новый', preparing:'Собирается', ready:'Готов к выдаче',
+      delivery:'В доставке', done:'Доставлен', cancelled:'Отменён'
+    };
+    const statusKk = {
+      new:'Жаңа', preparing:'Жиналуда', ready:'Алуға дайын',
+      delivery:'Жолда', done:'Жеткізілді', cancelled:'Болдырылмады'
+    };
+
+    container.innerHTML = orders.map(o => {
+      const total = parseFloat(o.total)||0;
+      const date = new Date(o.created_at).toLocaleDateString('ru-RU');
+      const icon = statusIcons[o.status]||'📦';
+      const status = lang==='ru' ? (statusRu[o.status]||o.status) : (statusKk[o.status]||o.status);
+      const items = o.order_items||[];
+      return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange)">#${o.order_number}</div>
+          <div style="font-size:12px;font-weight:800;background:var(--light);padding:4px 10px;border-radius:20px">${icon} ${status}</div>
+        </div>
+        <div style="font-size:12px;color:var(--gray);margin-bottom:6px">${date} · ${o.payment_method?.toUpperCase()||'QR'}</div>
+        ${items.slice(0,2).map(i=>`<div style="font-size:13px;font-weight:600;margin-bottom:3px">• ${i.product_name} ×${i.quantity}</div>`).join('')}
+        ${items.length>2?`<div style="font-size:12px;color:var(--gray)">+ ещё ${items.length-2}...</div>`:''}
+        <div style="font-size:16px;font-weight:900;color:var(--orange-dark);margin-top:8px">${total.toLocaleString('ru')} ₸</div>
+      </div>`;
+    }).join('');
+
+    console.log('✅ '+orders.length+' sipariş yüklendi');
+  } catch(e) { console.log('Demo siparişler:', e.message); }
+}
+
+loadMyOrders();
 </script>
 </body>
 </html>

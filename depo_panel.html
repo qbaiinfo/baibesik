@@ -655,6 +655,114 @@ async function loadDepoUser() {
   } catch(e) { console.log('Demo mod:', e.message); }
 }
 loadDepoUser();
+
+// ─── GERÇEK SİPARİŞLERİ YÜKLE ────────────────────────────────────────────────
+async function loadRealDepoOrders() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+
+    // Store ID al
+    const {data:members} = await sb.from('store_members')
+      .select('store_id').eq('user_id', session.user.id);
+    if(!members || !members.length) return;
+    const storeId = members[0].store_id;
+
+    // Hazırlanacak siparişleri çek (new veya preparing)
+    const {data:dbOrders} = await sb.from('orders')
+      .select('*, order_items(*), users(full_name, phone)')
+      .eq('store_id', storeId)
+      .in('status', ['new', 'preparing'])
+      .order('created_at', {ascending: true});
+
+    if(!dbOrders || !dbOrders.length) return;
+
+    // activeOrders dizisini güncelle
+    activeOrders.length = 0;
+    dbOrders.forEach(o => {
+      activeOrders.push({
+        id: o.order_number,
+        db_id: o.id,
+        client: o.users?.full_name || o.recipient_name || 'Müşteri',
+        phone: o.users?.phone || o.recipient_phone || '',
+        address: o.delivery_address || '',
+        status: o.status,
+        pay: o.payment_method || 'kaspi',
+        delivery: o.delivery_type || 'courier',
+        items: (o.order_items||[]).map(i=>({
+          name_ru: i.product_name,
+          name_kk: i.product_name,
+          shelf: 'A-01',
+          qty: i.quantity,
+          unit: lang==='ru'?'шт':'дана',
+          done: false,
+        }))
+      });
+    });
+
+    // Tamamlanan siparişleri çek
+    const {data:doneOrders} = await sb.from('orders')
+      .select('*, users(full_name)')
+      .eq('store_id', storeId)
+      .in('status', ['ready','delivery','done'])
+      .order('created_at', {ascending: false})
+      .limit(10);
+
+    if(doneOrders && doneOrders.length) {
+      doneOrders_ = doneOrders.map(o=>({
+        id: o.order_number,
+        client: o.users?.full_name || o.recipient_name || 'Müşteri',
+        date: new Date(o.created_at).toLocaleDateString('ru-RU'),
+        items: 1,
+      }));
+    }
+
+    renderOrders();
+    renderDone();
+
+    // Stat güncelle
+    const s1=document.getElementById('s1');
+    const s2=document.getElementById('s2');
+    if(s1) s1.textContent=activeOrders.filter(o=>o.status==='new').length;
+    if(s2) s2.textContent=activeOrders.filter(o=>o.status==='preparing').length;
+
+    console.log('✅ Depo: '+activeOrders.length+' sipariş yüklendi');
+  } catch(e) {
+    console.log('Demo mod:', e.message);
+  }
+}
+
+// Sipariş hazır işaretle
+async function markItemDone(orderId, itemIdx) {
+  const order = activeOrders.find(o=>o.id===orderId);
+  if(!order) return;
+  order.items[itemIdx].done = !order.items[itemIdx].done;
+  const allDone = order.items.every(i=>i.done);
+  
+  if(allDone) {
+    // Tüm kalemler hazır → durumu "ready" yap
+    try {
+      const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+      const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+      await sb.from('orders').update({status:'ready'}).eq('order_number', orderId);
+      // Müdüre bildirim
+      await sb.from('notifications').insert({
+        user_id: order.manager_id || null,
+        type: 'order',
+        title_ru: `Заказ ${orderId} готов к выдаче!`,
+        title_kk: `${orderId} тапсырысы дайын!`,
+      });
+    } catch(e) { console.log(e.message); }
+    order.status = 'ready';
+  }
+  renderOrders();
+}
+
+window.markItemDone = markItemDone;
+
+loadRealDepoOrders();
 </script>
 </body>
 </html>

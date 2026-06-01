@@ -809,7 +809,26 @@ function callCourier(type) {
     }, 1500);
   }
 
-  // Update order status → delivery
+  // Supabase'de sipariş durumunu güncelle
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    // order_number ile ID bul ve güncelle
+    await sb.from('orders').update({status:'delivery'}).eq('order_number', o.id);
+    // Müşteriye bildirim
+    const {data:ord} = await sb.from('orders')
+      .select('customer_id, order_number').eq('order_number', o.id).single();
+    if(ord) {
+      await sb.from('notifications').insert({
+        user_id: ord.customer_id, type:'delivery',
+        title_ru:`Заказ ${ord.order_number} в пути!`,
+        title_kk:`${ord.order_number} тапсырыс жолда!`,
+        body_ru:'Курьер выехал к вам.',
+        body_kk:'Курьер сізге жолға шықты.',
+      });
+    }
+  } catch(e){ console.log('Status update demo:', e.message); }
+
   const idx = orders.findIndex(x=>x.id===o.id);
   if(idx >= 0) orders[idx].status = 'delivery';
 
@@ -966,6 +985,69 @@ async function loadVendorUser() {
 }
 
 loadVendorUser();
+
+// ─── SİPARİŞ DURUMU GÜNCELLE ─────────────────────────────────────────────────
+async function updateOrderStatus(orderNumber, newStatus) {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    const {error} = await sb.from('orders')
+      .update({status: newStatus})
+      .eq('order_number', orderNumber);
+    
+    if(error) throw error;
+
+    // Müşteriye bildirim gönder
+    const {data:ord} = await sb.from('orders')
+      .select('customer_id, order_number, id')
+      .eq('order_number', orderNumber).single();
+    
+    if(ord) {
+      const statusTexts = {
+        preparing: {ru:'Склад собирает заказ', kk:'Қойма тапсырысты жинайды'},
+        ready:     {ru:'Заказ готов к выдаче!', kk:'Тапсырыс дайын!'},
+        delivery:  {ru:'Курьер выехал к вам', kk:'Курьер сізге жолда'},
+        done:      {ru:'Заказ доставлен', kk:'Тапсырыс жеткізілді'},
+      };
+      const txt = statusTexts[newStatus];
+      if(txt) {
+        await sb.from('notifications').insert({
+          user_id: ord.customer_id, type:'order',
+          title_ru: `Заказ ${ord.order_number}: ${txt.ru}`,
+          title_kk: `${ord.order_number}: ${txt.kk}`,
+          order_id: ord.id,
+        });
+      }
+    }
+
+    // Depo paneline bildirim (preparing durumunda)
+    if(newStatus === 'preparing') {
+      const {data:warehouse} = await sb.from('store_members')
+        .select('user_id').eq('role','warehouse');
+      if(warehouse && warehouse.length) {
+        await sb.from('notifications').insert(
+          warehouse.map(w=>({
+            user_id: w.user_id, type:'order',
+            title_ru: `Новый заказ для сборки: ${orderNumber}`,
+            title_kk: `Жинауға жаңа тапсырыс: ${orderNumber}`,
+          }))
+        );
+      }
+    }
+
+    // Local state güncelle
+    const idx = orders.findIndex(x=>x.id===orderNumber);
+    if(idx>=0) { orders[idx].status=newStatus; renderOrders(); }
+    
+    console.log('✅ Durum güncellendi:', orderNumber, '→', newStatus);
+  } catch(e) {
+    console.log('Demo durum güncelleme:', e.message);
+    // Demo mode - just update local
+    const idx = orders.findIndex(x=>x.id===orderNumber);
+    if(idx>=0) { orders[idx].status=newStatus; renderOrders(); }
+  }
+}
 
 // ─── GERÇEK SİPARİŞLERİ YÜKLE ────────────────────────────────────────────────
 async function loadRealOrders() {
