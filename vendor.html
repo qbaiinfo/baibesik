@@ -521,7 +521,7 @@ const T = {
     'th-p-name':'Товар', 'th-p-price':'Цена', 'th-p-ws':'Оптовая', 'th-p-stock':'Склад', 'th-p-status':'Статус', 'th-p-action':'Действие',
     'th-f-date':'Дата', 'th-f-pay':'Оплата', 'th-f-sum':'Выручка', 'th-f-courier':'Курьер', 'th-f-profit':'Прибыль',
     status_new:'Новый', status_ready:'Готовится', status_delivery:'В доставке', status_done:'Доставлено',
-    btn_prepare:'Начать сборку', btn_preparing:'⚙️ Склад собирает...', btn_ready:'Готово → Вызвать курьера', btn_pickup_ready:'Готово → Ждём клиента', btn_done:'✓ Доставлено', status_preparing:'Сборка',
+    btn_prepare:'Начать сборку', btn_ready:'Готово → Вызвать курьера', btn_pickup_ready:'Готово → Ждём клиента', btn_done:'✓ Доставлено',
     delivery_courier:'🛵 Курьер', delivery_pickup:'🏃 Самовывоз',
     pay_kaspi:'📱 Kaspi QR', pay_halyk:'📱 Halyk QR', pay_cash:'💵 Наличные',
     item_pcs:'шт',
@@ -544,7 +544,7 @@ const T = {
     'th-p-name':'Тауар', 'th-p-price':'Баға', 'th-p-ws':'Көтерме', 'th-p-stock':'Қойма', 'th-p-status':'Статус', 'th-p-action':'Әрекет',
     'th-f-date':'Күні', 'th-f-pay':'Төлем', 'th-f-sum':'Айналым', 'th-f-courier':'Курьер', 'th-f-profit':'Пайда',
     status_new:'Жаңа', status_ready:'Дайындалуда', status_delivery:'Жолда', status_done:'Жеткізілді',
-    btn_prepare:'Жинауды бастау', btn_preparing:'⚙️ Қойма жинауда...', btn_ready:'Дайын → Курьер шақыру', btn_pickup_ready:'Дайын → Клиент күтілуде', btn_done:'✓ Жеткізілді', status_preparing:'Жиналуда',
+    btn_prepare:'Жинауды бастау', btn_ready:'Дайын → Курьер шақыру', btn_pickup_ready:'Дайын → Клиент күтілуде', btn_done:'✓ Жеткізілді',
     delivery_courier:'🛵 Курьер', delivery_pickup:'🏃 Өзі алады',
     pay_kaspi:'📱 Kaspi QR', pay_halyk:'📱 Halyk QR', pay_cash:'💵 Қолма-қол',
     item_pcs:'дана',
@@ -599,7 +599,6 @@ function statusBadge(s) {
   const d = T[lang];
   const cfg = {
     new:      { cls:'badge-new',      icon:'🔔', label: d.status_new },
-    preparing:{ cls:'badge-ready',    icon:'⚙️', label: d.status_preparing },
     ready:    { cls:'badge-ready',    icon:'⏳', label: d.status_ready },
     delivery: { cls:'badge-delivery', icon:'🛵', label: d.status_delivery },
     done:     { cls:'badge-done',     icon:'✓',  label: d.status_done },
@@ -643,8 +642,6 @@ function renderOrders() {
     let actionBtn = '';
     if (o.status === 'new') {
       actionBtn = `<button class="btn btn-dark" onclick="prepareOrder('${o.id}')">${d.btn_prepare}</button>`;
-    } else if (o.status === 'preparing') {
-      actionBtn = `<button class="btn btn-ghost" disabled>${d.btn_preparing}</button>`;
     } else if (o.status === 'ready' && !isCash && !isPickup) {
       actionBtn = `<button class="btn btn-orange" onclick="openCourierModal('${o.id}')">${d.btn_ready}</button>`;
     } else if (o.status === 'ready' && (isCash || isPickup)) {
@@ -692,14 +689,19 @@ function renderOrders() {
 async function prepareOrder(id) {
   const o = orders.find(x=>x.id===id);
   if(!o) return;
-  // Заказ одобрен → отправляем на склад для сборки
-  await updateOrderStatus(id, 'preparing');
-  // Локально обновим статус сразу (рендер обновится)
-  o.status = 'preparing';
-  renderOrders();
-  alert(lang==='ru'
-    ? 'Заказ #'+id+' отправлен на склад для сборки!'
-    : '#'+id+' тапсырысы қоймаға жіберілді!');
+  
+  // Büyük sipariş → depoya gönder
+  const itemCount = o.items ? o.items.reduce((s,i)=>s+i.qty,0) : 1;
+  const toWarehouse = itemCount > 3; // 3'ten fazla kalem varsa depoya
+  
+  const newStatus = toWarehouse ? 'preparing' : 'preparing';
+  await updateOrderStatus(id, newStatus);
+  
+  if(toWarehouse) {
+    alert(lang==='ru' 
+      ? 'Заказ #'+id+' отправлен на склад для сборки!'
+      : '#'+id+' тапсырысы қоймаға жіберілді!');
+  }
 }
 
 async function markPickupReady(id) {
