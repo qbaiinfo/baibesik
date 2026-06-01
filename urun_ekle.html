@@ -355,7 +355,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
         📌 JPG, PNG, WebP · Ең көбі 5MB · Бірінші фото — каталогтағы негізгі
       </div>
       <div style="margin-top:8px;font-size:12px;color:var(--blue);font-weight:700;display:none" id="img-uploading">
-        ⏳ Жүктелуде...
+        ⏳ Загрузка в Supabase Storage → product-images...
       </div>
     </div>
   </div>
@@ -748,9 +748,17 @@ async function handleUpload(idx, input) {
     if(!error) {
       const {data:url} = sb.storage.from('product-images').getPublicUrl(path);
       uploadedImages[idx] = url.publicUrl;
+      // Show URL to user
+      console.log('✅ Image uploaded:', url.publicUrl);
+      const hint = document.getElementById('img-hint');
+      if(hint) hint.textContent = '✅ Resim yüklendi: Supabase Storage / product-images';
+    } else {
+      console.error('Upload error:', error);
     }
   } catch(e) {
     console.log('Upload error:', e.message);
+    const hint = document.getElementById('img-hint');
+    if(hint) hint.textContent = '⚠️ Upload hatası: ' + e.message;
   }
   document.getElementById('img-uploading').style.display='none';
 }

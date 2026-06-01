@@ -657,26 +657,33 @@ function renderOrders() {
 }
 
 // ─── ORDER ACTIONS ───────────────────────────────────────
-function prepareOrder(id) {
+async function prepareOrder(id) {
   const o = orders.find(x=>x.id===id);
-  if(o) { o.status = 'ready'; renderOrders(); }
-}
-
-function markPickupReady(id) {
-  const d = T[lang];
-  const o = orders.find(x=>x.id===id);
-  if(o) {
-    o.status = 'done';
-    renderOrders();
-    alert(`✅ ${o.client} ${lang==='ru'?'— заберёт товар из магазина. Заказ завершён.':'— тауарды дүкеннен алып кетеді. Тапсырыс аяқталды.'}`);
+  if(!o) return;
+  
+  // Büyük sipariş → depoya gönder
+  const itemCount = o.items ? o.items.reduce((s,i)=>s+i.qty,0) : 1;
+  const toWarehouse = itemCount > 3; // 3'ten fazla kalem varsa depoya
+  
+  const newStatus = toWarehouse ? 'preparing' : 'preparing';
+  await updateOrderStatus(id, newStatus);
+  
+  if(toWarehouse) {
+    alert(lang==='ru' 
+      ? 'Заказ #'+id+' отправлен на склад для сборки!'
+      : '#'+id+' тапсырысы қоймаға жіберілді!');
   }
 }
 
-function markDone(id) {
-  const o = orders.find(x=>x.id===id);
-  if(o) { o.status = 'done'; renderOrders(); }
+async function markPickupReady(id) {
+  await updateOrderStatus(id, 'ready');
+  alert(lang==='ru'?'Товар готов! Клиент может забрать.':'Тауар дайын! Клиент ала алады.');
+  closeModal();
 }
-
+async function markDone(id) {
+  await updateOrderStatus(id, 'done');
+  closeModal();
+}
 // ─── COURIER MODAL ───────────────────────────────────────
 function openCourierModal(id) {
   const o = orders.find(x=>x.id===id);
