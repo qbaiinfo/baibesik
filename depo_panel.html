@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Baibesik.kz — Деpo Paneli</title>
+<title>Baibesik.kz — Склад / Қойма</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -285,11 +285,11 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
 
 <script>
 // ─── DATA ──────────────────────────────────────────────────────────────────
-// Siparişler Supabase'den yükleniyor
-const activeOrders = orders; // alias
-const orders = [];      // Aktif siparişler (new, preparing)
-const doneOrders = [];  // Tamamlanan siparişler
-let doneOrders_ = [];   // DB'den gelen done siparişler
+// Заказы загружаются из Supabase
+const orders = [];      // Активные заказы (new, preparing)
+const activeOrders = orders; // alias — тот же массив
+const doneOrders = [];  // Собранные заказы
+let doneOrders_ = [];   // Завершённые заказы из БД
 
 // ─── STATE ────────────────────────────────────────────────────────────────
 let lang = 'ru';
@@ -487,12 +487,43 @@ function toggleItem(orderId, itemId) {
   renderOrders();
 }
 
-function startPicking(orderId) {
+async function startPicking(orderId) {
   const o = orders.find(x=>x.id===orderId);
-  if(o) { o.status = 'picking'; toast(d().toast_started); renderOrders(); }
+  if(!o) return;
+  o.status = 'picking';
+  toast(d().toast_started);
+  renderOrders();
+  // Supabase: статус → preparing, уведомить клиента
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    await sb.from('orders').update({status:'preparing'}).eq('order_number', orderId);
+    // Найти клиента и магазин для уведомления
+    const {data:ord} = await sb.from('orders')
+      .select('customer_id, id, store_id').eq('order_number', orderId).single();
+    if(ord) {
+      await sb.from('notifications').insert({
+        user_id: ord.customer_id, type:'order', order_id: ord.id,
+        title_ru: `Заказ ${orderId}: склад начал сборку`,
+        title_kk: `${orderId}: қойма жинауды бастады`,
+        body_ru: 'Ваш заказ собирается на складе.',
+        body_kk: 'Тапсырысыңыз қоймада жиналуда.',
+      });
+      // Лог в admin_logs
+      if(session) {
+        await sb.from('admin_logs').insert({
+          user_id: session.user.id, store_id: ord.store_id,
+          action_type: 'order_picking',
+          description: (lang==='ru'?'Склад начал сборку заказа ':'Қойма жинай бастады ') + orderId,
+          meta: JSON.stringify({order_number: orderId})
+        });
+      }
+    }
+  } catch(e) { console.log('startPicking:', e.message); }
 }
 
-function markReady(orderId) {
+async function markReady(orderId) {
   const o = orders.find(x=>x.id===orderId);
   if(!o || !allChecked(o)) return;
   o.status = 'ready_sent';
@@ -500,6 +531,44 @@ function markReady(orderId) {
   toast(d().toast_notify, 3000);
   renderOrders();
   renderDone();
+  // Supabase: статус → ready, уведомить клиента и менеджера
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    await sb.from('orders').update({status:'ready'}).eq('order_number', orderId);
+    const {data:ord} = await sb.from('orders')
+      .select('customer_id, id, store_id').eq('order_number', orderId).single();
+    if(ord) {
+      // Уведомление КЛИЕНТУ — "заказ собран"
+      await sb.from('notifications').insert({
+        user_id: ord.customer_id, type:'order', order_id: ord.id,
+        title_ru: `Заказ ${orderId} собран! ✅`,
+        title_kk: `${orderId} тапсырысы жиналды! ✅`,
+        body_ru: 'Ваш заказ собран и готов к отправке.',
+        body_kk: 'Тапсырысыңыз жиналды, жөнелтуге дайын.',
+      });
+      // Уведомление МЕНЕДЖЕРАМ магазина — "вызвать курьера"
+      const {data:managers} = await sb.from('store_members')
+        .select('user_id').eq('store_id', ord.store_id).in('role',['manager','owner']);
+      if(managers && managers.length) {
+        await sb.from('notifications').insert(managers.map(m=>({
+          user_id: m.user_id, type:'order', order_id: ord.id,
+          title_ru: `Заказ ${orderId} собран — вызовите курьера`,
+          title_kk: `${orderId} жиналды — курьер шақырыңыз`,
+        })));
+      }
+      // Лог
+      if(session) {
+        await sb.from('admin_logs').insert({
+          user_id: session.user.id, store_id: ord.store_id,
+          action_type: 'order_ready',
+          description: (lang==='ru'?'Заказ собран: ':'Тапсырыс жиналды: ') + orderId,
+          meta: JSON.stringify({order_number: orderId, items: o.items.length})
+        });
+      }
+    }
+  } catch(e) { console.log('markReady:', e.message); }
 }
 
 // ─── PRINT ────────────────────────────────────────────────────────────────
@@ -678,19 +747,21 @@ async function loadRealDepoOrders() {
       activeOrders.push({
         id: o.order_number,
         db_id: o.id,
-        client: o.users?.full_name || o.recipient_name || 'Müşteri',
+        client: o.users?.full_name || o.recipient_name || (lang==='ru'?'Клиент':'Клиент'),
         phone: o.users?.phone || o.recipient_phone || '',
         address: o.delivery_address || '',
         status: o.status,
         pay: o.payment_method || 'kaspi',
         delivery: o.delivery_type || 'courier',
-        items: (o.order_items||[]).map(i=>({
+        items: (o.order_items||[]).map((i,idx)=>({
+          id: idx + 1,
           name_ru: i.product_name,
           name_kk: i.product_name,
-          shelf: 'A-01',
+          raf: i.shelf_code || i.raf || '—',
+          color: i.color || (lang==='ru'?'—':'—'),
+          size: i.size || '—',
           qty: i.quantity,
-          unit: lang==='ru'?'шт':'дана',
-          done: false,
+          checked: false,
         }))
       });
     });
@@ -706,7 +777,7 @@ async function loadRealDepoOrders() {
     if(doneOrders && doneOrders.length) {
       doneOrders_ = doneOrders.map(o=>({
         id: o.order_number,
-        client: o.users?.full_name || o.recipient_name || 'Müşteri',
+        client: o.users?.full_name || o.recipient_name || (lang==='ru'?'Клиент':'Клиент'),
         date: new Date(o.created_at).toLocaleDateString('ru-RU'),
         items: 1,
       }));
@@ -756,6 +827,8 @@ async function markItemDone(orderId, itemIdx) {
 window.markItemDone = markItemDone;
 
 loadRealDepoOrders();
+// Авто-обновление каждые 20 сек — новые заказы от менеджера появятся автоматически
+setInterval(loadRealDepoOrders, 20000);
 </script>
 </body>
 </html>

@@ -840,12 +840,17 @@ async function loadMyOrders() {
       new:'🔔', preparing:'⚙️', ready:'✅', delivery:'🛵', done:'🎉', cancelled:'❌'
     };
     const statusRu = {
-      new:'Новый', preparing:'Собирается', ready:'Готов к выдаче',
+      new:'Новый', preparing:'Собирается на складе', ready:'Собран ✅',
       delivery:'В доставке', done:'Доставлен', cancelled:'Отменён'
     };
     const statusKk = {
-      new:'Жаңа', preparing:'Жиналуда', ready:'Алуға дайын',
+      new:'Жаңа', preparing:'Қоймада жиналуда', ready:'Жиналды ✅',
       delivery:'Жолда', done:'Жеткізілді', cancelled:'Болдырылмады'
+    };
+    // Цвет статуса
+    const statusColor = {
+      new:'#f97316', preparing:'#f59e0b', ready:'#10b981',
+      delivery:'#3b82f6', done:'#10b981', cancelled:'#ef4444'
     };
 
     container.innerHTML = orders.map(o => {
@@ -857,7 +862,7 @@ async function loadMyOrders() {
       return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange)">#${o.order_number}</div>
-          <div style="font-size:12px;font-weight:800;background:var(--light);padding:4px 10px;border-radius:20px">${icon} ${status}</div>
+          <div style="font-size:12px;font-weight:800;background:${(statusColor[o.status]||'#64748b')}1a;color:${statusColor[o.status]||'#64748b'};padding:4px 10px;border-radius:20px">${icon} ${status}</div>
         </div>
         <div style="font-size:12px;color:var(--gray);margin-bottom:6px">${date} · ${o.payment_method?.toUpperCase()||'QR'}</div>
         ${items.slice(0,2).map(i=>`<div style="font-size:13px;font-weight:600;margin-bottom:3px">• ${i.product_name} ×${i.quantity}</div>`).join('')}
@@ -871,6 +876,8 @@ async function loadMyOrders() {
 }
 
 loadMyOrders();
+// Авто-обновление каждые 30 сек — чтобы клиент видел когда заказ собран/отправлен
+setInterval(loadMyOrders, 30000);
 </script>
 </body>
 </html>
