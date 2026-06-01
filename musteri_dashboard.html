@@ -753,9 +753,11 @@ async function loadCurrentUser() {
       const role = user.role || 'customer';
 
       // Rol kontrolü - sadece customer ve wholesale
-      if(['manager','warehouse','store_owner','super_admin'].includes(role)) {
-        window.location.href = user.role === 'store_owner' ? 'store_owner.html' : 'vendor.html';
-        return;
+      // NOT: redirect yapmıyoruz - herkes kendi siparişlerini görebilmeli
+      // Manager da sipariş vermiş olabilir
+      if(role === 'super_admin') {
+        // Admin kendi siparişlerini görmek istiyorsa burada kalabilir
+        // Ama admin paneline de link göster
       }
 
       // İsim güncelle

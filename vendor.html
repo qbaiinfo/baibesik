@@ -453,13 +453,7 @@ const orders = []; // Supabase'den yükleniyor
 
 const historyOrders = [];
 
-const myProducts = [
-  { icon:'🔩', name_ru:'Петля Blum Clip Top 110°', name_kk:'Blum Clip Top 110°', price:1450, wholesale:1100, stock:142, active:true },
-  { icon:'📐', name_ru:'Направляющие Boyard 450мм', name_kk:'Boyard 450мм', price:3200, wholesale:2500, stock:34, active:true },
-  { icon:'🖐️', name_ru:'Ручка-профиль Gola 4м', name_kk:'Gola 4м тұтқа', price:8500, wholesale:6500, stock:8, active:true },
-  { icon:'🔧', name_ru:'Конфирмат 7x50 (100шт)', name_kk:'Конфирмат 7x50', price:450, wholesale:320, stock:580, active:true },
-  { icon:'📦', name_ru:'Ящик Legrabox Pure 500мм', name_kk:'Legrabox Pure 500мм', price:9800, wholesale:7800, stock:12, active:false },
-];
+const myProducts = []; // Supabase'den yükleniyor
 
 const financeData = [
   { date:'27.05.2026', id:'BBS-9942', pay:'kaspi', revenue:8400, courier:900, profit:2100 },
@@ -803,6 +797,10 @@ function renderHistory() {
 
 // ─── RENDER PRODUCTS ─────────────────────────────────────
 function renderProducts() {
+  if(!myProducts.length) {
+    document.getElementById('products-body').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--gray)">' + (lang==='ru'?'Нет товаров. Нажмите «Добавить».':'Тауар жоқ. «Қосу» батырмасын басыңыз.') + '</td></tr>';
+    return;
+  }
   document.getElementById('products-body').innerHTML = myProducts.map(p => `
     <tr>
       <td><span style="font-size:16px;margin-right:8px">${p.icon}</span><span style="font-weight:700">${lang==='ru'?p.name_ru:p.name_kk}</span></td>
@@ -1075,8 +1073,40 @@ async function loadRealOrders() {
     if(s4)s4.textContent=todayTotal.toLocaleString('ru');
 
     console.log('✅ '+realOrders.length+' gerçek sipariş yüklendi');
+
+    // Ayrıca ürünleri de yükle
+    loadStoreProducts(sb, storeId);
+    
   } catch(e) {
     console.log('Demo siparişler kullanılıyor:', e.message);
+  }
+}
+
+async function loadStoreProducts(sbClient, storeId) {
+  try {
+    const {data:prods} = await sbClient.from('products')
+      .select('*')
+      .eq('store_id', storeId)
+      .eq('is_active', true)
+      .order('created_at', {ascending:false});
+    
+    if(prods && prods.length) {
+      myProducts.length = 0;
+      prods.forEach(p => myProducts.push({
+        id: p.id,
+        icon: '📦',
+        name_ru: p.name_ru,
+        name_kk: p.name_kk || p.name_ru,
+        price: parseFloat(p.price_retail),
+        wholesale: parseFloat(p.price_wholesale || p.price_retail * 0.8),
+        stock: p.stock_qty || 0,
+        shelf: p.shelf_code || '—',
+        active: p.is_active,
+      }));
+      renderProducts();
+    }
+  } catch(e) {
+    console.log('Products load error:', e.message);
   }
 }
 

@@ -390,7 +390,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
       <div class="modal-track" id="modal-track"></div>
       <div class="modal-sub" id="modal-sub">Ваш заказ принят. Менеджер магазина скоро свяжется с вами.</div>
       <div class="modal-btns">
-        <a href="musteri_dashboard.html" class="modal-btn mb-primary" id="modal-btn1">📦 Отследить</a>
+        <button class="modal-btn mb-primary" id="modal-btn1" onclick="goToOrders()">📦 Отследить</button>
         <a href="catalog.html" class="modal-btn mb-ghost" id="modal-btn2">Продолжить</a>
       </div>
     </div>
@@ -881,6 +881,11 @@ async function placeOrder(){
 }
 
 // ── INIT ────────────────────────────────────────────────────────────────────
+
+function goToOrders(){
+  // Always go to musteri_dashboard for order tracking
+  window.location.href = 'musteri_dashboard.html';
+}
 window.setLang=setLang;
 window.selectCity=selectCity;
 window.selectDelivery=selectDelivery;
@@ -891,6 +896,7 @@ window.pickCity=pickCity;
 window.changeQty=changeQty;
 window.removeItem=removeItem;
 window.goStep=goStep;
+window.goToOrders=goToOrders;
 window.placeOrder=placeOrder;
 
 // Kullanıcı giriş yapmamışsa login'e yönlendir
