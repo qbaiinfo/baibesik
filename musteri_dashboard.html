@@ -190,8 +190,8 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
       <div class="hc-name" id="h-name">Ерканат Жұмабай</div>
     </div>
     <div class="hr">
-      <button class="lang-btn active" onclick="setLang('kk')">ҚАЗ</button>
-      <button class="lang-btn" onclick="setLang('ru')">РУС</button>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">ҚАЗ</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">РУС</button>
       <button class="notif-btn" onclick="showTab('notif')">🔔<span class="ndot"></span></button>
       <a href="catalog.html" class="btn-catalog" id="btn-cat">← Каталог</a>
     </div>
@@ -533,7 +533,7 @@ const T = {
 // ─── LANG ─────────────────────────────────────────────────────────────────
 function setLang(l){
   lang=l;
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
   const d=T[l];
   const ids=['h-label','btn-cat','tl-ov','tl-ord','tl-hist','tl-fav','tl-notif','tl-prof',
     'p-badge','ps1','ps2','ps3','sc1-lbl','sc2-lbl','sc3-lbl','active-title','all-orders-btn',

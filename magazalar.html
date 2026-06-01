@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Магазины</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;
+  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;
+  --border:#e2e8f0;--light:#f8fafc;
+  --green:#10b981;--red:#ef4444;--blue:#3b82f6;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+
+/* HEADER */
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:1100px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.search-bar{flex:1;display:flex;background:#fff;border-radius:8px;overflow:hidden;border:2px solid transparent;transition:border-color .2s;max-width:400px}
+.search-bar:focus-within{border-color:var(--orange)}
+.search-bar input{flex:1;padding:8px 12px;border:none;outline:none;font-size:13px;font-family:'Noto Sans',sans-serif}
+.search-bar button{background:var(--orange);color:#fff;border:none;padding:8px 14px;cursor:pointer}
+.lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Noto Sans',sans-serif}
+.lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.btn-back{color:#94a3b8;text-decoration:none;font-size:12px;font-weight:600;padding:6px 12px;border:1px solid rgba(255,255,255,.1);border-radius:6px}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--dark) 0%,#1a0800 100%);padding:40px 20px;text-align:center}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:40px;color:#fff;letter-spacing:2px;margin-bottom:8px}
+.hero-title span{color:var(--orange)}
+.hero-sub{font-size:14px;color:#94a3b8;max-width:500px;margin:0 auto}
+
+/* FILTERS */
+.filters{background:#fff;border-bottom:1px solid var(--border);padding:12px 20px}
+.filters-inner{max-width:1100px;margin:0 auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.filter-chip{border:1.5px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;background:#fff;color:var(--gray);transition:all .15s}
+.filter-chip:hover{border-color:var(--orange);color:var(--orange)}
+.filter-chip.active{background:var(--orange);border-color:var(--orange);color:#fff}
+.result-count{margin-left:auto;font-size:12px;color:var(--gray);font-weight:700}
+
+/* CONTENT */
+.content{max-width:1100px;margin:0 auto;padding:24px 20px}
+
+/* STORE GRID */
+.store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+
+/* STORE CARD */
+.store-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s;cursor:pointer}
+.store-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.1);transform:translateY(-3px);border-color:#cbd5e1}
+.sc-banner{height:100px;display:flex;align-items:center;justify-content:center;font-size:48px;position:relative}
+.sc-status{position:absolute;top:10px;right:10px;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px}
+.st-open{background:rgba(16,185,129,.15);color:var(--green)}
+.st-closed{background:rgba(239,68,68,.1);color:var(--red)}
+.sc-body{padding:14px 16px}
+.sc-name{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--dark);letter-spacing:1px;margin-bottom:4px}
+.sc-addr{font-size:12px;color:var(--gray);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.sc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.sc-tag{background:var(--light);border:1px solid var(--border);border-radius:20px;padding:3px 9px;font-size:10px;font-weight:700;color:var(--gray)}
+.sc-tag.orange{background:var(--orange-light);border-color:rgba(249,115,22,.2);color:var(--orange-dark)}
+.sc-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--light);border-top:1px solid var(--border)}
+.sc-rating{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:800;color:var(--dark)}
+.sc-orders{font-size:11px;color:var(--gray);font-weight:700}
+.sc-pay{display:flex;gap:4px}
+.pay-badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px}
+.pb-kaspi{background:rgba(239,68,68,.1);color:var(--red)}
+.pb-halyk{background:rgba(16,185,129,.1);color:var(--green)}
+.btn-visit{background:var(--orange);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s}
+.btn-visit:hover{background:var(--orange-dark)}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px;color:var(--gray);grid-column:1/-1}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-text{font-size:15px;font-weight:600;margin-bottom:16px}
+
+/* JOIN BANNER */
+.join-banner{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%);border-radius:var(--radius);padding:28px;display:flex;align-items:center;gap:20px;margin-top:28px}
+.jb-icon{font-size:40px;flex-shrink:0}
+.jb-info{flex:1}
+.jb-title{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px;margin-bottom:4px}
+.jb-sub{font-size:13px;color:#94a3b8}
+.btn-join{background:var(--orange);color:#fff;border:none;padding:11px 20px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Noto Sans',sans-serif;text-decoration:none;white-space:nowrap;display:inline-block}
+
+@media(max-width:600px){
+  .store-grid{grid-template-columns:1fr}
+  .hi{flex-wrap:wrap}
+  .search-bar{order:3;width:100%;max-width:100%}
+  .join-banner{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hi">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="search-bar">
+      <input type="text" id="s-inp" placeholder="Поиск магазинов..." oninput="doFilter()">
+      <button onclick="doFilter()">🔍</button>
+    </div>
+    <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+    <button class="lang-btn" onclick="setLang('kk')">KK</button>
+    <a href="index.html" class="btn-back" id="btn-back">← Главная</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-title" id="hero-title">МАГАЗИНЫ <span>БАЙБЕСИК</span></div>
+  <div class="hero-sub" id="hero-sub">Все магазины мебельной фурнитуры и хозтоваров микрорайона Байбесик в одном месте</div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters">
+  <div class="filters-inner">
+    <button class="filter-chip active" onclick="setFilter('all',this)" id="f-all">🏪 Все</button>
+    <button class="filter-chip" onclick="setFilter('open',this)" id="f-open">🟢 Открыты</button>
+    <button class="filter-chip" onclick="setFilter('delivery',this)" id="f-delivery">🛵 Доставка</button>
+    <button class="filter-chip" onclick="setFilter('wholesale',this)" id="f-wholesale">📦 Оптом</button>
+    <button class="filter-chip" onclick="setFilter('kaspi',this)" id="f-kaspi">🔴 Kaspi</button>
+    <button class="filter-chip" onclick="setFilter('halyk',this)" id="f-halyk">🟢 Halyk</button>
+    <div class="result-count" id="result-count">0 магазинов</div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="store-grid" id="store-grid"></div>
+
+  <!-- JOIN BANNER -->
+  <div class="join-banner">
+    <div class="jb-icon">🏪</div>
+    <div class="jb-info">
+      <div class="jb-title" id="jb-title">У ВАС ЕСТЬ МАГАЗИН В БАЙБЕСИКЕ?</div>
+      <div class="jb-sub" id="jb-sub">Подключитесь к платформе — 3 месяца бесплатно. Получайте заказы онлайн!</div>
+    </div>
+    <a href="register.html" class="btn-join" id="jb-btn">Подключиться →</a>
+  </div>
+</div>
+
+<script>
+// ── МАГАЗИНЫ ───────────────────────────────────────────────────────────────
+const STORES = [
+  {
+    id:'alik', icon:'🔩', bg:'#1a0a00',
+    name_ru:'Alik Hırdavat', name_kk:'Alik Hırdavat',
+    addr_ru:'ул. 2-я, уч. 14', addr_kk:'2-ші көше, 14 учаске',
+    tags_ru:['Петли','Направляющие','Крепёж','BMT'], tags_kk:['Петлялар','Бағыттаушылар','Бекіту','BMT'],
+    rating:4.9, orders:120, isOpen:true,
+    kaspi:true, halyk:false, delivery:true, wholesale:true,
+  },
+  {
+    id:'serik', icon:'🪛', bg:'#001a0a',
+    name_ru:'Serikcan Market', name_kk:'Serikcan Market',
+    addr_ru:'ул. Акжол, д. 7', addr_kk:'Ақжол көшесі, 7',
+    tags_ru:['Ручки','Ножки','Газлифты','Гола'], tags_kk:['Тұтқалар','Аяқтар','Газлифттер','Gola'],
+    rating:4.7, orders:85, isOpen:true,
+    kaspi:true, halyk:true, delivery:true, wholesale:true,
+  },
+  {
+    id:'nurzhan', icon:'💡', bg:'#0a0a1a',
+    name_ru:'Нұржан Светотехника', name_kk:'Нұржан Жарықтехника',
+    addr_ru:'ул. Центральная, д. 3', addr_kk:'Орталық көше, 3',
+    tags_ru:['LED подсветка','Датчики','Блоки питания'], tags_kk:['LED жарық','Сенсорлар','Қоректендіргіш'],
+    rating:4.8, orders:210, isOpen:true,
+    kaspi:true, halyk:true, delivery:true, wholesale:false,
+  },
+  {
+    id:'bauyr', icon:'🪞', bg:'#1a1a00',
+    name_ru:'Бауыржан Декор', name_kk:'Бауыржан Декор',
+    addr_ru:'ул. Байбесик, д. 12', addr_kk:'Байбесік көшесі, 12',
+    tags_ru:['Стеклодержатели','Декор','Латунь'], tags_kk:['Шыныұстағыш','Декор','Латунь'],
+    rating:4.6, orders:60, isOpen:false,
+    kaspi:true, halyk:false, delivery:false, wholesale:false,
+  },
+  {
+    id:'arman', icon:'🔧', bg:'#001a1a',
+    name_ru:'Арман Инструмент', name_kk:'Арман Құрал-жабдық',
+    addr_ru:'ул. 3-я, уч. 8', addr_kk:'3-ші көше, 8 учаске',
+    tags_ru:['Крепёж','Метизы','Конфирмат','Шурупы'], tags_kk:['Бекіту','Метиздер','Конфирмат'],
+    rating:4.5, orders:40, isOpen:true,
+    kaspi:false, halyk:true, delivery:false, wholesale:true,
+  },
+  {
+    id:'zarina', icon:'🛁', bg:'#1a000a',
+    name_ru:'Зарина Комплект', name_kk:'Зарина Комплект',
+    addr_ru:'ул. Акжол, д. 22', addr_kk:'Ақжол көшесі, 22',
+    tags_ru:['Мойки','Корзины','Сушки','Обувницы'], tags_kk:['Раковиналар','Себеттер','Кептіргіштер'],
+    rating:4.7, orders:95, isOpen:true,
+    kaspi:true, halyk:true, delivery:true, wholesale:false,
+  },
+];
+
+let lang='kk', activeFilter='all';
+
+const T={
+  ru:{
+    'btn-back':'← Главная',
+    'hero-title':'МАГАЗИНЫ БАЙБЕСИК',
+    'hero-sub':'Все магазины мебельной фурнитуры микрорайона Байбесик',
+    'f-all':'🏪 Все','f-open':'🟢 Открыты','f-delivery':'🛵 Доставка',
+    'f-wholesale':'📦 Оптом','f-kaspi':'🔴 Kaspi','f-halyk':'🟢 Halyk',
+    'jb-title':'У ВАС ЕСТЬ МАГАЗИН В БАЙБЕСИКЕ?',
+    'jb-sub':'Подключитесь — 3 месяца бесплатно. Получайте заказы онлайн!',
+    'jb-btn':'Подключиться →',
+    open:'Открыто',closed:'Закрыто',
+    delivery:'🛵 Доставка',pickup:'🏃 Самовывоз',
+    wholesale:'📦 Оптом',
+    visit:'Перейти →',
+    result:' магазинов',
+    empty:'Магазины не найдены',
+    s_ph:'Поиск магазинов...',
+  },
+  kk:{
+    'btn-back':'← Басты бет',
+    'hero-title':'БАЙБЕСІК ДҮКЕНДЕРІ',
+    'hero-sub':'Байбесік шағынауданының барлық жиһаз фурнитура дүкендері',
+    'f-all':'🏪 Барлығы','f-open':'🟢 Ашық','f-delivery':'🛵 Жеткізу',
+    'f-wholesale':'📦 Көтерме','f-kaspi':'🔴 Kaspi','f-halyk':'🟢 Halyk',
+    'jb-title':'БАЙБЕСІКТЕ ДҮКЕНІҢІЗ БАР МА?',
+    'jb-sub':'Қосылыңыз — 3 ай тегін. Онлайн тапсырыс алыңыз!',
+    'jb-btn':'Қосылу →',
+    open:'Ашық',closed:'Жабық',
+    delivery:'🛵 Жеткізу',pickup:'🏃 Өзі алу',
+    wholesale:'📦 Көтерме',
+    visit:'Өту →',
+    result:' дүкен',
+    empty:'Дүкен табылмады',
+    s_ph:'Дүкен іздеу...',
+  }
+};
+
+function d(){return T[lang];}
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
+  const t=T[l];
+  ['btn-back','hero-sub','f-all','f-open','f-delivery','f-wholesale','f-kaspi','f-halyk','jb-title','jb-sub','jb-btn'].forEach(k=>{
+    const el=document.getElementById(k);if(el)el.textContent=t[k]||'';
+  });
+  document.getElementById('hero-title').innerHTML = l==='ru'
+    ? 'МАГАЗИНЫ <span style="color:var(--orange)">БАЙБЕСИК</span>'
+    : 'БАЙБЕСІК <span style="color:var(--orange)">ДҮКЕНДЕРІ</span>';
+  document.getElementById('s-inp').placeholder=t.s_ph;
+  doFilter();
+}
+
+function setFilter(f,el){
+  activeFilter=f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  doFilter();
+}
+
+function doFilter(){
+  const q=(document.getElementById('s-inp').value||'').toLowerCase();
+  let list=STORES.filter(s=>{
+    const name=lang==='ru'?s.name_ru:s.name_kk;
+    const addr=lang==='ru'?s.addr_ru:s.addr_kk;
+    if(q && !name.toLowerCase().includes(q) && !addr.toLowerCase().includes(q)) return false;
+    if(activeFilter==='open' && !s.isOpen) return false;
+    if(activeFilter==='delivery' && !s.delivery) return false;
+    if(activeFilter==='wholesale' && !s.wholesale) return false;
+    if(activeFilter==='kaspi' && !s.kaspi) return false;
+    if(activeFilter==='halyk' && !s.halyk) return false;
+    return true;
+  });
+  renderStores(list);
+  document.getElementById('result-count').textContent=list.length+(d().result);
+}
+
+function renderStores(list){
+  const t=d();
+  const el=document.getElementById('store-grid');
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">🏪</div><div class="empty-text">${t.empty}</div></div>`;
+    return;
+  }
+  el.innerHTML=list.map(s=>{
+    const name=lang==='ru'?s.name_ru:s.name_kk;
+    const addr=lang==='ru'?s.addr_ru:s.addr_kk;
+    const tags=lang==='ru'?s.tags_ru:s.tags_kk;
+    return `
+      <div class="store-card" onclick="window.location.href='catalog.html?store=${s.id}'">
+        <div class="sc-banner" style="background:${s.bg}">
+          ${s.icon}
+          <div class="sc-status ${s.isOpen?'st-open':'st-closed'}">
+            ${s.isOpen?t.open:t.closed}
+          </div>
+        </div>
+        <div class="sc-body">
+          <div class="sc-name">${name}</div>
+          <div class="sc-addr">📍 ${addr}</div>
+          <div class="sc-tags">
+            ${tags.slice(0,3).map(tg=>`<span class="sc-tag">${tg}</span>`).join('')}
+            ${s.delivery?`<span class="sc-tag orange">${t.delivery}</span>`:''}
+            ${s.wholesale?`<span class="sc-tag orange">${t.wholesale}</span>`:''}
+          </div>
+        </div>
+        <div class="sc-footer">
+          <div>
+            <div class="sc-rating">⭐ ${s.rating} <span style="color:var(--gray);font-weight:400;font-size:11px">(${s.orders})</span></div>
+            <div class="sc-pay" style="margin-top:4px">
+              ${s.kaspi?'<span class="pay-badge pb-kaspi">Kaspi</span>':''}
+              ${s.halyk?'<span class="pay-badge pb-halyk">Halyk</span>':''}
+            </div>
+          </div>
+          <button class="btn-visit" onclick="event.stopPropagation();window.location.href='catalog.html?store=${s.id}'">${t.visit}</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+window.setLang=setLang;
+window.setFilter=setFilter;
+window.doFilter=doFilter;
+
+// ─── SUPABASE STORES ──────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+async function loadStoresFromDB() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:stores} = await sb.from('stores')
+      .select('*').eq('is_active', true).order('name');
+    if(!stores || !stores.length) return;
+    // DB mağazalarını STORES formatına çevir
+    const dbStores = stores.map((s,i) => ({
+      id: s.id,
+      name_ru: s.name, name_kk: s.name,
+      addr_ru: s.address || 'мкр. Байбесик',
+      addr_kk: s.address || 'Байбесік шаг.',
+      tags_ru: ['Фурнитура'], tags_kk: ['Фурнитура'],
+      rating: 4.8, orders: 0,
+      isOpen: true, delivery: true, wholesale: true,
+      kaspi: !!s.kaspi_merchant_id, halyk: !!s.halyk_merchant_id,
+      bg: 'linear-gradient(135deg,#0f172a,#1e293b)',
+      icon: '<span style="font-size:40px">🏪</span>',
+      is_db: true
+    }));
+    // DB mağazalarını başa ekle
+    STORES.unshift(...dbStores);
+    doFilter();
+  } catch(e) { console.log('Demo mod:', e.message); }
+}
+
+doFilter();
+loadStoresFromDB();
+</script>
+</body>
+</html>

@@ -163,8 +163,8 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
     </div>
     <div class="hr">
       <a href="index.html" class="back-btn" id="back-lnk">← Главная</a>
-      <button class="lang-btn active" onclick="setLang('kk')">ҚАЗ</button>
-      <button class="lang-btn" onclick="setLang('ru')">РУС</button>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">ҚАЗ</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">РУС</button>
       <button class="cart-btn" onclick="window.location.href='checkout_and_orders.html'">🛒<span class="cart-count" id="cc">0</span></button>
     </div>
   </div>
@@ -473,7 +473,7 @@ const PRODS = [
 ];
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
-let lang='ru', activeCat=0, cust='retail', heavyFilter='all';
+let lang='kk', activeCat=0, cust='retail', heavyFilter='all';
 let view='grid', page=1;
 const PER=16;
 let cartN=0;
@@ -510,7 +510,7 @@ kk:{
 // ─── LANG ────────────────────────────────────────────────────────────────────
 function setLang(l){
   lang=l;
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
   const d=T[l];
   ['back-lnk','bc-home','bc-cat','sb-cats','sb-fil','f-type','chip-ret','chip-ws',
    'f-heavy','chip-all','chip-normal','chip-heavy','f-price','btn-apply','b-sub',

@@ -196,8 +196,8 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
     </div>
     <div class="header-right">
       <div class="pulse-dot"></div>
-      <button class="lang-btn active" onclick="setLang('kk')">ҚАЗ</button>
-      <button class="lang-btn" onclick="setLang('ru')">РУС</button>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">ҚАЗ</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">РУС</button>
     </div>
   </div>
 </header>
@@ -597,7 +597,7 @@ function showTab(id, el) {
 // ─── LANG ─────────────────────────────────────────────────────────────────
 function setLang(l) {
   lang = l;
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active', b.textContent.trim().toLowerCase()===l));
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active', b.getAttribute('data-lang')===l));
   const keys = ['h-label','h-name','tl-active','tl-done','s1','s2','s3','s4','print-modal-title','btn-do-print','btn-close-print'];
   keys.forEach(k=>{ const el=document.getElementById(k); if(el) el.textContent=T[l][k]||''; });
   renderOrders();

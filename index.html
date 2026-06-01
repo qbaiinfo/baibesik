@@ -184,8 +184,8 @@ footer { background: var(--dark); color: #94a3b8; padding: 48px 20px 24px; }
       <button onclick="doSearch()">🔍</button>
     </div>
     <div class="header-actions">
-      <button class="lang-btn active" onclick="setLang('kk')">ҚАЗ</button>
-      <button class="lang-btn" onclick="setLang('ru')">РУС</button>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">ҚАЗ</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">РУС</button>
       <button class="cart-btn" onclick="window.location.href='checkout_and_orders.html'">🛒<span class="cart-count" id="cart-count">0</span></button>
       <button class="btn-login" onclick="window.location.href='login.html'" id="btn-login-text">Войти</button>
     </div>
@@ -424,7 +424,7 @@ let cartCount = 0;
 
 function setLang(l) {
   lang = l;
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().toLowerCase() === l));
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === l));
   const d = t[l];
   document.getElementById('search-input').placeholder = d.search_ph;
   document.getElementById('btn-login-text').textContent = d.login;

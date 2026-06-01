@@ -174,8 +174,8 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
     <a href="index.html" class="logo">BAI<span>BESIK</span></a>
     <div class="htitle" id="page-title">ОФОРМЛЕНИЕ ЗАКАЗА</div>
     <div style="display:flex;gap:8px">
-      <button class="lang-btn active" onclick="setLang('kk')">ҚАЗ</button>
-      <button class="lang-btn" onclick="setLang('ru')">РУС</button>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">ҚАЗ</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">РУС</button>
       <a href="catalog.html" class="btn-back" id="btn-back">← Каталог</a>
     </div>
   </div>
@@ -418,7 +418,7 @@ let cart = [
 ];
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let lang='ru', step=1, city='almaty', delivery='courier', cargo='kazpost', pay='kaspi', selCity='';
+let lang='kk', step=1, city='almaty', delivery='courier', cargo='kazpost', pay='kaspi', selCity='';
 
 const CARGO_PRICES = {kazpost:800, sdek:1500, dhl:3500};
 const CARGO_DAYS   = {
@@ -525,7 +525,7 @@ function fmt(n){return Math.round(n).toLocaleString('ru');}
 // ── LANG ────────────────────────────────────────────────────────────────────
 function setLang(l){
   lang=l;
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
   const keys=['page-title','btn-back','sl1','sl2','sl3','sl4','cart-title','city-title',
     'cc-almaty-name','cc-almaty-sub','cc-other-name','cc-other-sub','del-title',
     'dc-c-name','dc-c-sub','dc-p-name','dc-p-sub','cargo-info-text','cargo-heavy-text',

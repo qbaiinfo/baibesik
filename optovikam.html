@@ -127,8 +127,8 @@ footer{background:var(--dark2);padding:24px 20px;text-align:center}
   <div class="hi">
     <a href="index.html" class="logo">BAI<span>BESIK</span></a>
     <div class="lang-btns">
-      <button class="lang-btn active" onclick="setLang('kk')">ҚАЗ</button>
-      <button class="lang-btn" onclick="setLang('ru')">РУС</button>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">ҚАЗ</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">РУС</button>
     </div>
     <a href="index.html" class="btn-back" id="btn-back" style="margin-left:10px">← Главная</a>
   </div>
@@ -383,7 +383,7 @@ const T = {
 
 function setLang(l) {
   lang = l;
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
   const d = T[l];
   Object.keys(d).forEach(k=>{
     if(k.endsWith('-html')) return;
