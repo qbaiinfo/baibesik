@@ -782,6 +782,13 @@ function getCatIcon(catId) {
 renderCats();
 doFilter();
 loadSupabaseProducts(); // Supabase'den ürünleri arka planda yükle
+
+// LocalStorage'dan sepeti yükle
+try {
+  const saved = JSON.parse(localStorage.getItem('baibesik_cart')||'[]');
+  saved.forEach(i=>cartItems.push(i));
+  updateCartUI();
+} catch(e){}
 </script>
 </body>
 </html>
