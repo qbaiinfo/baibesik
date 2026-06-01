@@ -975,12 +975,17 @@ async function loadVendorUser() {
       if(found && found.stores) storeName = found.stores.name;
     }
 
-    // Header güncelle
-    const hname = document.getElementById('h-name');
-    if(hname) hname.textContent = storeName + ' — ' + name;
-
-    const hlabel = document.getElementById('h-label');
-    if(hlabel) hlabel.textContent = lang==='ru' ? 'Панель магазина' : 'Дүкен панелі';
+    // Header güncelle — setInterval ile tekrar dene
+    function updateHeader() {
+      const hname = document.getElementById('h-name');
+      const hlabel = document.getElementById('h-label');
+      if(hname) { hname.textContent = storeName + ' — ' + name; }
+      if(hlabel) { hlabel.textContent = lang==='ru' ? 'Панель магазина' : 'Дүкен панелі'; }
+    }
+    updateHeader();
+    // renderAll() h-name'i ezmemesi için biraz bekle
+    setTimeout(updateHeader, 500);
+    setTimeout(updateHeader, 1500);
 
     // Çıkış butonu ekle
     const hr = document.querySelector('.header-right');
