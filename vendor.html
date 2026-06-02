@@ -885,6 +885,31 @@ function showTab(id, el) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
   if(el) el.classList.add('active');
+  // Товары sekmesine geçince yükle
+  if(id === 'products') loadStoreProductsStandalone();
+}
+
+
+// ─── BAĞIMSIZ ÜRÜN YÜKLEME (store_members'tan store_id alır) ───
+async function loadStoreProductsStandalone() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+    // store_members'tan store_id al
+    const {data:members} = await sb.from('store_members')
+      .select('store_id').eq('user_id', session.user.id);
+    if(!members || !members.length) {
+      // store_members yoksa ilk mağazadan dene
+      const {data:stores} = await sb.from('stores').select('id').limit(1);
+      if(stores && stores.length) {
+        await loadStoreProducts(sb, stores[0].id);
+      }
+      return;
+    }
+    await loadStoreProducts(sb, members[0].store_id);
+  } catch(e) { console.log('loadStoreProductsStandalone:', e.message); }
 }
 
 // ─── RENDER ALL ──────────────────────────────────────────
@@ -902,6 +927,8 @@ document.getElementById('courier-modal').addEventListener('click', function(e) {
 
 // ─── INIT ────────────────────────────────────────────────
 renderAll();
+loadRealOrders();
+loadStoreProductsStandalone();
 
 // ─── SUPABASE — GERÇEK KULLANICI ─────────────────────────
 const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';

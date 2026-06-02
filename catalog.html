@@ -550,8 +550,9 @@ function addCart(id,e){
   // Cart modülü ile ekle (localStorage)
   Cart.add({
     id: p.id,
-    storeId: p.storeId || 'aaaaaaaa-0000-0000-0000-000000000001',
-    storeName: p.store_name || 'TEST Mağaza (Silinebilir)',
+    storeId: p.storeId || p.store_id || null,
+    storeName: p.store_name || p.storeName || '',
+    db_id: p.db_id || null,
     icon: p.icon,
     ru: p.ru,
     kk: p.kk,
@@ -623,6 +624,7 @@ async function loadSupabaseProducts() {
       heavy: p.is_heavy || false,
       image_url: p.image_url || null,
       store_name: p.stores?.name || '',
+      storeId: p.store_id || null,
       store_whatsapp: p.stores?.whatsapp || '',
       store_hours: p.stores?.work_hours || '',
       store_days: p.stores?.work_days || '',
