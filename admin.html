@@ -725,7 +725,7 @@ async function loadAdminData() {
     // ── MAĞAZALAR ──
     const {data:dbStores} = await sb.from('stores')
       .select('*, store_members(role, users(full_name, phone))')
-      .order('created_at', {ascending:false});
+      .order('created_at', {ascending:false}); // is_active filtresi YOK — pending dahil hepsi
 
     if(dbStores && dbStores.length) {
       // Global stores array'i doldur
@@ -744,7 +744,7 @@ async function loadAdminData() {
             const om = (s.store_members||[]).find(m=>m.role==='owner'||m.role==='manager');
             return om?.users?.phone || s.phone || '—';
           })(),
-          status: s.is_active ? 'active' : 'trial',
+          status: s.is_active ? 'active' : (s.status === 'blocked' ? 'expired' : 'trial'),
           trialLeft: 0,
           revenue: 0,
           orders: 0,
@@ -766,7 +766,11 @@ async function loadAdminData() {
 
       // Sidebar badge
       const badge = document.getElementById('ni-stores-badge');
-      if(badge) badge.textContent = dbStores.length;
+      if(badge) {
+        const pending = dbStores.filter(s => !s.is_active).length;
+        badge.textContent = pending > 0 ? pending + ' новых' : dbStores.length;
+        badge.style.background = pending > 0 ? '#ef4444' : '';
+      }
     }
 
     // ── SİPARİŞLER ──
@@ -936,9 +940,9 @@ function renderStores() {
       <td style="color:var(--green);font-weight:800">${s.revenue>0?s.revenue.toLocaleString()+' ₸':'—'}</td>
       <td>${s.orders}</td>
       <td><div style="display:flex;gap:6px">
-        ${s.status==='expired'?`<button class="btn btn-green btn-sm" onclick="approveStore(${s.id})">${d.btn_approve}</button>`:''}
+        ${s.status!=='active'?`<button class="btn btn-green btn-sm" onclick="approveStore('${s.id}')">${d.btn_approve}</button>`:''}
         <button class="btn btn-ghost btn-sm">${d.btn_view}</button>
-        <button class="btn btn-red btn-sm" onclick="blockStore(${s.id})">${d.btn_block}</button>
+        <button class="btn btn-red btn-sm" onclick="blockStore('${s.id}')">${d.btn_block}</button>
       </div></td>
     </tr>`).join('');
 }
@@ -960,7 +964,7 @@ function renderOrders() {
       <td style="color:var(--orange);font-weight:800">#${o.id}</td>
       <td>${o.date}</td>
       <td>${o.shop}</td>
-      <td>${o.client}</td>
+      <td>—</td>
       <td>${o.type==='wholesale'?`<span class="badge badge-wholesale">${d.badge_wholesale}</span>`:`<span class="badge badge-retail">${d.badge_retail}</span>`}</td>
       <td>${payBadge(o.pay)}</td>
       <td style="color:var(--green);font-weight:800">${o.amount.toLocaleString()} ₸</td>
@@ -986,7 +990,7 @@ function renderCustomers() {
       </div></td>
       <td>${c.type==='wholesale'?`<span class="badge badge-wholesale">${d.badge_wholesale}</span>`:`<span class="badge badge-retail">${d.badge_retail}</span>`}</td>
       <td>${c.orders}</td>
-      <td style="color:var(--green);font-weight:800">${c.total.toLocaleString()} ₸</td>
+      <td style="color:var(--green);font-weight:800">${(c.spent||0).toLocaleString()} ₸</td>
       <td style="color:#64748b">${c.date}</td>
     </tr>`).join('');
 }
@@ -994,7 +998,24 @@ function renderCustomers() {
 // ─── FINANCE TABLE ───
 function renderFinance() {
   const d = T[lang];
-  document.getElementById('finance-table-body').innerHTML = financeRows.map(r => `
+  // orders'dan financeRows oluştur
+  const rows = orders.map(o => ({
+    date: o.date,
+    id: o.id,
+    shop: o.shop,
+    pay: o.pay,
+    revenue: o.amount || 0,
+    cost: Math.round((o.amount||0)*0.7),
+    courier: ['kaspi','halyk'].includes(o.pay) ? 500 : 0,
+    profit: Math.round((o.amount||0)*0.3),
+  }));
+  const el = document.getElementById('finance-table-body');
+  if(!el) return;
+  if(!rows.length) {
+    el.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#64748b">'+(lang==='ru'?'Нет данных — оформите первый заказ':'Деректер жоқ')+'</td></tr>';
+    return;
+  }
+  el.innerHTML = rows.map(r => `
     <tr>
       <td>${r.date}</td>
       <td style="color:var(--orange)">#${r.id}</td>
@@ -1005,7 +1026,6 @@ function renderFinance() {
       <td>${r.courier>0?r.courier.toLocaleString()+' ₸':'—'}</td>
       <td style="color:var(--green);font-weight:800">+${r.profit.toLocaleString()} ₸</td>
     </tr>`).join('');
-  document.getElementById('export-btn-label')?.remove();
 }
 
 // ─── SUBSCRIPTIONS ───
@@ -1034,8 +1054,8 @@ function renderSubs() {
       <td>${s.trialLeft>0?`${s.trialLeft} ${d.trial_days}`:s.status==='active'?'∞':'—'}</td>
       <td>${s.subscriptionFee>0?`<span style="color:var(--green)">${s.subscriptionFee.toLocaleString()} ₸</span>`:'<span style="color:#64748b">—</span>'}</td>
       <td><div style="display:flex;gap:6px">
-        ${s.status==='expired'?`<button class="btn btn-green btn-sm" onclick="approveStore(${s.id})">${d.btn_approve}</button>`:''}
-        <button class="btn btn-red btn-sm" onclick="blockStore(${s.id})">${d.btn_block}</button>
+        ${s.status!=='active'?`<button class="btn btn-green btn-sm" onclick="approveStore('${s.id}')">${d.btn_approve}</button>`:''}
+        <button class="btn btn-red btn-sm" onclick="blockStore('${s.id}')">${d.btn_block}</button>
       </div></td>
     </tr>`).join('');
 }
@@ -1057,20 +1077,33 @@ function renderCats() {
 }
 
 // ─── ACTIONS ───
-function approveStore(id) {
-  const s = stores.find(x=>x.id===id);
+async function approveStore(id) {
+  const s = stores.find(x=>x.id==id);
   if(!s) return;
-  s.status='active'; s.subscriptionFee=15000;
-  alert(`✅ ${s.name} ${lang==='ru'?'активирован!':'белсендірілді!'}`);
-  renderAll();
+  try {
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    const {error}=await sb.from('stores').update({is_active:true}).eq('id',id);
+    if(error) throw error;
+    s.status='active';
+    alert(`✅ ${s.name} ${lang==='ru'?'активирован!':'белсендірілді!'}`);
+    renderAll();
+    loadAdminData(); // yenile
+  } catch(e) { alert('Ошибка: '+e.message); }
 }
 
-function blockStore(id) {
-  const s = stores.find(x=>x.id===id);
+async function blockStore(id) {
+  const s = stores.find(x=>x.id==id);
   if(!s) return;
   if(confirm(`${lang==='ru'?'Заблокировать':'Бұғаттау'} ${s.name}?`)) {
-    s.status='expired'; s.subscriptionFee=0;
-    renderAll();
+    try {
+      const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+      const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+      await sb.from('stores').update({is_active:false}).eq('id',id);
+      s.status='expired'; s.subscriptionFee=0;
+      renderAll();
+      loadAdminData();
+    } catch(e) { alert('Ошибка: '+e.message); }
   }
 }
 

@@ -130,6 +130,27 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
       <div class="alert alert-success" id="alert-ok">✅ <span id="alert-ok-msg"></span></div>
 
       <!-- STEP 1: ЛИЧНЫЕ ДАННЫЕ -->
+      <!-- ТИП: müşteri mi dükkan sahibi mi? -->
+      <div id="type-selector" style="margin-bottom:20px">
+        <div style="font-size:12px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;text-align:center" id="lbl-reg-type">Я РЕГИСТРИРУЮСЬ КАК</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div onclick="setRegType('customer',this)" id="type-customer"
+            style="border:2px solid rgba(255,255,255,.15);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.04)">
+            <div style="font-size:28px;margin-bottom:6px">🛒</div>
+            <div style="font-weight:800;font-size:13px;color:white" id="lbl-type-cust">Покупатель</div>
+            <div style="font-size:11px;color:#64748b;margin-top:3px" id="lbl-type-cust-sub">Заказываю товары</div>
+          </div>
+          <div onclick="setRegType('store_owner',this)" id="type-store"
+            style="border:2px solid rgba(255,255,255,.15);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.04)">
+            <div style="font-size:28px;margin-bottom:6px">🏪</div>
+            <div style="font-weight:800;font-size:13px;color:white" id="lbl-type-store">Владелец магазина</div>
+            <div style="font-size:11px;color:#64748b;margin-top:3px" id="lbl-type-store-sub">Подключаю магазин</div>
+          </div>
+        </div>
+        <div id="store-pending-info" style="display:none;margin-top:12px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:10px;padding:12px;font-size:12px;color:#fb923c" id="store-info-txt">
+          📋 После регистрации ваш магазин будет отправлен на проверку. Супер-администратор активирует его в течение 24 часов.
+        </div>
+      </div>
       <div class="step-sec active" id="step-1">
         <div class="step-title" id="st1">ШАГ 1 — ЛИЧНЫЕ ДАННЫЕ</div>
         <div class="fg-row">
@@ -396,7 +417,26 @@ async function doRegister(){
     $('login-row').style.display='none';
     document.querySelector('.staff-link').style.display='none';
     $('suc-screen').classList.add('show');
-    setTimeout(()=>window.location.href='musteri_dashboard.html',2000);
+    // Dükkan sahibiyse pending store oluştur + admin'e yönlendir
+    if(regType === 'store_owner') {
+      try {
+        const fullName = $('inp-name')?.value.trim() || '';
+        const ph = $('inp-ph')?.value.replace(/\D/g,'') || '';
+        await sb.from('users').update({role:'store_owner'}).eq('id', userId);
+        const {data:newStore} = await sb.from('stores').insert({
+          name: fullName + ' (Ожидает активации)',
+          phone: ph ? '+7'+ph : '',
+          address: $('inp-addr') ? $('inp-addr').value.trim() : 'Алматы',
+          is_active: false,
+        }).select().single();
+        if(newStore?.id) {
+          await sb.from('store_members').insert({store_id:newStore.id, user_id:userId, role:'owner'});
+        }
+      } catch(e2) { console.log('pending store:', e2.message); }
+      setTimeout(()=>window.location.href='login.html',2000);
+    } else {
+      setTimeout(()=>window.location.href='musteri_dashboard.html',2000);
+    }
 
   }catch(e){
     showErr(e.message||'Ошибка подключения');
@@ -408,6 +448,22 @@ async function doRegister(){
 $('inp-ph').addEventListener('input',function(){
   this.value=this.value.replace(/\D/g,'').slice(0,11);
 });
+
+// ─── KAYIT TİPİ ───
+let regType = 'customer';
+function setRegType(type, el) {
+  regType = type;
+  document.querySelectorAll('#type-customer,#type-store').forEach(d => {
+    d.style.borderColor = 'rgba(255,255,255,.15)';
+    d.style.background = 'rgba(255,255,255,.04)';
+  });
+  if(el) {
+    el.style.borderColor = type==='store_owner' ? '#f97316' : '#10b981';
+    el.style.background = type==='store_owner' ? 'rgba(249,115,22,.1)' : 'rgba(16,185,129,.1)';
+  }
+  document.getElementById('store-pending-info').style.display = type==='store_owner' ? 'block' : 'none';
+}
+
 </script>
 </body>
 </html>
