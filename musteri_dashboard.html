@@ -255,9 +255,9 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
         <div class="pbadge" id="p-badge">🛒 Розничный покупатель</div>
       </div>
       <div class="pstats">
-        <div class="ps"><span class="ps-num">24</span><span class="ps-lbl" id="ps1">Заказов</span></div>
-        <div class="ps"><span class="ps-num">185K</span><span class="ps-lbl" id="ps2">₸ Итого</span></div>
-        <div class="ps"><span class="ps-num">2</span><span class="ps-lbl" id="ps3">Активных</span></div>
+        <div class="ps"><span class="ps-num" id="ps-total">0</span><span class="ps-lbl" id="ps1">Заказов</span></div>
+        <div class="ps"><span class="ps-num" id="ps-spent">0</span><span class="ps-lbl" id="ps2">₸ Итого</span></div>
+        <div class="ps"><span class="ps-num" id="ps-active">0</span><span class="ps-lbl" id="ps3">Активных</span></div>
       </div>
     </div>
 
@@ -396,15 +396,15 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
             </div>
             <div class="fg">
               <span class="fg-lbl" id="lbl-phone">Телефон</span>
-              <input class="fg-inp" value="" id="inp-phone" placeholder="+7 xxx xxx xxxx">
+              <input class="fg-inp" value="" id="inp-phone" placeholder="+7 xxx xxx xxxx" readonly title="Телефон нельзя изменить" style="background:#f1f5f9;color:#94a3b8;cursor:not-allowed">
             </div>
             <div class="fg">
               <span class="fg-lbl" id="lbl-street">Улица</span>
-              <input class="fg-inp" value="ул. Акжол" id="inp-street">
+              <input class="fg-inp" value="" id="inp-street" placeholder="ул. ...">
             </div>
             <div class="fg">
               <span class="fg-lbl" id="lbl-house">Дом / квартира</span>
-              <input class="fg-inp" value="14, кв. 3" id="inp-house">
+              <input class="fg-inp" value="" id="inp-house" placeholder="дом / кв.">
             </div>
           </div>
           <button class="btn btn-orange" onclick="saveProfile()" id="btn-save">💾 Сохранить</button>
@@ -418,7 +418,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
           <div style="display:flex;flex-direction:column;gap:14px">
             <div>
               <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:5px">
-                <span id="st-total-lbl">Всего заказов</span><span style="color:var(--orange)">24</span>
+                <span id="st-total-lbl">Всего заказов</span><span style="color:var(--orange)" id="st-total-val">0</span>
               </div>
               <div style="background:var(--border);border-radius:10px;height:6px;overflow:hidden">
                 <div style="width:80%;height:100%;background:var(--orange);border-radius:10px"></div>
@@ -426,7 +426,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:5px">
-                <span id="st-done-lbl">Доставлено</span><span style="color:var(--green)">22</span>
+                <span id="st-done-lbl">Доставлено</span><span style="color:var(--green)" id="st-done-val">0</span>
               </div>
               <div style="background:var(--border);border-radius:10px;height:6px;overflow:hidden">
                 <div style="width:92%;height:100%;background:var(--green);border-radius:10px"></div>
@@ -434,7 +434,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:5px">
-                <span id="st-spent-lbl">Потрачено всего</span><span style="color:var(--blue)">185 000 ₸</span>
+                <span id="st-spent-lbl">Потрачено всего</span><span style="color:var(--blue)" id="st-spent-val">0 ₸</span>
               </div>
               <div style="background:var(--border);border-radius:10px;height:6px;overflow:hidden">
                 <div style="width:60%;height:100%;background:var(--blue);border-radius:10px"></div>
@@ -483,8 +483,6 @@ let NOTIFS = [
 ];
 
 const ADDRS = [
-  {title_ru:'Домашний', title_kk:'Үй', addr_ru:'ул. Акжол, д. 14, кв. 3', addr_kk:'Ақжол көшесі, 14 үй, 3 пәтер', isMain:true},
-  {title_ru:'Рабочий', title_kk:'Жұмыс', addr_ru:'пр. Достык, д. 77, оф. 301', addr_kk:'Достык даңғылы, 77 үй, 301 кеңсе', isMain:false},
 ];
 
 // ─── STATE ──────────────────────────────────────────────────────────────────
@@ -716,7 +714,13 @@ function markAllRead(){NOTIFS.forEach(n=>n.isNew=false);renderNotifs('notif-list
 // ─── RENDER ADDRS ────────────────────────────────────────────────────────
 function renderAddrs(){
   const d=T[lang];
-  document.getElementById('addr-grid').innerHTML=ADDRS.map((a,i)=>`
+  const grid = document.getElementById('addr-grid');
+  if(!grid) return;
+  if(!ADDRS.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--gray);font-size:13px">'+(lang==='ru'?'Нет адресов. Нажмите «+ Добавить» или заполните профиль.':'Мекенжай жоқ. «+ Қосу» басыңыз.')+'</div>';
+    return;
+  }
+  grid.innerHTML=ADDRS.map((a,i)=>`
     <div style="background:var(--light);border:1.5px solid ${a.isMain?'var(--orange)':'var(--border)'};border-radius:10px;padding:14px;position:relative">
       ${a.isMain?`<span style="position:absolute;top:10px;right:10px;background:var(--orange);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px">${d.addr_main}</span>`:''}
       <div style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:4px">${lang==='ru'?a.title_ru:a.title_kk}</div>
@@ -725,7 +729,39 @@ function renderAddrs(){
 }
 
 // ─── PROFILE SAVE ────────────────────────────────────────────────────────
-function saveProfile(){alert(T[lang].save_ok);}
+async function saveProfile(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) { window.location.href='login.html'; return; }
+    const name = document.getElementById('inp-name').value.trim();
+    const street = document.getElementById('inp-street').value.trim();
+    const house = document.getElementById('inp-house').value.trim();
+    // İsim güncelle (telefon değişmez)
+    await sb.from('users').update({full_name: name}).eq('id', session.user.id);
+    // Adres varsa ana adresi güncelle/ekle
+    if(street || house) {
+      const {data:existing} = await sb.from('user_addresses')
+        .select('id').eq('user_id', session.user.id).eq('is_default', true).limit(1);
+      const addrData = {
+        user_id: session.user.id,
+        label: lang==='ru'?'Домашний':'Үй',
+        street: street, house: house,
+        address: street + (house ? ', ' + house : ''),
+        is_default: true,
+      };
+      if(existing && existing.length) {
+        await sb.from('user_addresses').update(addrData).eq('id', existing[0].id);
+      } else {
+        await sb.from('user_addresses').insert(addrData);
+      }
+    }
+    alert(T[lang].save_ok);
+  } catch(e) {
+    alert((lang==='ru'?'Ошибка сохранения: ':'Сақтау қатесі: ') + e.message);
+  }
+}
 
 // ─── RENDER ALL ──────────────────────────────────────────────────────────
 function renderAll(){
@@ -781,6 +817,50 @@ async function loadCurrentUser() {
         if(el) el.textContent = name;
         if(id === 'inp-name' && el) el.value = name;
       });
+
+      // Telefon input'a yaz (readonly)
+      const phEl = document.getElementById('inp-phone');
+      if(phEl) phEl.value = phone;
+
+      // İstatistikler — gerçek siparişlerden
+      try {
+        const {data:myOrders} = await sb.from('orders')
+          .select('total, status').eq('customer_id', session.user.id);
+        const total = myOrders ? myOrders.length : 0;
+        const done = myOrders ? myOrders.filter(o=>o.status==='done').length : 0;
+        const spent = myOrders ? myOrders.reduce((s,o)=>s+(parseFloat(o.total)||0),0) : 0;
+        const setTxt = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+        setTxt('st-total-val', total);
+        setTxt('st-done-val', done);
+        setTxt('st-spent-val', spent.toLocaleString('ru')+' ₸');
+        setTxt('ps-spent', spent>=1000 ? (spent/1000).toFixed(0)+'K' : spent);
+        setTxt('ps-total', total);
+        const active = myOrders ? myOrders.filter(o=>['new','preparing','ready','delivery'].includes(o.status)).length : 0;
+        setTxt('ps-active', active);
+      } catch(e2) { console.log('stats:', e2.message); }
+
+      // Adresler — user_addresses tablosundan
+      try {
+        const {data:addrs} = await sb.from('user_addresses')
+          .select('*').eq('user_id', session.user.id).order('is_default',{ascending:false});
+        ADDRS.length = 0;
+        (addrs||[]).forEach(a => ADDRS.push({
+          id: a.id,
+          title_ru: a.label || 'Адрес', title_kk: a.label || 'Мекенжай',
+          addr_ru: a.address || '', addr_kk: a.address || '',
+          isMain: a.is_default || false,
+        }));
+        if(typeof renderAddrs === 'function') renderAddrs();
+        // İlk adresi profil formuna yaz
+        if(addrs && addrs.length) {
+          const main = addrs.find(a=>a.is_default) || addrs[0];
+          const st = document.getElementById('inp-street');
+          const hs = document.getElementById('inp-house');
+          if(st && main.street) st.value = main.street;
+          if(hs && main.house) hs.value = main.house;
+        }
+      } catch(e3) { console.log('addrs:', e3.message); }
+
 
       // Avatar
       const av = document.getElementById('pav');
