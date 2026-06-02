@@ -228,6 +228,7 @@ tr:hover td{background:var(--light)}
             <tr>
               <th id="th-name">Название</th>
               <th id="th-price">Цена</th>
+              <th id="th-disc">Скидка</th>
               <th id="th-stock">Остаток</th>
               <th id="th-shelf">Полка</th>
               <th id="th-status">Статус</th>
@@ -346,7 +347,7 @@ const T={
     'btn-add-prod':'+ Добавить товар','btn-all-orders':'Все заказы →',
     'lbl-orders':'Новых заказов','sub-orders':'Ожидают обработки',
     'lbl-revenue':'Выручка сегодня','sub-revenue':'За сегодня',
-    'lbl-products':'Активных товаров','sub-products':'В каталоге',
+    'lbl-products':'Активных товаров','sub-products':'В каталоге','th-disc':'Скидка','disc_set':'Скидка',
     'lbl-low-stock':'Мало на складе','sub-low-stock':'Требует пополнения',
     'ai-title':'AI Аналитика','recent-title':'ПОСЛЕДНИЕ ЗАКАЗЫ',
     'staff-title':'СОТРУДНИКИ МАГАЗИНА','prod-title':'МОИ ТОВАРЫ',
@@ -377,7 +378,7 @@ const T={
     'btn-add-prod':'+ Тауар қосу','btn-all-orders':'Барлық тапсырыс →',
     'lbl-orders':'Жаңа тапсырыс','sub-orders':'Күтуде',
     'lbl-revenue':'Бүгінгі түсім','sub-revenue':'Бүгін',
-    'lbl-products':'Белсенді тауар','sub-products':'Каталогта',
+    'lbl-products':'Белсенді тауар','sub-products':'Каталогта','th-disc':'Жеңілдік','disc_set':'Жеңілдік',
     'lbl-low-stock':'Қоймада аз','sub-low-stock':'Толтыру керек',
     'ai-title':'AI Талдау','recent-title':'СОҢҒЫ ТАПСЫРЫСТАР',
     'staff-title':'ДҮКЕН ҚЫЗМЕТКЕРЛЕРІ','prod-title':'МЕНІҢ ТАУАРЛАРЫМ',
@@ -657,10 +658,12 @@ async function loadProducts(){
     return `<tr>
       <td><strong>${p.name_ru}</strong><br><small style="color:var(--gray)">${p.spec||''}</small></td>
       <td style="font-weight:800">${fmt(p.price_retail)} ₸</td>
+      <td>${(p.discount_percent||0)>0?`<span style="background:#fee2e2;color:#ef4444;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px">-${p.discount_percent}%</span>`:'<span style="color:var(--gray);font-size:11px">—</span>'}${(p.wholesale_discount_percent||0)>0?`<br><span style="background:#dcfce7;color:#16a34a;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-top:2px;display:inline-block">📦 -${p.wholesale_discount_percent}%</span>`:''}</td>
       <td style="color:${stockColor};font-weight:700">${stockText}</td>
       <td style="font-family:'Bebas Neue',sans-serif;color:var(--orange)">${p.shelf_code||'—'}</td>
       <td><span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;background:${p.is_active?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)'};color:${p.is_active?'var(--green)':'var(--red)'}">${p.is_active?'✅ Активен':'❌ Скрыт'}</span></td>
-      <td>
+      <td style="white-space:nowrap">
+        <button onclick="openDiscountModal('${p.id}','${(p.name_ru||'').replace(/'/g,'')}',${p.discount_percent||0},${p.wholesale_discount_percent||0})" style="font-size:11px;padding:4px 8px;border:1px solid #fed7aa;background:#fff7ed;color:#ea580c;border-radius:6px;cursor:pointer;margin-right:4px" title="${d_.disc_set||'Скидка'}">%</button>
         <a href="urun_ekle.html?id=${p.id}&role=owner&from=store_owner.html" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--gray)">✏️</a>
       </td>
     </tr>`;
@@ -727,6 +730,81 @@ window.addStaff=addStaff;window.removeStaff=removeStaff;
 window.saveSettings=saveSettings;window.doSignOut=doSignOut;
 
 init();
+
+// ─── İNDİRİM AYARLAMA ───
+let discProductId = null;
+function openDiscountModal(id, name, retailDisc, wsDisc) {
+  discProductId = id;
+  const isRu = (typeof lang==='undefined'?'ru':lang) === 'ru';
+  document.getElementById('disc-product-name').textContent = name;
+  document.getElementById('disc-retail-range').value = retailDisc||0;
+  document.getElementById('disc-retail-val').textContent = (retailDisc||0)+'%';
+  document.getElementById('disc-ws-range').value = wsDisc||0;
+  document.getElementById('disc-ws-val').textContent = (wsDisc||0)+'%';
+  document.getElementById('discount-modal').style.display = 'flex';
+}
+function closeDiscountModal(){ document.getElementById('discount-modal').style.display='none'; discProductId=null; }
+async function saveDiscount() {
+  if(!discProductId) return;
+  const retail = parseInt(document.getElementById('disc-retail-range').value)||0;
+  const ws = parseInt(document.getElementById('disc-ws-range').value)||0;
+  try {
+    const {error} = await sb.from('products').update({
+      discount_percent: retail,
+      wholesale_discount_percent: ws
+    }).eq('id', discProductId);
+    if(error) throw error;
+    closeDiscountModal();
+    loadProducts();
+    // Log
+    const {data:{session}} = await sb.auth.getSession();
+    if(session && currentStore) {
+      await sb.from('admin_logs').insert({
+        user_id: session.user.id, store_id: currentStore.id,
+        action_type: 'set_discount',
+        description: (lang==='ru'?'Скидка установлена: розница -':'Жеңілдік: бөлшек -')+retail+'%, опт -'+ws+'%',
+        meta: JSON.stringify({product_id:discProductId, retail_discount:retail, ws_discount:ws})
+      });
+    }
+  } catch(e) {
+    alert((typeof lang!=='undefined'&&lang==='ru')?'Ошибка сохранения. Проверьте колонки discount_percent в БД.':'Сақтау қатесі.');
+    console.log('saveDiscount:', e.message);
+  }
+}
+
 </script>
+
+<!-- İndirim ayarlama modalı -->
+<div id="discount-modal" onclick="if(event.target===this)closeDiscountModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:18px;max-width:420px;width:100%;padding:26px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3 style="font-size:18px;font-weight:900" id="disc-modal-title">🏷️ Установить скидку</h3>
+      <button onclick="closeDiscountModal()" style="border:none;background:none;font-size:22px;cursor:pointer;color:#94a3b8">✕</button>
+    </div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:18px" id="disc-product-name"></p>
+
+    <div style="margin-bottom:18px">
+      <label style="font-size:12px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px" id="disc-retail-lbl">🛒 Скидка для розницы (видна всем)</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="range" id="disc-retail-range" min="0" max="50" value="0" style="flex:1" oninput="document.getElementById('disc-retail-val').textContent=this.value+'%'">
+        <span id="disc-retail-val" style="font-size:18px;font-weight:900;color:#ef4444;min-width:48px;text-align:right">0%</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:22px">
+      <label style="font-size:12px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px" id="disc-ws-lbl">📦 Доп. скидка для оптовиков</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="range" id="disc-ws-range" min="0" max="30" value="0" style="flex:1" oninput="document.getElementById('disc-ws-val').textContent=this.value+'%'">
+        <span id="disc-ws-val" style="font-size:18px;font-weight:900;color:#16a34a;min-width:48px;text-align:right">0%</span>
+      </div>
+      <p style="font-size:11px;color:#94a3b8;margin-top:6px" id="disc-ws-hint">Только для оптовых клиентов</p>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button onclick="closeDiscountModal()" style="flex:1;padding:11px;border:1px solid var(--border);background:#fff;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit" id="disc-cancel">Отмена</button>
+      <button onclick="saveDiscount()" style="flex:2;padding:11px;border:none;background:var(--orange);color:#fff;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit" id="disc-save">Сохранить</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

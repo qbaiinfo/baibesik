@@ -591,12 +591,63 @@ function showTab(id) {
   document.getElementById('tab-'+id).classList.add('active');
 }
 
+
+// ─── GERÇEK ÜRÜN + ERİŞİM YÜKLEME (Supabase) ───
+async function loadWholesaleData() {
+  try {
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+
+    // Toptancının erişebildiği mağazalar (wholesale_access onaylı)
+    const {data:access} = await sb.from('wholesale_access')
+      .select('store_id, status, stores(name)')
+      .eq('user_id', session.user.id);
+    storeAccess.length = 0;
+    let accessibleStoreIds = [];
+    if(access && access.length) {
+      access.forEach(a => {
+        storeAccess.push({ id:a.store_id, name:a.stores?.name||'—', status:a.status||'active' });
+        if((a.status||'active')==='active') accessibleStoreIds.push(a.store_id);
+      });
+    }
+    // Erişim yoksa tüm aktif mağazaların ürünlerini göster (genel toptan)
+    let pq = sb.from('products').select('*, stores(name)').eq('is_active', true);
+    if(accessibleStoreIds.length) pq = pq.in('store_id', accessibleStoreIds);
+    const {data:prods} = await pq.order('created_at',{ascending:false});
+
+    products.length = 0;
+    (prods||[]).forEach((p,i) => {
+      const baseWs = parseFloat(p.price_wholesale || p.price_retail*0.85);
+      const wsDisc = p.wholesale_discount_percent || 0;
+      const finalWs = wsDisc>0 ? Math.round(baseWs*(100-wsDisc)/100) : baseWs;
+      products.push({
+        id: 7000+i,
+        db_id: p.id,
+        storeId: p.store_id,
+        storeName: p.stores?.name || '—',
+        icon: p.image_url ? '<img src="'+p.image_url+'" style="width:100%;height:100%;object-fit:cover">' : '📦',
+        ru: p.name_ru, kk: p.name_kk || p.name_ru,
+        spec: p.spec || '',
+        retail: parseFloat(p.price_retail),
+        wholesale: finalWs,
+        ws_discount: wsDisc,
+        heavy: p.is_heavy || false,
+      });
+    });
+    renderStoreAccess();
+    renderCatalog();
+  } catch(e) { console.log('loadWholesaleData:', e.message); }
+}
+
 // ─── RENDER ALL ───
 function renderAll() {
   renderStoreAccess();
   renderCatalog();
   renderOrders();
   renderCart();
+  loadWholesaleData();
 }
 
 // ─── STORE ACCESS ───
@@ -670,7 +721,7 @@ function renderCatalog() {
         <div class="mini-prod-spec">${p.spec} — ${p.storeName}</div>
         <div class="mini-prod-footer">
           <div>
-            <div class="wholesale-price">${p.wholesale.toLocaleString()} ₸</div>
+            <div class="wholesale-price">${p.wholesale.toLocaleString()} ₸ ${(p.ws_discount||0)>0?'<span style="background:#dcfce7;color:#16a34a;font-size:9px;font-weight:800;padding:1px 5px;border-radius:6px;vertical-align:middle">-'+p.ws_discount+'%</span>':''}</div>
             <div class="retail-crossed">${p.retail.toLocaleString()} ₸</div>
           </div>
           <button class="btn-mini-cart" onclick="addToCart(${p.id})" id="add-btn-${p.id}">${d.add_cart}</button>

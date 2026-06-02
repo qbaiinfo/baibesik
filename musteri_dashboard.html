@@ -265,6 +265,44 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
       </div>
     </div>
 
+
+    <!-- YARDIM KUTUCUKLARI -->
+    <div class="sec-card" id="help-cards-section">
+      <div class="sec-head"><span class="sec-title" id="help-title">💡 Как пользоваться baibesik</span></div>
+      <div class="sec-body">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+          <div class="help-card" onclick="window.location.href='catalog.html'" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:16px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+            <div style="font-size:28px;margin-bottom:6px">🛒</div>
+            <div style="font-weight:800;font-size:13px;color:#9a3412" id="hc1-t">Сделать заказ</div>
+            <div style="font-size:11px;color:#c2410c;margin-top:3px" id="hc1-d">Выберите товары и добавьте в корзину</div>
+          </div>
+          <div class="help-card" onclick="window.location.href='magazalar.html'" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:16px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+            <div style="font-size:28px;margin-bottom:6px">🏪</div>
+            <div style="font-weight:800;font-size:13px;color:#1e40af" id="hc2-t">Магазины</div>
+            <div style="font-size:11px;color:#2563eb;margin-top:3px" id="hc2-d">Все магазины Алматы</div>
+          </div>
+          <div class="help-card" onclick="window.location.href='optovikam.html'" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:16px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+            <div style="font-size:28px;margin-bottom:6px">📦</div>
+            <div style="font-weight:800;font-size:13px;color:#15803d" id="hc3-t">Стать оптовиком</div>
+            <div style="font-size:11px;color:#16a34a;margin-top:3px" id="hc3-d">Оптовые цены и скидки</div>
+          </div>
+          <div class="help-card" onclick="openCustAI()" style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:14px;padding:16px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+            <div style="font-size:28px;margin-bottom:6px">🤖</div>
+            <div style="font-weight:800;font-size:13px;color:#7c3aed" id="hc4-t">AI Помощник</div>
+            <div style="font-size:11px;color:#9333ea;margin-top:3px" id="hc4-d">Задайте любой вопрос</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI ÖNERİLERİ -->
+    <div class="sec-card" id="ai-recommend-section">
+      <div class="sec-head"><span class="sec-title" id="ai-rec-title">✨ Рекомендации для вас</span></div>
+      <div class="sec-body" id="ai-recommend-body">
+        <div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">⏳ Подбираем товары...</div>
+      </div>
+    </div>
+
     <!-- АКТИВНЫЙ ЗАКАЗ -->
     <div class="sec-card">
       <div class="sec-head">
@@ -837,9 +875,103 @@ async function loadMyOrders() {
   } catch(e) { console.log('Demo siparişler:', e.message); }
 }
 
+
+// ─── MÜŞTERİ AI ÖNERİLERİ ───
+async function loadAIRecommendations() {
+  const body = document.getElementById('ai-recommend-body');
+  if(!body) return;
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    // İndirimli + popüler ürünleri çek
+    const {data:prods} = await sb.from('products')
+      .select('id, name_ru, name_kk, price_retail, discount_percent, image_url, category_id')
+      .eq('is_active', true)
+      .order('discount_percent', {ascending:false})
+      .limit(6);
+    if(!prods || !prods.length) {
+      body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">'+(lang==='ru'?'Скоро здесь появятся рекомендации':'Жақында ұсыныстар пайда болады')+'</div>';
+      return;
+    }
+    body.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">' +
+      prods.map(p => {
+        const disc = p.discount_percent || 0;
+        const fp = disc>0 ? Math.round(p.price_retail*(100-disc)/100) : p.price_retail;
+        const nm = lang==='ru'?p.name_ru:(p.name_kk||p.name_ru);
+        return `<div onclick="window.location.href='catalog.html'" style="border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+          <div style="font-size:24px;text-align:center;margin-bottom:6px">${p.image_url?'<img src="'+p.image_url+'" style="width:48px;height:48px;border-radius:8px;object-fit:cover">':'📦'}</div>
+          <div style="font-size:12px;font-weight:700;line-height:1.3;height:32px;overflow:hidden">${nm}</div>
+          <div style="margin-top:6px">${disc>0?'<span style="text-decoration:line-through;color:#94a3b8;font-size:10px">'+p.price_retail.toLocaleString()+'</span> <span style="color:#ef4444;font-weight:800;font-size:13px">'+fp.toLocaleString()+' ₸</span>':'<span style="font-weight:800;font-size:13px">'+p.price_retail.toLocaleString()+' ₸</span>'}</div>
+          ${disc>0?'<span style="display:inline-block;margin-top:4px;background:#fee2e2;color:#ef4444;font-size:10px;font-weight:800;padding:2px 6px;border-radius:8px">-'+disc+'%</span>':''}
+        </div>`;
+      }).join('') + '</div>';
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">'+(lang==='ru'?'Перейдите в каталог →':'Каталогқа өту →')+'</div>';
+  }
+}
+
+// ─── MÜŞTERİ AI CHAT ───
+let custAiHistory = [];
+function openCustAI() {
+  document.getElementById('cust-ai-modal').style.display = 'flex';
+  if(custAiHistory.length === 0) {
+    custAddMsg('bot', lang==='ru'
+      ? 'Привет! 👋 Я ваш AI помощник. Помогу найти товары, оформить заказ, отследить доставку. О чём спросите?'
+      : 'Сәлем! 👋 Мен сіздің AI көмекшіңізмін. Тауар табуға, тапсырыс беруге көмектесемін. Не сұрайсыз?');
+  }
+}
+function closeCustAI(){ document.getElementById('cust-ai-modal').style.display='none'; }
+function custAddMsg(who, text) {
+  const chat = document.getElementById('cust-ai-chat');
+  const m = document.createElement('div');
+  m.style.cssText = who==='bot'
+    ? 'background:#f1f5f9;color:#1e293b;padding:10px 14px;border-radius:14px 14px 14px 4px;max-width:85%;font-size:14px;line-height:1.5'
+    : 'background:#7c3aed;color:#fff;padding:10px 14px;border-radius:14px 14px 4px 14px;max-width:85%;align-self:flex-end;font-size:14px;line-height:1.5';
+  m.textContent = text; chat.appendChild(m); chat.scrollTop = chat.scrollHeight;
+  return m;
+}
+async function custAiSend() {
+  const inp = document.getElementById('cust-ai-input');
+  const text = inp.value.trim(); if(!text) return;
+  inp.value=''; custAddMsg('user', text);
+  custAiHistory.push({role:'user', content:text});
+  const typing = custAddMsg('bot', '...');
+  try {
+    const sys = `Sen BAIBESIK.KZ müşteri yardımcısısın. Almatı mobilya/hırdavat pazaryeri. ${lang==='ru'?'Rusça':'Kazakça'} yanıt ver, kısa ol (3-4 cümle). Konular: sipariş takibi (статусы: новый→собирается→собран→в доставке→доставлен), ödeme (Kaspi/Halyk/нал), teslimat (InDriver/Yandex/самовывоз), toptancı olma (optovikam.html). Yardımcı ve samimi ol.`;
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system:sys, messages:custAiHistory.slice(-6) })
+    });
+    const data = await resp.json();
+    const reply = (data.content||[]).map(b=>b.text||'').join('') || (lang==='ru'?'Попробуйте ещё раз.':'Қайталап көріңіз.');
+    typing.textContent = reply;
+    custAiHistory.push({role:'assistant', content:reply});
+  } catch(e) {
+    typing.textContent = lang==='ru' ? 'Помощник временно недоступен.' : 'Көмекші қолжетімсіз.';
+  }
+}
+
+
 loadMyOrders();
+loadAIRecommendations();
 // Авто-обновление каждые 30 сек — чтобы клиент видел когда заказ собран/отправлен
 setInterval(loadMyOrders, 30000);
 </script>
+
+<!-- Müşteri AI modal -->
+<div id="cust-ai-modal" onclick="if(event.target===this)closeCustAI()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:20px;max-width:440px;width:100%;display:flex;flex-direction:column;max-height:80vh">
+    <div style="padding:18px 20px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px">
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:20px">🤖</div>
+      <div style="flex:1"><div style="font-weight:800;font-size:15px">BAIBESIK AI</div><div style="font-size:11px;color:#22c55e">● онлайн</div></div>
+      <button onclick="closeCustAI()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#94a3b8">✕</button>
+    </div>
+    <div id="cust-ai-chat" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:240px"></div>
+    <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:8px">
+      <input id="cust-ai-input" placeholder="Спросите что-нибудь..." style="flex:1;padding:10px 14px;border:1px solid #e2e8f0;border-radius:24px;outline:none;font-family:inherit;font-size:14px" onkeydown="if(event.key==='Enter')custAiSend()">
+      <button onclick="custAiSend()" style="background:#7c3aed;color:#fff;border:none;border-radius:50%;width:42px;height:42px;cursor:pointer;font-size:18px">➤</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

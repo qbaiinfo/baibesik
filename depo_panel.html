@@ -182,6 +182,29 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
   body { background: white; }
   .order-card { break-inside: avoid; border: 1px solid #ddd !important; margin-bottom: 20px; }
 }
+
+/* Resim görüntüleme butonu */
+.pick-img-btn { background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; width:36px; height:36px; font-size:16px; cursor:pointer; margin-right:8px; transition:all .15s; flex-shrink:0; }
+.pick-img-btn:hover { background:#fff7ed; border-color:var(--orange); }
+/* Resim modal */
+.img-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:2000; align-items:center; justify-content:center; padding:20px; }
+.img-modal-overlay.open { display:flex; }
+.img-modal { background:white; border-radius:20px; padding:24px; max-width:420px; width:100%; text-align:center; }
+.img-modal img { width:100%; max-width:340px; border-radius:14px; background:#f8fafc; }
+.img-modal h3 { font-size:16px; font-weight:800; margin:14px 0 4px; color:#1e293b; }
+.img-modal .close-x { float:right; font-size:20px; cursor:pointer; color:#94a3b8; border:none; background:none; }
+/* Yardım logosu */
+.help-fab { position:fixed; bottom:24px; left:24px; width:56px; height:56px; border-radius:50%; background:var(--orange); color:white; border:none; font-size:26px; cursor:pointer; box-shadow:0 4px 20px rgba(249,115,22,.4); z-index:1500; transition:transform .15s; }
+.help-fab:hover { transform:scale(1.08); }
+/* Tebrik modal */
+.congrats-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:2100; align-items:center; justify-content:center; }
+.congrats-overlay.open { display:flex; }
+.congrats-box { background:white; border-radius:24px; padding:36px 32px; text-align:center; max-width:380px; animation:pop .4s ease; }
+@keyframes pop { 0%{transform:scale(.7);opacity:0} 100%{transform:scale(1);opacity:1} }
+.congrats-emoji { font-size:64px; margin-bottom:12px; }
+.congrats-box h2 { font-size:22px; font-weight:900; color:#16a34a; margin-bottom:8px; }
+.congrats-box p { color:#64748b; font-size:14px; margin-bottom:20px; }
+
 </style>
 <script src="cart.js"></script>
 </head>
@@ -408,6 +431,7 @@ function renderOrders() {
             <span class="spec-chip size">📏 ${it.size}</span>
           </div>
         </div>
+        <button class="pick-img-btn" onclick="event.stopPropagation();showItemImage('${(it.img||'').replace(/'/g,'')}','${(lang==='ru'?it.name_ru:it.name_kk).replace(/'/g,'')}')" title="${lang==='ru'?'Показать фото':'Фотоны көрсету'}">👁</button>
         <div class="pick-qty">
           <div class="qty-num">${it.qty}</div>
           <div class="qty-unit">${d_.pcs}</div>
@@ -528,7 +552,7 @@ async function markReady(orderId) {
   if(!o || !allChecked(o)) return;
   o.status = 'ready_sent';
   doneOrders.unshift({ id:o.id, client:o.client, items:o.items.length, time: new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}) });
-  toast(d().toast_notify, 3000);
+  showCongrats(orderId);
   renderOrders();
   renderDone();
   // Supabase: статус → ready, уведомить клиента и менеджера
@@ -750,7 +774,7 @@ async function loadRealDepoOrders() {
         client: o.users?.full_name || o.recipient_name || (lang==='ru'?'Клиент':'Клиент'),
         phone: o.users?.phone || o.recipient_phone || '',
         address: o.delivery_address || '',
-        status: o.status,
+        status: o.status === 'preparing' ? 'picking' : o.status,
         pay: o.payment_method || 'kaspi',
         delivery: o.delivery_type || 'courier',
         items: (o.order_items||[]).map((i,idx)=>({
@@ -761,6 +785,7 @@ async function loadRealDepoOrders() {
           color: i.color || (lang==='ru'?'—':'—'),
           size: i.size || '—',
           qty: i.quantity,
+          img: i.image_url || '',
           checked: false,
         }))
       });
@@ -826,9 +851,87 @@ async function markItemDone(orderId, itemIdx) {
 
 window.markItemDone = markItemDone;
 
+
+// ─── RESİM GÖRÜNTÜLEME ───
+function showItemImage(img, name) {
+  const el = document.getElementById('img-modal-src');
+  const fallback = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340"><rect width="340" height="340" fill="#f1f5f9"/><text x="50%" y="50%" font-size="60" text-anchor="middle" dy=".35em">📦</text></svg>');
+  el.src = img && img.length > 4 ? img : fallback;
+  el.onerror = function(){ this.src = fallback; };
+  document.getElementById('img-modal-name').textContent = name || '';
+  document.getElementById('img-modal-hint').textContent = (lang==='ru'?'Фото для сборки — найдите этот товар на складе':'Жинауға арналған фото');
+  document.getElementById('img-modal').classList.add('open');
+}
+function closeItemImage(){ document.getElementById('img-modal').classList.remove('open'); }
+
+// ─── YARDIM ───
+function openHelp() {
+  const isRu = lang === 'ru';
+  document.getElementById('help-title').textContent = isRu ? '🆘 Помощь складу' : '🆘 Қоймаға көмек';
+  document.getElementById('help-content').innerHTML = isRu ? `
+    <p><b>1. Новый заказ 🔔</b><br>Когда менеджер одобряет заказ, он появляется здесь. Нажмите «Начать сборку».</p>
+    <p><b>2. Сборка 📦</b><br>Отмечайте каждый товар галочкой по мере сбора. Кнопка 👁 показывает фото товара.</p>
+    <p><b>3. Готово ✅</b><br>Когда все товары отмечены, нажмите «Всё готово» — менеджер получит уведомление вызвать курьера.</p>
+    <p><b>4. Полка</b><br>Код полки (напр. A-01) показывает где лежит товар на складе.</p>
+  ` : `
+    <p><b>1. Жаңа тапсырыс 🔔</b><br>Менеджер мақұлдағанда осында пайда болады. «Жинауды бастау» басыңыз.</p>
+    <p><b>2. Жинау 📦</b><br>Әр тауарды жинаған сайын белгілеңіз. 👁 батырмасы фотоны көрсетеді.</p>
+    <p><b>3. Дайын ✅</b><br>Барлығы белгіленгенде «Бәрі дайын» басыңыз — менеджерге хабарлама барады.</p>
+    <p><b>4. Сөре</b><br>Сөре коды (мыс. A-01) тауардың қоймада қай жерде екенін көрсетеді.</p>
+  `;
+  document.getElementById('help-modal').classList.add('open');
+}
+function closeHelp(){ document.getElementById('help-modal').classList.remove('open'); }
+
+// ─── TEBRİK ───
+function showCongrats(orderId) {
+  const isRu = lang === 'ru';
+  document.getElementById('congrats-title').textContent = isRu ? 'Отличная работа! 🎉' : 'Жарайсың! 🎉';
+  document.getElementById('congrats-text').textContent = isRu
+    ? 'Заказ ' + orderId + ' собран. Менеджер уведомлён вызвать курьера.'
+    : orderId + ' тапсырысы жиналды. Менеджерге хабарланды.';
+  document.getElementById('congrats-btn').textContent = isRu ? 'Продолжить' : 'Жалғастыру';
+  document.getElementById('congrats-modal').classList.add('open');
+}
+function closeCongrats(){ document.getElementById('congrats-modal').classList.remove('open'); }
+
+
 loadRealDepoOrders();
 // Авто-обновление каждые 20 сек — новые заказы от менеджера появятся автоматически
 setInterval(loadRealDepoOrders, 20000);
 </script>
+
+<!-- Resim görüntüleme modalı -->
+<div class="img-modal-overlay" id="img-modal" onclick="if(event.target===this)closeItemImage()">
+  <div class="img-modal">
+    <button class="close-x" onclick="closeItemImage()">✕</button>
+    <img id="img-modal-src" src="" alt="">
+    <h3 id="img-modal-name"></h3>
+    <p style="color:#94a3b8;font-size:12px" id="img-modal-hint"></p>
+  </div>
+</div>
+
+<!-- Yardım modalı -->
+<div class="img-modal-overlay" id="help-modal" onclick="if(event.target===this)closeHelp()">
+  <div class="img-modal" style="max-width:480px;text-align:left">
+    <button class="close-x" onclick="closeHelp()">✕</button>
+    <h3 id="help-title" style="text-align:center">🆘 Помощь складу</h3>
+    <div id="help-content" style="font-size:14px;line-height:1.7;color:#475569;margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- Tebrik modalı -->
+<div class="congrats-overlay" id="congrats-modal" onclick="if(event.target===this)closeCongrats()">
+  <div class="congrats-box">
+    <div class="congrats-emoji">🎉</div>
+    <h2 id="congrats-title">Отлично!</h2>
+    <p id="congrats-text">Заказ собран и менеджер уведомлён.</p>
+    <button class="btn btn-green btn-lg" onclick="closeCongrats()" id="congrats-btn">Продолжить</button>
+  </div>
+</div>
+
+<!-- Yardım logosu -->
+<button class="help-fab" onclick="openHelp()" title="Помощь">🆘</button>
+
 </body>
 </html>
