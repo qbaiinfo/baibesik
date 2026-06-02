@@ -724,7 +724,7 @@ async function loadAdminData() {
 
     // ── MAĞAZALAR ──
     const {data:dbStores} = await sb.from('stores')
-      .select('*, store_subscriptions(*), store_members(*)')
+      .select('*, store_members(role, users(full_name, phone))')
       .order('created_at', {ascending:false});
 
     if(dbStores && dbStores.length) {
@@ -736,7 +736,14 @@ async function loadAdminData() {
           id: s.id,
           name: s.name || '—',
           phone: s.phone || '—',
-          owner: s.owner_name || s.store_members?.find(m=>m.role==='owner')?.user_id || '—',
+          owner: (() => {
+            const om = (s.store_members||[]).find(m=>m.role==='owner'||m.role==='manager');
+            return om?.users?.full_name || s.owner_name || '—';
+          })(),
+          ownerPhone: (() => {
+            const om = (s.store_members||[]).find(m=>m.role==='owner'||m.role==='manager');
+            return om?.users?.phone || s.phone || '—';
+          })(),
           status: s.is_active ? 'active' : 'trial',
           trialLeft: 0,
           revenue: 0,
@@ -921,7 +928,7 @@ function renderStores() {
     <tr>
       <td><div style="display:flex;align-items:center;gap:8px">
         <div style="width:30px;height:30px;border-radius:6px;background:${s.color}20;color:${s.color};display:flex;align-items:center;justify-content:center;font-size:16px">${s.avatar}</div>
-        <div><div style="color:white;font-weight:700">${s.name}</div><div style="font-size:11px;color:#64748b">${s.phone}</div></div>
+        <div><div style="color:white;font-weight:700">${s.name}</div><div style="font-size:11px;color:#64748b">${s.ownerPhone||s.phone||'—'}</div></div>
       </div></td>
       <td>${s.owner}</td>
       <td>${statusBadge(s.status)}</td>

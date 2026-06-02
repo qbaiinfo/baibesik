@@ -513,13 +513,17 @@ async function saveStore(){
       await sb.from('stores').update(data).eq('id',editId);
       showOk(d_.ok_edited);
     } else {
-      await sb.from('stores').insert(data);
+      const {data:inserted, error:insertErr} = await sb.from('stores').insert(data).select();
+      if(insertErr) throw new Error(insertErr.message);
       showOk(d_.ok_saved);
     }
     setTimeout(()=>window.location.href='admin.html',1500);
   } catch(e){
-    showOk(d_.ok_saved+' (Demo)');
-    setTimeout(()=>window.location.href='admin.html',1500);
+    console.error('saveStore error:', e);
+    showErr('Ошибка: ' + e.message);
+    btn.disabled=false;
+    document.getElementById('btn-save-txt').textContent=T[lang]['btn-save-txt'];
+    return;
   }
   btn.disabled=false;
   document.getElementById('btn-save-txt').textContent=T[lang]['btn-save-txt'];
