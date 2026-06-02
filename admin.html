@@ -709,6 +709,8 @@ function showSection(id, el) {
   currentSection = id;
   updatePageTitle();
   renderAll();
+  // activity_log için lazy load
+  if(id === 'activity_log' && !logsLoaded) loadActivityLogs();
 }
 
 // ─── RENDER ALL ───
@@ -1261,11 +1263,7 @@ function exportLogsCsv() {
 }
 
 // showSection override — actlog yüklemesi için
-const _origShowSection = showSection;
-function showSection(id, el) {
-  _origShowSection(id, el);
-  if(id === 'activity_log' && !logsLoaded) loadActivityLogs();
-}
+// showSection activity_log trigger orijinale taşındı
 
 
 </script>
