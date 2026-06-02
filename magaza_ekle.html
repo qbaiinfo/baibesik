@@ -115,6 +115,33 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 </head>
 <body>
 <script>
+/* BAIBESIK_AUTH_GUARD — giriş yapmayan ve yetkisiz erişimi engeller */
+(function(){
+  // İçeriği gizle (yetki onaylanana kadar)
+  document.documentElement.style.visibility = 'hidden';
+})();
+(async function(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) { window.location.replace('login.html?staff=1'); return; }
+    const {data:user} = await sb.from('users').select('role').eq('id', session.user.id).single();
+    const allowed = ['super_admin'];
+    if(!user || !allowed.includes(user.role)) {
+      const routes = {super_admin:'admin.html',store_owner:'store_owner.html',manager:'vendor.html',warehouse:'depo_panel.html',wholesale:'toptanci_dashboard.html',customer:'musteri_dashboard.html'};
+      window.location.replace(routes[user?.role] || 'login.html');
+      return;
+    }
+    // Yetki tamam — içeriği göster
+    document.documentElement.style.visibility = 'visible';
+  } catch(e) {
+    window.location.replace('login.html?staff=1');
+  }
+})();
+</script>
+
+<script>
 // Auth koruma - giriş yapılmamışsa login'e yönlendir
 (async()=>{
   try{
