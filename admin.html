@@ -212,7 +212,7 @@ body { font-family: 'Noto Sans', sans-serif; background: var(--dark); color: var
       <span class="nav-icon">📊</span><span id="ni-dashboard">Обзор</span>
     </a>
     <a class="nav-item" onclick="showSection('stores', this)" href="#">
-      <span class="nav-icon">🏪</span><span id="ni-stores">Магазины</span>
+      <span class="nav-icon">🏪</span><span id="ni-stores">Магазины</span> <span class="nav-badge" id="ni-stores-badge" style="margin-left:auto"></span>
       <span class="nav-badge" id="nb-stores">12</span>
     </a>
     <a class="nav-item" onclick="showSection('orders', this)" href="#">
@@ -283,26 +283,26 @@ body { font-family: 'Noto Sans', sans-serif; background: var(--dark); color: var
         <div class="stat-card orange">
           <div class="stat-icon">🏪</div>
           <div class="stat-label" id="st1-label">Активных магазинов</div>
-          <div class="stat-value orange">12</div>
-          <div class="stat-change up">↑ +2 в этом месяце</div>
+          <div class="stat-value orange" id="dash-stores">—</div>
+          <div class="stat-change up" id="dash-stores-sub">Загрузка...</div>
         </div>
         <div class="stat-card green">
           <div class="stat-icon">💰</div>
           <div class="stat-label" id="st2-label">Выручка (май 2026)</div>
-          <div class="stat-value green">4.2M ₸</div>
-          <div class="stat-change up">↑ +18% к прошлому</div>
+          <div class="stat-value green" id="dash-revenue">—</div>
+          <div class="stat-change up" id="dash-revenue-sub">Загрузка...</div>
         </div>
         <div class="stat-card blue">
           <div class="stat-icon">📦</div>
           <div class="stat-label" id="st3-label">Заказов за месяц</div>
-          <div class="stat-value blue">348</div>
-          <div class="stat-change up">↑ +43 заказа</div>
+          <div class="stat-value blue" id="dash-orders">—</div>
+          <div class="stat-change up" id="dash-orders-sub">Загрузка...</div>
         </div>
         <div class="stat-card red">
           <div class="stat-icon">⭐</div>
           <div class="stat-label" id="st4-label">Ваш доход (айдат)</div>
-          <div class="stat-value orange">180K ₸</div>
-          <div class="stat-change up">↑ 12 магазинов × 15K ₸</div>
+          <div class="stat-value orange" id="dash-income">—</div>
+          <div class="stat-change up" id="dash-income-sub">Загрузка...</div>
         </div>
       </div>
 
@@ -330,7 +330,7 @@ body { font-family: 'Noto Sans', sans-serif; background: var(--dark); color: var
                 <div class="summary-name" id="qs1">Активные магазины</div>
                 <div class="summary-meta">Платят подписку</div>
               </div>
-              <div class="summary-right"><div class="summary-amount">9</div></div>
+              <div class="summary-right"><div class="summary-amount" id="sv-active">—</div></div>
             </div>
             <div class="summary-row">
               <div class="summary-icon">🟠</div>
@@ -338,7 +338,7 @@ body { font-family: 'Noto Sans', sans-serif; background: var(--dark); color: var
                 <div class="summary-name" id="qs2">На пробном периоде</div>
                 <div class="summary-meta">3 месяца бесплатно</div>
               </div>
-              <div class="summary-right"><div class="summary-amount" style="color:var(--orange)">3</div></div>
+              <div class="summary-right"><div class="summary-amount" style="color:var(--orange)" id="sv-trial">—</div></div>
             </div>
             <div class="summary-row">
               <div class="summary-icon">🔴</div>
@@ -346,7 +346,7 @@ body { font-family: 'Noto Sans', sans-serif; background: var(--dark); color: var
                 <div class="summary-name" id="qs3">Истёк срок подписки</div>
                 <div class="summary-meta">Требуется оплата</div>
               </div>
-              <div class="summary-right"><div class="summary-amount" style="color:var(--red)">3</div></div>
+              <div class="summary-right"><div class="summary-amount" style="color:var(--red)" id="sv-expired">—</div></div>
             </div>
             <div class="summary-row">
               <div class="summary-icon">👥</div>
@@ -354,7 +354,7 @@ body { font-family: 'Noto Sans', sans-serif; background: var(--dark); color: var
                 <div class="summary-name" id="qs4">Всего клиентов</div>
                 <div class="summary-meta">Розница + опт</div>
               </div>
-              <div class="summary-right"><div class="summary-amount" style="color:var(--blue)">284</div></div>
+              <div class="summary-right"><div class="summary-amount" style="color:var(--blue)" id="sv-customers">—</div></div>
             </div>
             <div class="summary-row">
               <div class="summary-icon">📦</div>
@@ -362,7 +362,7 @@ body { font-family: 'Noto Sans', sans-serif; background: var(--dark); color: var
                 <div class="summary-name" id="qs5">Новых заказов сегодня</div>
                 <div class="summary-meta">Ожидают обработки</div>
               </div>
-              <div class="summary-right"><div class="summary-amount" style="color:var(--yellow)">8</div></div>
+              <div class="summary-right"><div class="summary-amount" style="color:var(--yellow)" id="sv-today-orders">—</div></div>
             </div>
           </div>
         </div>
@@ -713,6 +713,132 @@ function showSection(id, el) {
   if(id === 'activity_log' && !logsLoaded) loadActivityLogs();
 }
 
+
+// ─── GERÇEK SUPABASE VERİSİ ───────────────────────────────
+async function loadAdminData() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+
+    // ── MAĞAZALAR ──
+    const {data:dbStores} = await sb.from('stores')
+      .select('*, store_subscriptions(*), store_members(*)')
+      .order('created_at', {ascending:false});
+
+    if(dbStores && dbStores.length) {
+      // Global stores array'i doldur
+      stores.length = 0;
+      dbStores.forEach((s,i) => {
+        const colors = ['#f97316','#3b82f6','#10b981','#8b5cf6','#ef4444','#f59e0b'];
+        stores.push({
+          id: s.id,
+          name: s.name || '—',
+          phone: s.phone || '—',
+          owner: s.owner_name || s.store_members?.find(m=>m.role==='owner')?.user_id || '—',
+          status: s.is_active ? 'active' : 'trial',
+          trialLeft: 0,
+          revenue: 0,
+          orders: 0,
+          avatar: (s.name||'?')[0].toUpperCase(),
+          color: colors[i % colors.length],
+        });
+      });
+
+      const active = dbStores.filter(s => s.is_active).length;
+      const trial = dbStores.filter(s => !s.is_active).length;
+
+      // Dashboard kartları
+      const el = id => document.getElementById(id);
+      if(el('dash-stores')) el('dash-stores').textContent = dbStores.length;
+      if(el('dash-stores-sub')) el('dash-stores-sub').textContent = '↑ ' + active + ' активных';
+      if(el('sv-active')) el('sv-active').textContent = active;
+      if(el('sv-trial')) el('sv-trial').textContent = trial;
+      if(el('sv-expired')) el('sv-expired').textContent = 0;
+
+      // Sidebar badge
+      const badge = document.getElementById('ni-stores-badge');
+      if(badge) badge.textContent = dbStores.length;
+    }
+
+    // ── SİPARİŞLER ──
+    const {data:dbOrders} = await sb.from('orders')
+      .select('id, total, status, created_at, store_id, payment_method, order_number, stores(name)')
+      .order('created_at', {ascending:false})
+      .limit(200);
+
+    if(dbOrders) {
+      const total = dbOrders.reduce((s,o) => s + (parseFloat(o.total)||0), 0);
+      const thisMonth = dbOrders.filter(o => {
+        const d = new Date(o.created_at);
+        const now = new Date();
+        return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+      });
+      const today = dbOrders.filter(o => {
+        return new Date(o.created_at).toDateString() === new Date().toDateString();
+      });
+      const todayNew = today.filter(o => o.status==='new').length;
+
+      const el = id => document.getElementById(id);
+      const fmt = n => n>=1000000 ? (n/1000000).toFixed(1)+'M' : n>=1000 ? (n/1000).toFixed(0)+'K' : n;
+
+      if(el('dash-orders')) el('dash-orders').textContent = thisMonth.length;
+      if(el('dash-orders-sub')) el('dash-orders-sub').textContent = '↑ ' + today.length + ' сегодня';
+      if(el('dash-revenue')) el('dash-revenue').textContent = fmt(total) + ' ₸';
+      if(el('dash-revenue-sub')) el('dash-revenue-sub').textContent = thisMonth.length + ' заказов в этом месяце';
+      if(el('sv-today-orders')) el('sv-today-orders').textContent = todayNew;
+
+      // Gelir (aydat - basit hesap: toplam cironun %5'i)
+      if(el('dash-income')) el('dash-income').textContent = fmt(Math.round(total*0.05)) + ' ₸';
+      if(el('dash-income-sub')) el('dash-income-sub').textContent = (stores.length||0) + ' магазинов';
+
+      // orders array'i doldur
+      orders.length = 0;
+      dbOrders.slice(0,100).forEach(o => orders.push({
+        id: o.order_number || o.id,
+        shop: o.stores?.name || '—',
+        pay: o.payment_method || 'kaspi',
+        amount: parseFloat(o.total)||0,
+        status: o.status || 'new',
+        date: new Date(o.created_at).toLocaleDateString('ru-RU'),
+      }));
+
+      // Sidebar badge
+      const ob = document.getElementById('ni-orders-badge');
+      if(ob) ob.textContent = today.length || '';
+    }
+
+    // ── MÜŞTERİLER ──
+    const {data:dbCustomers} = await sb.from('users')
+      .select('id, full_name, email, role, created_at, phone')
+      .in('role', ['customer','wholesale'])
+      .order('created_at', {ascending:false});
+
+    if(dbCustomers) {
+      customers.length = 0;
+      dbCustomers.forEach(u => customers.push({
+        id: u.id,
+        name: u.full_name || '—',
+        email: u.email || '—',
+        phone: u.phone || '—',
+        type: u.role === 'wholesale' ? 'wholesale' : 'retail',
+        orders: 0,
+        spent: 0,
+        joined: new Date(u.created_at).toLocaleDateString('ru-RU'),
+      }));
+      const el = id => document.getElementById(id);
+      if(el('sv-customers')) el('sv-customers').textContent = dbCustomers.length;
+    }
+
+    // Tüm render'ları yenile
+    renderAll();
+
+  } catch(e) {
+    console.log('loadAdminData error:', e.message);
+  }
+}
+
 // ─── RENDER ALL ───
 function renderAll() {
   renderRecentOrders();
@@ -1000,9 +1126,14 @@ function toggleSidebar(){
   if(sidebar) sidebar.classList.toggle('open');
 }
 
+// ─── SUPABASE ───
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
 // ─── INIT ───
 initChart();
 renderAll();
+loadAdminData();
 
 // ─── ACTIVITY LOG ────────────────────────────────────────
 let allLogs = [];
