@@ -186,6 +186,9 @@ body { font-family: 'Noto Sans', sans-serif; background: var(--dark); color: var
   .form-row { grid-template-columns: 1fr; }
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 <script>
@@ -968,7 +971,7 @@ function renderStores() {
       <td>${s.orders}</td>
       <td><div style="display:flex;gap:6px">
         ${s.status!=='active'?`<button class="btn btn-green btn-sm" onclick="approveStore('${s.id}')">${d.btn_approve}</button>`:''}
-        <button class="btn btn-ghost btn-sm">${d.btn_view}</button>
+        <button class="btn btn-ghost btn-sm" onclick="showStoreQR('${s.id}','${(s.name||'').replace(/'/g,'')}')">📲 QR</button>
         <button class="btn btn-red btn-sm" onclick="blockStore('${s.id}')">${d.btn_block}</button>
       </div></td>
     </tr>`).join('');
@@ -1464,6 +1467,69 @@ function exportLogsCsv() {
 // showSection activity_log trigger orijinale taşındı
 
 
+
+// ─── QR KOD ───
+let currentQRStore = '';
+function showStoreQR(storeId, storeName) {
+  currentQRStore = storeName;
+  document.getElementById('qr-store-name').textContent = storeName;
+  const wrap = document.getElementById('qr-canvas-wrap');
+  wrap.innerHTML = '';
+  // Dükkan sayfası URL'i
+  const url = 'https://baibesik.kz/catalog.html?store=' + storeId;
+  new QRCode(wrap, {
+    text: url,
+    width: 200,
+    height: 200,
+    colorDark: '#1e293b',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  document.getElementById('qr-modal').style.display = 'flex';
+}
+function closeQR(){ document.getElementById('qr-modal').style.display='none'; }
+
+async function downloadQRPdf() {
+  const card = document.getElementById('qr-card');
+  try {
+    const canvas = await html2canvas(card, {scale:3, backgroundColor:'#ffffff'});
+    const imgData = canvas.toDataURL('image/png');
+    const {jsPDF} = window.jspdf;
+    // A6 boyut (kapı etiketi için ideal)
+    const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a6'});
+    const pw = pdf.internal.pageSize.getWidth();
+    const ph = pdf.internal.pageSize.getHeight();
+    const imgW = pw - 16;
+    const imgH = (canvas.height / canvas.width) * imgW;
+    pdf.addImage(imgData, 'PNG', 8, (ph-imgH)/2, imgW, imgH);
+    pdf.save('baibesik_qr_' + (currentQRStore||'store').replace(/[^a-zA-Z0-9]/g,'_') + '.pdf');
+  } catch(e) {
+    alert('PDF hatası: ' + e.message);
+  }
+}
+
+
 </script>
+
+<!-- QR KOD MODALI -->
+<div id="qr-modal" onclick="if(event.target===this)closeQR()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:3000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:20px;max-width:420px;width:100%;padding:28px;text-align:center;color:#1e293b">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="font-size:18px;font-weight:900;margin:0">📲 QR-код магазина</h3>
+      <button onclick="closeQR()" style="border:none;background:none;font-size:22px;cursor:pointer;color:#94a3b8">✕</button>
+    </div>
+    <!-- PDF'e gidecek kart -->
+    <div id="qr-card" style="background:#fff;border:2px solid #f97316;border-radius:18px;padding:24px 20px;margin-bottom:18px">
+      <div style="font-size:20px;font-weight:900;color:#f97316;letter-spacing:1px;margin-bottom:2px">BAIBESIK<span style="color:#1e293b">.KZ</span></div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:16px" id="qr-store-name">—</div>
+      <div id="qr-canvas-wrap" style="display:flex;justify-content:center;margin-bottom:16px"></div>
+      <div style="font-size:15px;font-weight:800;color:#1e293b;line-height:1.4">📱 Сканируйте и закажите онлайн</div>
+      <div style="font-size:14px;font-weight:700;color:#64748b;margin-top:4px">📱 Сканерлеп, онлайн тапсырыс беріңіз</div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px dashed #e2e8f0;font-size:11px;color:#94a3b8">Доставка по Алматы • InDrive / Яндекс • Kaspi / Halyk</div>
+    </div>
+    <button onclick="downloadQRPdf()" style="width:100%;padding:13px;border:none;background:#f97316;color:#fff;border-radius:12px;font-weight:800;cursor:pointer;font-family:inherit;font-size:14px">⬇️ Скачать PDF (для печати)</button>
+    <p style="font-size:11px;color:#94a3b8;margin-top:10px">Распечатайте на прозрачном акриле / ПВХ и наклейте на дверь магазина</p>
+  </div>
+</div>
 </body>
 </html>
