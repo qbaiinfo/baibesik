@@ -743,13 +743,16 @@ async function saveProfile(){
     // Adres varsa ana adresi güncelle/ekle
     if(street || house) {
       const {data:existing} = await sb.from('user_addresses')
-        .select('id').eq('user_id', session.user.id).eq('is_default', true).limit(1);
+        .select('id').eq('user_id', session.user.id).limit(1);
       const addrData = {
         user_id: session.user.id,
         label: lang==='ru'?'Домашний':'Үй',
+        title_ru: 'Домашний',
+        title_kk: 'Үй',
         street: street, house: house,
         address: street + (house ? ', ' + house : ''),
         is_default: true,
+        is_main: true,
       };
       if(existing && existing.length) {
         await sb.from('user_addresses').update(addrData).eq('id', existing[0].id);
@@ -842,18 +845,18 @@ async function loadCurrentUser() {
       // Adresler — user_addresses tablosundan
       try {
         const {data:addrs} = await sb.from('user_addresses')
-          .select('*').eq('user_id', session.user.id).order('is_default',{ascending:false});
+          .select('*').eq('user_id', session.user.id).order('created_at',{ascending:false});
         ADDRS.length = 0;
         (addrs||[]).forEach(a => ADDRS.push({
           id: a.id,
-          title_ru: a.label || 'Адрес', title_kk: a.label || 'Мекенжай',
+          title_ru: a.label || a.title_ru || 'Адрес', title_kk: a.label || a.title_kk || 'Мекенжай',
           addr_ru: a.address || '', addr_kk: a.address || '',
-          isMain: a.is_default || false,
+          isMain: a.is_default || a.is_main || false,
         }));
         if(typeof renderAddrs === 'function') renderAddrs();
         // İlk adresi profil formuna yaz
         if(addrs && addrs.length) {
-          const main = addrs.find(a=>a.is_default) || addrs[0];
+          const main = addrs.find(a=>a.is_default || a.is_main) || addrs[0];
           const st = document.getElementById('inp-street');
           const hs = document.getElementById('inp-house');
           if(st && main.street) st.value = main.street;

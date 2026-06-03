@@ -406,9 +406,10 @@ async function doRegister(){
         await sb.from('user_addresses').insert({
           user_id:data.user.id,
           label: lang==='ru'?'Домашний':'Үй',
+          title_ru:'Домашний', title_kk:'Үй',
           street:street,
           address:street+', '+city,
-          is_default:true
+          is_default:true, is_main:true
         });
       }
       // Dükkan sahibiyse pending store oluştur
