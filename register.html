@@ -399,15 +399,33 @@ async function doRegister(){
         id:data.user.id,
         phone:'+7'+ph,
         full_name:fullName,
-        role:'customer'  // Sadece customer! Toptancıyı müdür atar
+        role: regType === 'store_owner' ? 'store_owner' : 'customer'
       });
-      // Adres kaydet
-      if(street){
+      // Adres kaydet (müşteri için)
+      if(street && regType !== 'store_owner'){
         await sb.from('user_addresses').insert({
           user_id:data.user.id,
-          street:street+', '+city,
-          is_main:true
+          label: lang==='ru'?'Домашний':'Үй',
+          street:street,
+          address:street+', '+city,
+          is_default:true
         });
+      }
+      // Dükkan sahibiyse pending store oluştur
+      if(regType === 'store_owner') {
+        try {
+          const {data:newStore} = await sb.from('stores').insert({
+            name: fullName + ' (Ожидает активации)',
+            phone: '+7'+ph,
+            address: city || 'Алматы',
+            is_active: false,
+          }).select().single();
+          if(newStore?.id) {
+            await sb.from('store_members').insert({
+              store_id:newStore.id, user_id:data.user.id, role:'owner'
+            });
+          }
+        } catch(e2) { console.log('pending store:', e2.message); }
       }
     }
 
@@ -417,23 +435,8 @@ async function doRegister(){
     $('login-row').style.display='none';
     document.querySelector('.staff-link').style.display='none';
     $('suc-screen').classList.add('show');
-    // Dükkan sahibiyse pending store oluştur + admin'e yönlendir
     if(regType === 'store_owner') {
-      try {
-        const fullName = $('inp-name')?.value.trim() || '';
-        const ph = $('inp-ph')?.value.replace(/\D/g,'') || '';
-        await sb.from('users').update({role:'store_owner'}).eq('id', userId);
-        const {data:newStore} = await sb.from('stores').insert({
-          name: fullName + ' (Ожидает активации)',
-          phone: ph ? '+7'+ph : '',
-          address: $('inp-addr') ? $('inp-addr').value.trim() : 'Алматы',
-          is_active: false,
-        }).select().single();
-        if(newStore?.id) {
-          await sb.from('store_members').insert({store_id:newStore.id, user_id:userId, role:'owner'});
-        }
-      } catch(e2) { console.log('pending store:', e2.message); }
-      setTimeout(()=>window.location.href='login.html',2000);
+      setTimeout(()=>window.location.href='login.html',2500);
     } else {
       setTimeout(()=>window.location.href='musteri_dashboard.html',2000);
     }
