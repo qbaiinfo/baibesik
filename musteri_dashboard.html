@@ -182,6 +182,36 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 </head>
 <body>
 <script>
+const SUPABASE_URL_BADGE='https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY_BADGE='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+// ── KULLANICI ROZETİ (kim giriş yaptı) ──
+function showUserBadge(name, role){
+  const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'Менеджер',warehouse:'Склад',wholesale:'Оптовик',customer:'Клиент'};
+  const roleColors = {super_admin:'#7c3aed',store_owner:'#f97316',manager:'#3b82f6',warehouse:'#10b981',wholesale:'#0891b2',customer:'#64748b'};
+  const rl = roleLabels[role]||role||'';
+  const rc = roleColors[role]||'#64748b';
+  let b = document.getElementById('user-badge');
+  if(!b){
+    b = document.createElement('div');
+    b.id = 'user-badge';
+    b.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e2e8f0;border-radius:30px;padding:5px 6px 5px 12px;box-shadow:0 4px 14px rgba(0,0,0,.12);font-family:system-ui,sans-serif;max-width:90vw';
+    document.body.appendChild(b);
+  }
+  b.innerHTML = '<div style="width:30px;height:30px;border-radius:50%;background:'+rc+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0">'+(name?name.charAt(0).toUpperCase():'?')+'</div>'+
+    '<div style="display:flex;flex-direction:column;line-height:1.1;overflow:hidden"><span style="font-size:13px;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">'+(name||'—')+'</span><span style="font-size:10px;font-weight:700;color:'+rc+'">'+rl+'</span></div>'+
+    '<button onclick="badgeLogout()" title="Выйти" style="width:30px;height:30px;border:none;border-radius:50%;background:#fef2f2;color:#ef4444;cursor:pointer;font-size:15px;flex-shrink:0">🚪</button>';
+}
+async function badgeLogout(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL_BADGE, SUPABASE_KEY_BADGE);
+    await sb.auth.signOut();
+  } catch(e){}
+  window.location.href = 'login.html';
+}
+</script>
+<script>
 /* BAIBESIK_AUTH_GUARD */
 (function(){ document.documentElement.style.visibility='hidden'; })();
 (async function(){
@@ -191,6 +221,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
     const {data:{session}}=await sb.auth.getSession();
     if(!session) { window.location.replace('login.html'); return; }
     document.documentElement.style.visibility='visible';
+    try { const {data:u}=await sb.from('users').select('role,full_name').eq('id',session.user.id).single(); if(u) showUserBadge(u.full_name, u.role); } catch(e){}
   } catch(e) { window.location.replace('login.html'); }
 })();
 </script>
@@ -780,11 +811,11 @@ function renderFavs(){
   }
   document.getElementById('favs-grid').innerHTML=favList.map(f=>`
     <div class="fav-card">
-      <div class="fav-img">${f.icon}<button class="fav-del" onclick="removeFav(${f.id})">✕</button></div>
+      <div class="fav-img">${f.icon}<button class="fav-del" onclick="removeFav('${f.id}')">✕</button></div>
       <div class="fav-body">
         <div class="fav-name">${lang==='ru'?f.name_ru:f.name_kk}</div>
         <div class="fav-price">${f.price.toLocaleString()} ₸</div>
-        <button class="fav-btn" onclick="addToCart(${f.id})">${d.fav_add}</button>
+        <button class="fav-btn" onclick="addToCart('${f.id}')">${d.fav_add}</button>
       </div>
     </div>`).join('');
 }
