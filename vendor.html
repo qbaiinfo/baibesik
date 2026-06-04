@@ -401,6 +401,17 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
         <div style="font-size:16px;font-weight:800;color:var(--dark)" id="ws-user-name">Имя клиента</div>
         <div style="font-size:12px;color:var(--gray)" id="ws-user-phone">+7 xxx xxx xxxx</div>
       </div>
+      <!-- Müşteri sipariş istatistiği -->
+      <div id="ws-stats" style="display:flex;gap:8px;margin-bottom:16px">
+        <div style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:900;color:var(--orange)" id="ws-stat-orders">—</div>
+          <div style="font-size:10px;color:var(--gray)" id="ws-stat-orders-lbl">Заказов</div>
+        </div>
+        <div style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:900;color:var(--green)" id="ws-stat-spent">—</div>
+          <div style="font-size:10px;color:var(--gray)" id="ws-stat-spent-lbl">Потрачено ₸</div>
+        </div>
+      </div>
       <div style="background:var(--orange-light);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:14px;margin-bottom:16px">
         <div style="font-size:12px;font-weight:800;color:var(--orange-dark);margin-bottom:4px" id="ws-info-title">📦 Что даёт оптовый статус?</div>
         <div style="font-size:12px;color:var(--gray)" id="ws-info-text">Клиент получит скидку 20% на все товары. Вы в любой момент можете отменить статус.</div>
@@ -1350,6 +1361,9 @@ async function loadStoreProducts(sbClient, storeId) {
 
 loadRealOrders();
 
+// 30 sn'de bir otomatik yenile — depo "hazır" yapınca müdür sayfa yenilemeden görür
+setInterval(() => { loadRealOrders(); }, 30000);
+
 // ── WS Modal & Customer functions ──────────────────────────────────────────
 let wsCurrentUser = null;
 
@@ -1369,6 +1383,19 @@ function openWsModal(id,name,phone,isWs){
   if(n)n.textContent=name;
   if(p)p.textContent=phone;
   if(rb)rb.style.display=isWs?'block':'none';
+  // İstatistikleri yükle
+  const so=document.getElementById('ws-stat-orders');
+  const ss=document.getElementById('ws-stat-spent');
+  if(so)so.textContent='...'; if(ss)ss.textContent='...';
+  import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm').then(({createClient})=>{
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    sb.from('orders').select('total').eq('customer_id',id).then(({data:ords})=>{
+      const cnt=ords?ords.length:0;
+      const spent=ords?ords.reduce((s,o)=>s+(parseFloat(o.total)||0),0):0;
+      if(so)so.textContent=cnt;
+      if(ss)ss.textContent=spent.toLocaleString('ru');
+    });
+  }).catch(()=>{ if(so)so.textContent='0'; if(ss)ss.textContent='0'; });
   m.classList.add('open');
 }
 

@@ -215,11 +215,11 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
     </div>
     <div class="sb-card">
       <div class="sb-head">🔧 <span id="sb-fil">Фильтры</span></div>
-      <div class="fi-group">
+      <div class="fi-group" style="display:none">
         <div class="fi-lbl" id="f-type">Тип покупателя</div>
         <div class="chips">
-          <button class="chip active" id="chip-ret" onclick="setCust('retail',this)" id="chip-ret">Розница</button>
-          <button class="chip" id="chip-ws" onclick="setCust('wholesale',this)">Оптом</button>
+          <button class="chip active" id="chip-ret" onclick="setCust('retail',this)">Розница</button>
+          <!-- toptancı katalogda gizli -->
         </div>
       </div>
       <div class="fi-group">
@@ -260,9 +260,9 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
     <div class="toolbar">
       <div class="tl-left">
         <div class="res-cnt" id="res-cnt">Найдено: <strong>0</strong></div>
-        <div class="cust-toggle">
+        <div class="cust-toggle" style="display:none">
           <button class="ct-btn active" id="tb-ret" onclick="setCust('retail',null)">Розница</button>
-          <button class="ct-btn" id="tb-ws" onclick="setCust('wholesale',null)">Опт −20%</button>
+          <!-- toptancı katalogda gizli -->
         </div>
       </div>
       <div class="tl-right">
@@ -316,6 +316,8 @@ const PRODS = [];
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let lang='ru', activeCat=0, cust='retail', heavyFilter='all';
+let FAV_IDS = new Set(); // favori ürün id'leri (catalog local id)
+let FAV_DBMAP = {}; // catalog id -> db_id eşleşmesi
 let view='grid', page=1;
 const PER=16;
 let cartN=Cart ? Cart.count() : 0;
@@ -354,9 +356,9 @@ function setLang(l){
   lang=l;
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
   const d=T[l];
-  ['back-lnk','bc-home','bc-cat','sb-cats','sb-fil','f-type','chip-ret','chip-ws',
+  ['back-lnk','bc-home','bc-cat','sb-cats','sb-fil','chip-ret',
    'f-heavy','chip-all','chip-normal','chip-heavy','f-price','btn-apply','b-sub',
-   'b-cnt-lbl','tb-ret','tb-ws','s-def','s-asc','s-desc','s-name'].forEach(k=>{
+   'b-cnt-lbl','tb-ret','s-def','s-asc','s-desc','s-name'].forEach(k=>{
     const el=document.getElementById(k);if(el)el.textContent=d[k]||'';
   });
   renderCats(); updateBanner(); doFilter(); setupFab();
@@ -403,9 +405,7 @@ function updateBanner(){
 function setCust(t,el){
   cust=t;
   document.getElementById('chip-ret').classList.toggle('active',t==='retail');
-  document.getElementById('chip-ws').classList.toggle('active',t==='wholesale');
   document.getElementById('tb-ret').classList.toggle('active',t==='retail');
-  document.getElementById('tb-ws').classList.toggle('active',t==='wholesale');
   doFilter();
 }
 function setHeavy(t,el){
@@ -431,7 +431,7 @@ function doFilter(){
 
   let list=PRODS.filter(p=>{
     if(activeCat!==0 && p.cat!==activeCat) return false;
-    const pr=cust==='wholesale'?p.ws:p.price;
+    const pr=p.price;
     if(pr<minV||pr>maxV) return false;
     if(heavyFilter==='normal' && p.heavy) return false;
     if(heavyFilter==='heavy' && !p.heavy) return false;
@@ -445,8 +445,8 @@ function doFilter(){
     return true;
   });
 
-  if(sort==='asc') list.sort((a,b)=>(cust==='wholesale'?a.ws-b.ws:a.price-b.price));
-  else if(sort==='desc') list.sort((a,b)=>(cust==='wholesale'?b.ws-a.ws:b.price-a.price));
+  if(sort==='asc') list.sort((a,b)=>a.price-b.price);
+  else if(sort==='desc') list.sort((a,b)=>b.price-a.price);
   else if(sort==='name') list.sort((a,b)=>(lang==='ru'?a.ru:a.kk).localeCompare(lang==='ru'?b.ru:b.kk));
 
   // count
@@ -483,7 +483,7 @@ function renderProds(list,d){
 }
 
 function gridCard(p,d){
-  const basePrice=cust==='wholesale'?p.ws:p.price;
+  const basePrice=p.price;
   const disc = (p.discount||0);
   const finalPrice = disc > 0 ? Math.round(basePrice * (100-disc)/100) : basePrice;
   const name=lang==='ru'?p.ru:p.kk;
@@ -493,17 +493,19 @@ function gridCard(p,d){
         ${disc>0?'<span class="pbadge" style="background:#ef4444;color:#fff;left:8px;right:auto">-'+disc+'%</span>':''}
         ${p.heavy?'<span class="pbadge pb-heavy">'+d.heavy_lbl+'</span>':''}
         ${p.pack_qty>1&&!p.image_url?'<span class="pbadge pb-pack" style="top:'+(p.heavy?'28px':'8px')+'">'+p.pack_qty+'шт/уп</span>':''}
+        <button onclick="toggleFav(${p.id},event)" id="fav-${p.id}" title="Избранное" style="position:absolute;top:8px;right:8px;width:32px;height:32px;border:none;border-radius:50%;background:rgba(255,255,255,.92);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.15);z-index:2">${FAV_IDS.has(p.id)?'❤️':'🤍'}</button>
       </div>
       <div class="pbody">
         <div class="pcode">${p.code}</div>
         <div class="pname">${name}</div>
         <div class="pspec">${p.spec}</div>
+        ${p.store_name?`<div style="font-size:10px;color:#f97316;font-weight:700;margin-top:2px">🏪 ${p.store_name}</div>`:''}
         <div class="pfooter">
           <div class="pprices">
             ${disc>0
               ? `<span style="text-decoration:line-through;color:#94a3b8;font-size:11px">${fmt(basePrice)} ₸</span><span class="price-ret" style="color:#ef4444">${fmt(finalPrice)} ₸</span>`
               : `<span class="price-ret">${fmt(basePrice)} ₸</span>`}
-            ${cust==='wholesale'?`<span class="price-ws" style="color:var(--green);font-weight:900">📦 ${fmt(p.ws)} ₸</span>`:`<span style="font-size:10px;color:var(--gray)">${d.ws_contact||'Опт: у менеджера'}</span>`}
+
             ${p.pack_qty>1?`<span class="price-pack">уп. ${p.pack_price.toLocaleString('ru')} ₸ (${p.pack_qty}шт)</span>`:''}
           </div>
           <button class="btn-cart" id="cb-${p.id}" onclick="addCart(${p.id},event)">${d.add}</button>
@@ -513,7 +515,7 @@ function gridCard(p,d){
 }
 
 function listCard(p,d){
-  const price=cust==='wholesale'?p.ws:p.price;
+  const price=p.price;
   const name=lang==='ru'?p.ru:p.kk;
   return `
     <div class="list-card">
@@ -525,7 +527,7 @@ function listCard(p,d){
       </div>
       <div class="list-right">
         <div class="price-ret">${fmt(price)} ₸</div>
-        ${cust==='retail'?`<div class="price-ws">${d.ws_lbl} ${fmt(p.ws)} ₸</div>`:''}
+        
         ${p.pack_qty>1?`<div class="price-pack">уп. ${p.pack_price.toLocaleString('ru')} ₸ (${p.pack_qty}шт)</div>`:''}
         <button class="btn-cart" style="margin-top:6px" id="cb-${p.id}" onclick="addCart(${p.id},event)">${d.add}</button>
       </div>
@@ -557,7 +559,7 @@ function addCart(id,e){
     ru: p.ru,
     kk: p.kk,
     spec: p.spec||'',
-    price: cust==='wholesale' ? p.ws : p.price,
+    price: p.price,
     ws: p.ws,
     pack_qty: p.pack_qty||1,
     pack_price: p.pack_price||p.price,
@@ -632,6 +634,7 @@ async function loadSupabaseProducts() {
       ws_discount: p.wholesale_discount_percent || 0,
       tags: p.description_ru || '',
       is_db: true, // Supabase'den geldiğini işaretle
+      db_id: p.id, // gerçek DB id (favori için)
     }));
 
     // Dükkan iletişim bilgisi (ilk ürün store'undan)
@@ -649,6 +652,7 @@ async function loadSupabaseProducts() {
     // Kategori sayılarını güncelle
     renderCats();
     doFilter();
+    loadFavs(); // favori kalpleri yükle
 
     // Banner güncelle
     document.getElementById('b-sub').textContent =
@@ -781,6 +785,57 @@ async function aiSend() {
       ? 'Извините, помощник временно недоступен. Для регистрации нажмите «Войти» вверху.'
       : 'Кешіріңіз, көмекші қолжетімсіз. Тіркелу үшін жоғарыдан «Кіру» басыңыз.';
   }
+}
+
+
+
+// ─── FAVORİ (избранное) ───
+async function loadFavs(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return; // giriş yoksa favori yok
+    const {data:rows} = await sb.from('favourites')
+      .select('product_id').eq('user_id', session.user.id);
+    FAV_IDS.clear();
+    // db_id -> catalog id eşleşmesi: PRODUCTS içinde db_id ile bul
+    (rows||[]).forEach(r=>{
+      const prod = (typeof PRODS!=='undefined'?PRODS:[]).find(p=>p.db_id===r.product_id);
+      if(prod) FAV_IDS.add(prod.id);
+    });
+    doFilter(); // kalpleri güncelle
+  } catch(e){ console.log('loadFavs:', e.message); }
+}
+
+async function toggleFav(localId, ev){
+  if(ev){ ev.stopPropagation(); ev.preventDefault(); }
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session){
+      alert(lang==='ru'?'Войдите, чтобы добавить в избранное':'Таңдаулыға қосу үшін кіріңіз');
+      window.location.href='login.html';
+      return;
+    }
+    const prod = (typeof PRODS!=='undefined'?PRODS:[]).find(p=>p.id===localId);
+    const dbId = prod ? prod.db_id : null;
+    if(!dbId){ console.log('db_id yok'); return; }
+    const btn = document.getElementById('fav-'+localId);
+    if(FAV_IDS.has(localId)){
+      // kaldır
+      FAV_IDS.delete(localId);
+      if(btn) btn.textContent='🤍';
+      await sb.from('favourites').delete()
+        .eq('user_id', session.user.id).eq('product_id', dbId);
+    } else {
+      // ekle
+      FAV_IDS.add(localId);
+      if(btn) btn.textContent='❤️';
+      await sb.from('favourites').insert({user_id: session.user.id, product_id: dbId});
+    }
+  } catch(e){ console.log('toggleFav:', e.message); }
 }
 
 
