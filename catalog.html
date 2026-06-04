@@ -612,13 +612,9 @@ async function loadSupabaseProducts() {
     }
 
     if(error || !products || products.length === 0) {
-      const dbg = document.getElementById('b-sub');
-      if(dbg) dbg.textContent = '⚠️ Ürün gelmedi: ' + (error ? error.message : '0 ürün döndü');
       console.log('Supabase ürün yok', error);
       return;
     }
-    // DEBUG: kaç ürün geldi
-    { const dbg=document.getElementById('b-sub'); if(dbg) dbg.textContent = '✓ '+products.length+' ürün geldi'; }
 
     // Supabase ürünlerini PRODS formatına çevir
     const dbProds = products.map((p, i) => ({
