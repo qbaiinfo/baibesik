@@ -242,7 +242,7 @@ async function badgeLogout(){
     }
     // Yetki tamam — içeriği göster
     document.documentElement.style.visibility = 'visible';
-    showUserBadge(user.full_name, user.role);
+    { const hn=document.getElementById('admin-name'); if(hn && user.full_name) hn.textContent=user.full_name; }
   } catch(e) {
     window.location.replace('login.html?staff=1');
   }

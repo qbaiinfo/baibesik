@@ -260,7 +260,7 @@ async function badgeLogout(){
     }
     // Yetki tamam — içeriği göster
     document.documentElement.style.visibility = 'visible';
-    showUserBadge(user.full_name, user.role);
+    { const hn=document.getElementById('h-name'); if(hn && user.full_name) hn.textContent=user.full_name; }
   } catch(e) {
     window.location.replace('login.html?staff=1');
   }
@@ -787,7 +787,7 @@ async function loadDepoUser() {
     setTimeout(updateDepoHeader, 1500);
 
     // Logout
-    const hr = document.querySelector('.hr');
+    const hr = document.querySelector('.header-right');
     if(hr && !document.getElementById('logout-btn')) {
       const btn = document.createElement('button');
       btn.id = 'logout-btn';

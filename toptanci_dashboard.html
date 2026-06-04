@@ -227,7 +227,8 @@ async function badgeLogout(){
     }
     // Yetki tamam — içeriği göster
     document.documentElement.style.visibility = 'visible';
-    showUserBadge(user.full_name, user.role);
+    { const hn=document.getElementById('h-name'); if(hn && user.full_name) hn.textContent=user.full_name; }
+    { const hr=document.querySelector('.header-right'); if(hr && !document.getElementById('logout-btn')){ const b=document.createElement('button'); b.id='logout-btn'; b.textContent='🚪'; b.title='Выйти'; b.style.cssText='background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:14px'; b.onclick=async()=>{ await sb.auth.signOut(); window.location.href='login.html'; }; hr.appendChild(b); } }
   } catch(e) {
     window.location.replace('login.html?staff=1');
   }
