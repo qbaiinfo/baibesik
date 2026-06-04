@@ -601,12 +601,20 @@ async function loadSupabaseProducts() {
     // Dükkan sayfasıysa sadece o dükkanın ürünleri
     const storeParam = new URLSearchParams(location.search).get('store');
     if(storeParam) query = query.eq('store_id', storeParam);
-    const {data:products, error} = await query.order('created_at', {ascending: false});
+    let {data:products, error} = await query.order('created_at', {ascending: false});
+
+    // Join RLS yüzünden patlarsa join'siz tekrar dene (ürünler yine de görünsün)
+    if(error || !products) {
+      let q2 = sb.from('products').select('*').eq('is_active', true);
+      if(storeParam) q2 = q2.eq('store_id', storeParam);
+      const r2 = await q2.order('created_at', {ascending:false});
+      products = r2.data; error = r2.error;
+    }
 
     if(error || !products || products.length === 0) {
       // Supabase'den ürün yok
     document.getElementById('b-sub').textContent = lang==='ru' ? 'Загрузка товаров...' : 'Тауарлар жүктелуде...';
-    console.log('Supabase ürün yok');
+    console.log('Supabase ürün yok', error);
       return;
     }
 
