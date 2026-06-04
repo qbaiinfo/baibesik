@@ -901,6 +901,21 @@ async function markItemDone(orderId, itemIdx) {
         title_ru: `Заказ ${orderId} готов к выдаче!`,
         title_kk: `${orderId} тапсырысы дайын!`,
       });
+      // Müşteriye "siparişiniz hazır" bildirimi
+      try {
+        const {data:ordRow} = await sb.from('orders')
+          .select('customer_id, id').eq('order_number', orderId).single();
+        if(ordRow && ordRow.customer_id){
+          await sb.from('notifications').insert({
+            user_id: ordRow.customer_id, type:'done',
+            title_ru: `Заказ ${orderId} собран и готов! ✅`,
+            title_kk: `${orderId} тапсырыс жиналды, дайын! ✅`,
+            body_ru: 'Ваш заказ собран. Скоро отправим курьером или можно забрать.',
+            body_kk: 'Тапсырысыңыз жиналды. Жақында жібереміз.',
+            order_id: ordRow.id,
+          });
+        }
+      } catch(e2){ console.log('müşteri bildirim:', e2.message); }
     } catch(e) { console.log(e.message); }
     order.status = 'ready';
   }

@@ -1232,17 +1232,22 @@ async function updateOrderStatus(orderNumber, newStatus) {
     
     if(ord) {
       const statusTexts = {
-        preparing: {ru:'Склад собирает заказ', kk:'Қойма тапсырысты жинайды'},
-        ready:     {ru:'Заказ готов к выдаче!', kk:'Тапсырыс дайын!'},
-        delivery:  {ru:'Курьер выехал к вам', kk:'Курьер сізге жолда'},
-        done:      {ru:'Заказ доставлен', kk:'Тапсырыс жеткізілді'},
+        preparing: {ru:'Склад собирает ваш заказ', kk:'Қойма тапсырысыңызды жинауда', type:'order',
+                    body_ru:'Мы начали собирать ваш заказ. Скоро будет готов!', body_kk:'Тапсырысыңызды жинай бастадық!'},
+        ready:     {ru:'Заказ собран и готов! ✅', kk:'Тапсырыс жиналды, дайын! ✅', type:'done',
+                    body_ru:'Ваш заказ полностью собран и готов к доставке/выдаче.', body_kk:'Тапсырысыңыз толық жиналды.'},
+        delivery:  {ru:'Курьер выехал к вам 🛵', kk:'Курьер сізге жолда 🛵', type:'delivery',
+                    body_ru:'Курьер уже в пути. Ожидайте доставку.', body_kk:'Курьер жолда. Жеткізуді күтіңіз.'},
+        done:      {ru:'Заказ доставлен 🎉', kk:'Тапсырыс жеткізілді 🎉', type:'done',
+                    body_ru:'Спасибо за покупку! Ждём вас снова.', body_kk:'Сатып алғаныңызға рақмет!'},
       };
       const txt = statusTexts[newStatus];
       if(txt) {
         await sb.from('notifications').insert({
-          user_id: ord.customer_id, type:'order',
+          user_id: ord.customer_id, type: txt.type||'order',
           title_ru: `Заказ ${ord.order_number}: ${txt.ru}`,
           title_kk: `${ord.order_number}: ${txt.kk}`,
+          body_ru: txt.body_ru||'', body_kk: txt.body_kk||'',
           order_id: ord.id,
         });
       }

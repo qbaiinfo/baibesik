@@ -851,6 +851,18 @@ async function placeOrder(){
           await sb.from('notifications').insert(notifs);
         }
 
+        // Müşteriye "siparişiniz alındı" bildirimi
+        if(order.customer_id){
+          await sb.from('notifications').insert({
+            user_id: order.customer_id, type:'order',
+            title_ru: `Заказ ${order.order_number} принят 🛒`,
+            title_kk: `${order.order_number} тапсырыс қабылданды 🛒`,
+            body_ru: `Сумма: ${sub.toLocaleString()} ₸. Магазин получил ваш заказ.`,
+            body_kk: `Сомасы: ${sub.toLocaleString()} ₸. Дүкен тапсырысыңызды алды.`,
+            order_id: order.id,
+          });
+        }
+
         orderNum++;
       }
 
