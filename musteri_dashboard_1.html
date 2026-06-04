@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Мой кабинет</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;
+  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;
+  --border:#e2e8f0;--light:#f8fafc;
+  --green:#10b981;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+
+/* ── HEADER ── */
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;text-decoration:none;flex-shrink:0}
+.logo span{color:#fff}
+.hc{flex:1}
+.hc-label{font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:1px}
+.hc-name{font-size:14px;font-weight:700;color:#fff}
+.hr{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Noto Sans',sans-serif;transition:all .2s}
+.lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.btn-catalog{background:var(--orange);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;font-family:'Noto Sans',sans-serif}
+.notif-btn{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.1);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:15px;position:relative}
+.ndot{position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--orange);border-radius:50%}
+
+/* ── NAV TABS ── */
+.nav-tabs{background:#fff;border-bottom:2px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;overflow-x:auto;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.ntab{padding:12px 16px;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer;border-bottom:3px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:'Noto Sans',sans-serif;white-space:nowrap;transition:all .2s;position:relative}
+.ntab:hover{color:var(--orange)}
+.ntab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.nbadge{position:absolute;top:8px;right:2px;background:var(--red);color:#fff;border-radius:50%;width:15px;height:15px;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center}
+
+/* ── CONTENT ── */
+.content{max-width:1100px;margin:0 auto;padding:20px 16px}
+.tab-sec{display:none}
+.tab-sec.active{display:block}
+
+/* ── PROFILE BANNER ── */
+.profile-banner{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 60%,#1a0a00 100%);border-radius:var(--radius);padding:22px 26px;display:flex;align-items:center;gap:18px;margin-bottom:22px;position:relative;overflow:hidden}
+.profile-banner::after{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(249,115,22,.12),transparent);pointer-events:none}
+.pav{width:54px;height:54px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;flex-shrink:0}
+.pinfo{flex:1}
+.pname{font-size:18px;font-weight:900;color:#fff}
+.pmeta{font-size:12px;color:#94a3b8;margin-top:3px}
+.pbadge{background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);color:var(--orange);font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px}
+.pstats{display:flex;gap:22px;flex-shrink:0}
+.ps{text-align:center}
+.ps-num{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);display:block}
+.ps-lbl{font-size:10px;color:#64748b;text-transform:uppercase;font-weight:700;letter-spacing:.5px}
+
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.sc{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-left:4px solid var(--border)}
+.sc.orange{border-left-color:var(--orange)}
+.sc.green{border-left-color:var(--green)}
+.sc.blue{border-left-color:var(--blue)}
+.sc-icon{font-size:20px;margin-bottom:6px}
+.sc-lbl{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase}
+.sc-val{font-family:'Bebas Neue',sans-serif;font-size:26px;margin-top:3px}
+.sc-val.orange{color:var(--orange-dark)}
+.sc-val.green{color:var(--green)}
+.sc-val.blue{color:var(--blue)}
+
+/* ── ORDER CARD ── */
+.order-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden;transition:box-shadow .2s}
+.order-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07)}
+.oh{padding:13px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.oid{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange);letter-spacing:1px}
+.oinfo{flex:1}
+.odate{font-size:12px;color:var(--gray);font-weight:600}
+.ostore{font-size:13px;font-weight:700;color:var(--dark)}
+.obody{padding:14px 16px}
+.oitems{font-size:12px;color:var(--dark);line-height:1.7}
+.oitem-row{display:flex;gap:8px;align-items:baseline}
+.oitem-name{font-weight:700}
+.oitem-qty{color:var(--orange);font-weight:800;font-size:11px}
+.ofooter{padding:12px 16px;background:var(--light);border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.oamount{font-size:15px;font-weight:900;color:var(--green);margin-right:auto}
+
+/* ── TRACKER ── */
+.tracker{display:flex;align-items:center;gap:0;margin:14px 0}
+.tr-step{display:flex;flex-direction:column;align-items:center;flex:1}
+.tr-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;border:2px solid var(--border);background:#fff;position:relative;z-index:1;transition:all .3s}
+.tr-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.tr-dot.active{background:var(--orange);border-color:var(--orange);color:#fff}
+.tr-lbl{font-size:10px;color:var(--gray);margin-top:4px;font-weight:700;text-align:center;white-space:nowrap}
+.tr-line{flex:1;height:2px;background:var(--border);margin-top:-13px;position:relative;top:-6px}
+.tr-line.done{background:var(--green)}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-new{background:rgba(249,115,22,.1);color:var(--orange)}
+.badge-ready{background:rgba(245,158,11,.1);color:var(--yellow)}
+.badge-delivery{background:rgba(59,130,246,.1);color:var(--blue)}
+.badge-done{background:rgba(16,185,129,.1);color:var(--green)}
+.badge-kaspi{background:rgba(239,68,68,.1);color:var(--red)}
+.badge-halyk{background:rgba(16,185,129,.1);color:var(--green)}
+.badge-cash{background:rgba(245,158,11,.1);color:var(--yellow)}
+.badge-courier{background:rgba(59,130,246,.1);color:var(--blue)}
+.badge-pickup{background:rgba(100,116,139,.1);color:var(--gray)}
+
+/* ── BUTTONS ── */
+.btn{border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-orange:hover{background:var(--orange-dark)}
+.btn-ghost{background:#fff;color:var(--gray);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+/* ── SECTION CARD ── */
+.sec-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
+.sec-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sec-title{font-size:13px;font-weight:800;color:var(--dark);text-transform:uppercase;letter-spacing:.5px}
+.sec-body{padding:16px 18px}
+
+/* ── TABLE ── */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:11px;text-transform:uppercase;color:var(--gray);padding:8px 10px;border-bottom:2px solid var(--border);text-align:left;font-weight:800;white-space:nowrap}
+.data-table td{font-size:13px;padding:11px 10px;border-bottom:1px solid var(--border);font-weight:600;color:var(--dark);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--light)}
+
+/* ── FAVOURITE GRID ── */
+.fav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.fav-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s}
+.fav-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.08);transform:translateY(-2px)}
+.fav-img{aspect-ratio:1;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:36px;position:relative}
+.fav-del{position:absolute;top:6px;right:6px;background:rgba(239,68,68,.1);color:var(--red);border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.fav-body{padding:10px 12px}
+.fav-name{font-size:12px;font-weight:700;color:var(--dark);margin-bottom:5px;line-height:1.3}
+.fav-price{font-size:14px;font-weight:900;color:var(--orange-dark)}
+.fav-btn{width:100%;background:var(--orange);color:#fff;border:none;padding:7px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Noto Sans',sans-serif;margin-top:8px}
+
+/* ── PROFILE FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg-lbl{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+.fg-inp{padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Noto Sans',sans-serif;outline:none;transition:border-color .2s;background:#fff}
+.fg-inp:focus{border-color:var(--orange)}
+.fg-inp:disabled{background:var(--light);color:var(--gray)}
+
+/* ── NOTIFICATION CARD ── */
+.notif-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.notif-item:last-child{border-bottom:none}
+.notif-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.notif-icon.orange{background:rgba(249,115,22,.1)}
+.notif-icon.green{background:rgba(16,185,129,.1)}
+.notif-icon.blue{background:rgba(59,130,246,.1)}
+.notif-info{flex:1}
+.notif-title{font-size:13px;font-weight:700;color:var(--dark)}
+.notif-sub{font-size:12px;color:var(--gray);margin-top:2px}
+.notif-time{font-size:11px;color:#94a3b8;flex-shrink:0}
+.notif-dot-new{width:8px;height:8px;background:var(--orange);border-radius:50%;flex-shrink:0;margin-top:5px}
+
+/* ── EMPTY ── */
+.empty-box{text-align:center;padding:48px;color:var(--gray)}
+.empty-icon{font-size:44px;margin-bottom:10px}
+.empty-text{font-size:14px;font-weight:600;margin-bottom:16px}
+
+/* ── CHART (mini) ── */
+.chart-wrap{height:180px;position:relative}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .pstats{display:none}
+  .form-grid{grid-template-columns:1fr}
+  .fav-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+<script src="cart.js"></script>
+</head>
+<body>
+<script>
+/* BAIBESIK_AUTH_GUARD */
+(function(){ document.documentElement.style.visibility='hidden'; })();
+(async function(){
+  try {
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session) { window.location.replace('login.html'); return; }
+    document.documentElement.style.visibility='visible';
+  } catch(e) { window.location.replace('login.html'); }
+})();
+</script>
+
+<script>
+// Auth koruma - giriş yapılmamışsa login'e yönlendir
+(async()=>{
+  try{
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='login.html?next='+encodeURIComponent(window.location.pathname.split('/').pop());}
+  }catch(e){console.log('Auth check:',e.message);}
+})();
+</script>
+
+<!-- HEADER -->
+<header>
+  <div class="hi">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="hc">
+      <div class="hc-label" id="h-label">Личный кабинет</div>
+      <div class="hc-name" id="h-name">...</div>
+    </div>
+    <div class="hr">
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">RU</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">KK</button>
+      <button class="notif-btn" onclick="showTab('notif')">🔔<span class="ndot"></span></button>
+      <a href="catalog.html" class="btn-catalog" id="btn-cat">← Каталог</a>
+    </div>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <div class="nav-inner">
+    <button class="ntab active" onclick="showTab('overview')" id="nt-overview">📊 <span id="tl-ov">Обзор</span></button>
+    <button class="ntab" onclick="showTab('orders')" id="nt-orders">
+      📦 <span id="tl-ord">Заказы</span>
+      <span class="nbadge" id="active-badge">2</span>
+    </button>
+    <button class="ntab" onclick="showTab('history')" id="nt-history">📋 <span id="tl-hist">История</span></button>
+    <button class="ntab" onclick="showTab('favs')" id="nt-favs">❤️ <span id="tl-fav">Избранное</span></button>
+    <button class="ntab" onclick="showTab('notif')" id="nt-notif">
+      🔔 <span id="tl-notif">Уведомления</span>
+      <span class="nbadge">3</span>
+    </button>
+    <button class="ntab" onclick="showTab('profile')" id="nt-profile">👤 <span id="tl-prof">Профиль</span></button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ══ ОБЗОР ══ -->
+  <div class="tab-sec active" id="sec-overview">
+
+    <div class="profile-banner">
+      <div class="pav" id="pav">Е</div>
+      <div class="pinfo">
+        <div class="pname" id="p-name">...</div>
+        <div class="pmeta" id="p-meta">📍 Алматы, мкр. Байбесик &nbsp;|&nbsp; +7 707 123 4567</div>
+        <div class="pbadge" id="p-badge">🛒 Розничный покупатель</div>
+      </div>
+      <div class="pstats">
+        <div class="ps"><span class="ps-num" id="ps-total">0</span><span class="ps-lbl" id="ps1">Заказов</span></div>
+        <div class="ps"><span class="ps-num" id="ps-spent">0</span><span class="ps-lbl" id="ps2">₸ Итого</span></div>
+        <div class="ps"><span class="ps-num" id="ps-active">0</span><span class="ps-lbl" id="ps3">Активных</span></div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="sc orange">
+        <div class="sc-icon">📦</div>
+        <div class="sc-lbl" id="sc1-lbl">В обработке</div>
+        <div class="sc-val orange">2</div>
+      </div>
+      <div class="sc green">
+        <div class="sc-icon">✅</div>
+        <div class="sc-lbl" id="sc2-lbl">Доставлено (май)</div>
+        <div class="sc-val green">3</div>
+      </div>
+      <div class="sc blue">
+        <div class="sc-icon">💰</div>
+        <div class="sc-lbl" id="sc3-lbl">Потрачено (май)</div>
+        <div class="sc-val blue">42K ₸</div>
+      </div>
+    </div>
+
+
+    <!-- YARDIM KUTUCUKLARI -->
+    <div class="sec-card" id="help-cards-section">
+      <div class="sec-head"><span class="sec-title" id="help-title">💡 Как пользоваться baibesik</span></div>
+      <div class="sec-body">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+          <div class="help-card" onclick="window.location.href='catalog.html'" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:16px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+            <div style="font-size:28px;margin-bottom:6px">🛒</div>
+            <div style="font-weight:800;font-size:13px;color:#9a3412" id="hc1-t">Сделать заказ</div>
+            <div style="font-size:11px;color:#c2410c;margin-top:3px" id="hc1-d">Выберите товары и добавьте в корзину</div>
+          </div>
+          <div class="help-card" onclick="window.location.href='magazalar.html'" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:16px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+            <div style="font-size:28px;margin-bottom:6px">🏪</div>
+            <div style="font-weight:800;font-size:13px;color:#1e40af" id="hc2-t">Магазины</div>
+            <div style="font-size:11px;color:#2563eb;margin-top:3px" id="hc2-d">Все магазины Алматы</div>
+          </div>
+          <div class="help-card" onclick="window.location.href='optovikam.html'" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:16px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+            <div style="font-size:28px;margin-bottom:6px">📦</div>
+            <div style="font-weight:800;font-size:13px;color:#15803d" id="hc3-t">Стать оптовиком</div>
+            <div style="font-size:11px;color:#16a34a;margin-top:3px" id="hc3-d">Оптовые цены и скидки</div>
+          </div>
+          <div class="help-card" onclick="openCustAI()" style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:14px;padding:16px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+            <div style="font-size:28px;margin-bottom:6px">🤖</div>
+            <div style="font-weight:800;font-size:13px;color:#7c3aed" id="hc4-t">AI Помощник</div>
+            <div style="font-size:11px;color:#9333ea;margin-top:3px" id="hc4-d">Задайте любой вопрос</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI ÖNERİLERİ -->
+    <div class="sec-card" id="ai-recommend-section">
+      <div class="sec-head"><span class="sec-title" id="ai-rec-title">✨ Рекомендации для вас</span></div>
+      <div class="sec-body" id="ai-recommend-body">
+        <div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">⏳ Подбираем товары...</div>
+      </div>
+    </div>
+
+    <!-- АКТИВНЫЙ ЗАКАЗ -->
+    <div class="sec-card">
+      <div class="sec-head">
+        <span class="sec-title" id="active-title">🔔 Активные заказы</span>
+        <button class="btn btn-ghost btn-sm" onclick="showTab('orders')" id="all-orders-btn">Все заказы →</button>
+      </div>
+      <div class="sec-body" id="active-orders-body"></div>
+    </div>
+
+    <!-- ПОСЛЕДНИЕ УВЕДОМЛЕНИЯ -->
+    <div class="sec-card">
+      <div class="sec-head">
+        <span class="sec-title" id="notif-title-ov">🔔 Уведомления</span>
+        <button class="btn btn-ghost btn-sm" onclick="showTab('notif')" id="all-notif-btn">Все →</button>
+      </div>
+      <div class="sec-body" id="notif-preview"></div>
+    </div>
+
+  </div>
+
+  <!-- ══ ЗАКАЗЫ ══ -->
+  <div class="tab-sec" id="sec-orders">
+    <div id="orders-list"><div style="text-align:center;padding:30px;color:var(--gray)">⏳</div></div></div>
+  </div>
+
+  <!-- ══ ИСТОРИЯ ══ -->
+  <div class="tab-sec" id="sec-history">
+    <div class="sec-card">
+      <div class="sec-head">
+        <span class="sec-title" id="hist-title">📋 История заказов</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" style="min-width:580px">
+          <thead><tr>
+            <th>ID</th>
+            <th id="th-date">Дата</th>
+            <th id="th-shop">Товары</th>
+            <th id="th-pay">Оплата</th>
+            <th id="th-deliver">Кол-во</th>
+            <th id="th-amount">Сумма</th>
+            <th id="th-status">Статус</th>
+          </tr></thead>
+          <tbody id="hist-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ИЗБРАННОЕ ══ -->
+  <div class="tab-sec" id="sec-favs">
+    <div class="fav-grid" id="favs-grid"></div>
+  </div>
+
+  <!-- ══ УВЕДОМЛЕНИЯ ══ -->
+  <div class="tab-sec" id="sec-notif">
+    <div class="sec-card">
+      <div class="sec-head">
+        <span class="sec-title" id="notif-title">🔔 Уведомления</span>
+        <button class="btn btn-ghost btn-sm" onclick="markAllRead()" id="mark-all-btn">✓ Всё прочитано</button>
+      </div>
+      <div class="sec-body" id="notif-list"></div>
+    </div>
+  </div>
+
+  <!-- ══ ПРОФИЛЬ ══ -->
+  <div class="tab-sec" id="sec-profile">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+      <!-- ЛИЧНЫЕ ДАННЫЕ -->
+      <div class="sec-card">
+        <div class="sec-head"><span class="sec-title" id="prof-title">👤 Личные данные</span></div>
+        <div class="sec-body">
+          <div class="form-grid">
+            <div class="fg">
+              <span class="fg-lbl" id="lbl-name">Имя и фамилия</span>
+              <input class="fg-inp" value="" id="inp-name" placeholder="Аты-жөні">
+            </div>
+            <div class="fg">
+              <span class="fg-lbl" id="lbl-phone">Телефон</span>
+              <input class="fg-inp" value="" id="inp-phone" placeholder="+7 xxx xxx xxxx" readonly title="Телефон нельзя изменить" style="background:#f1f5f9;color:#94a3b8;cursor:not-allowed">
+            </div>
+            <div class="fg">
+              <span class="fg-lbl" id="lbl-street">Улица</span>
+              <input class="fg-inp" value="" id="inp-street" placeholder="ул. ...">
+            </div>
+            <div class="fg">
+              <span class="fg-lbl" id="lbl-house">Дом / квартира</span>
+              <input class="fg-inp" value="" id="inp-house" placeholder="дом / кв.">
+            </div>
+          </div>
+          <button class="btn btn-orange" onclick="saveProfile()" id="btn-save">💾 Сохранить</button>
+        </div>
+      </div>
+
+      <!-- СТАТИСТИКА -->
+      <div class="sec-card">
+        <div class="sec-head"><span class="sec-title" id="stat-title">📊 Моя статистика</span></div>
+        <div class="sec-body">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:5px">
+                <span id="st-total-lbl">Всего заказов</span><span style="color:var(--orange)" id="st-total-val">0</span>
+              </div>
+              <div style="background:var(--border);border-radius:10px;height:6px;overflow:hidden">
+                <div style="width:80%;height:100%;background:var(--orange);border-radius:10px"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:5px">
+                <span id="st-done-lbl">Доставлено</span><span style="color:var(--green)" id="st-done-val">0</span>
+              </div>
+              <div style="background:var(--border);border-radius:10px;height:6px;overflow:hidden">
+                <div style="width:92%;height:100%;background:var(--green);border-radius:10px"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:5px">
+                <span id="st-spent-lbl">Потрачено всего</span><span style="color:var(--blue)" id="st-spent-val">0 ₸</span>
+              </div>
+              <div style="background:var(--border);border-radius:10px;height:6px;overflow:hidden">
+                <div style="width:60%;height:100%;background:var(--blue);border-radius:10px"></div>
+              </div>
+            </div>
+            <div style="background:var(--orange-light);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:14px;margin-top:4px">
+              <div style="font-size:12px;font-weight:800;color:var(--orange-dark);margin-bottom:4px" id="ws-promo-title">💡 Стать оптовым клиентом</div>
+              <div style="font-size:12px;color:var(--gray);margin-bottom:10px" id="ws-promo-desc">Покупайте оптом и экономьте до 20% на каждом заказе</div>
+              <a href="register.html" class="btn btn-orange btn-sm" id="ws-promo-btn">Узнать подробнее</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- АДРЕСА -->
+    <div class="sec-card">
+      <div class="sec-head">
+        <span class="sec-title" id="addr-title">📍 Мои адреса</span>
+        <button class="btn btn-ghost btn-sm" id="add-addr-btn">+ Добавить</button>
+      </div>
+      <div class="sec-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="addr-grid"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /content -->
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────────────────
+const ORDERS = []; // demo temizlendi
+
+const HISTORY = []; // demo temizlendi
+let MY_ORDERS = []; // gerçek siparişler (açılır liste)
+let ORD_PAGE = 1; const ORD_PER_PAGE = 5; // sipariş sayfalama
+let HIST_PAGE = 1; const HIST_PER_PAGE = 8; // история sayfalama
+let expandedOrders = new Set(); // açık sipariş id'leri
+
+const FAVS = []; // demo temizlendi
+
+let NOTIFS = []; // demo temizlendi — gerçek notifications tablosundan dolar
+
+const ADDRS = [
+];
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let lang = 'ru';
+
+// ─── TRANSLATIONS ───────────────────────────────────────────────────────────
+const T = {
+  ru:{
+    'h-label':'Личный кабинет','btn-cat':'← Каталог',
+    'tl-ov':'Обзор','tl-ord':'Заказы','tl-hist':'История',
+    'tl-fav':'Избранное','tl-notif':'Уведомления','tl-prof':'Профиль',
+    'p-badge':'🛒 Розничный покупатель',
+    'ps1':'Заказов','ps2':'₸ Итого','ps3':'Активных',
+    'sc1-lbl':'В обработке','sc2-lbl':'Доставлено (май)','sc3-lbl':'Потрачено (май)',
+    'active-title':'🔔 Активные заказы','all-orders-btn':'Все заказы →',
+    'notif-title-ov':'🔔 Уведомления','all-notif-btn':'Все →',
+    'hist-title':'📋 История заказов',
+    'th-date':'Дата','th-shop':'Товары','th-pay':'Оплата','th-deliver':'Кол-во','th-amount':'Сумма','th-status':'Статус',
+    'notif-title':'🔔 Уведомления','mark-all-btn':'✓ Всё прочитано',
+    'prof-title':'👤 Личные данные','stat-title':'📊 Моя статистика',
+    'lbl-name':'Имя и фамилия','lbl-phone':'Телефон','lbl-street':'Улица','lbl-house':'Дом / квартира',
+    'btn-save':'💾 Сохранить',
+    'st-total-lbl':'Всего заказов','st-done-lbl':'Доставлено','st-spent-lbl':'Потрачено всего',
+    'ws-promo-title':'💡 Стать оптовым клиентом',
+    'ws-promo-desc':'Покупайте оптом и экономьте до 20% на каждом заказе',
+    'ws-promo-btn':'Узнать подробнее',
+    'addr-title':'📍 Мои адреса','add-addr-btn':'+ Добавить',
+    stat_new:'Новый',stat_ready:'Готовится',stat_delivery:'В пути',stat_done:'Доставлено',
+    pay_kaspi:'📱 Kaspi',pay_halyk:'📱 Halyk',pay_cash:'💵 Наличные',
+    del_courier:'🛵 Курьер',del_pickup:'🏃 Самовывоз',
+    tr1:'Принят',tr2:'Готовится',tr3:'В пути',tr4:'Доставлен',
+    fav_add:'В корзину',
+    addr_main:'Основной',
+    save_ok:'✅ Данные сохранены!',
+    empty_orders:'Нет активных заказов',
+    empty_fav:'Нет избранных товаров',
+    goto_catalog:'Перейти в каталог',
+  },
+  kk:{
+    'h-label':'Жеке кабинет','btn-cat':'← Каталог',
+    'tl-ov':'Шолу','tl-ord':'Тапсырыстар','tl-hist':'Тарих',
+    'tl-fav':'Таңдаулылар','tl-notif':'Хабарламалар','tl-prof':'Профиль',
+    'p-badge':'🛒 Бөлшек сатып алушы',
+    'ps1':'Тапсырыс','ps2':'₸ Барлығы','ps3':'Белсенді',
+    'sc1-lbl':'Өңдеуде','sc2-lbl':'Жеткізілді (мамыр)','sc3-lbl':'Жұмсалды (мамыр)',
+    'active-title':'🔔 Белсенді тапсырыстар','all-orders-btn':'Барлық тапсырыстар →',
+    'notif-title-ov':'🔔 Хабарламалар','all-notif-btn':'Барлығы →',
+    'hist-title':'📋 Тапсырыс тарихы',
+    'th-date':'Күні','th-shop':'Тауарлар','th-pay':'Төлем','th-deliver':'Саны','th-amount':'Сомасы','th-status':'Статус',
+    'notif-title':'🔔 Хабарламалар','mark-all-btn':'✓ Барлығы оқылды',
+    'prof-title':'👤 Жеке деректер','stat-title':'📊 Менің статистикам',
+    'lbl-name':'Аты-жөні','lbl-phone':'Телефон','lbl-street':'Көше','lbl-house':'Үй / пәтер',
+    'btn-save':'💾 Сақтау',
+    'st-total-lbl':'Барлық тапсырыс','st-done-lbl':'Жеткізілді','st-spent-lbl':'Барлығы жұмсалды',
+    'ws-promo-title':'💡 Көтермеші болу',
+    'ws-promo-desc':'Көтерме сатып алып, әр тапсырыста 20% дейін үнемдеңіз',
+    'ws-promo-btn':'Толығырақ білу',
+    'addr-title':'📍 Менің мекенжайларым','add-addr-btn':'+ Қосу',
+    stat_new:'Жаңа',stat_ready:'Дайындалуда',stat_delivery:'Жолда',stat_done:'Жеткізілді',
+    pay_kaspi:'📱 Kaspi',pay_halyk:'📱 Halyk',pay_cash:'💵 Қолма-қол',
+    del_courier:'🛵 Курьер',del_pickup:'🏃 Өзі алады',
+    tr1:'Қабылданды',tr2:'Дайындалуда',tr3:'Жолда',tr4:'Жеткізілді',
+    fav_add:'Себетке',
+    addr_main:'Негізгі',
+    save_ok:'✅ Деректер сақталды!',
+    empty_orders:'Белсенді тапсырыс жоқ',
+    empty_fav:'Таңдаулы тауар жоқ',
+    goto_catalog:'Каталогқа өту',
+  }
+};
+
+// ─── LANG ─────────────────────────────────────────────────────────────────
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
+  const d=T[l];
+  const ids=['h-label','btn-cat','tl-ov','tl-ord','tl-hist','tl-fav','tl-notif','tl-prof',
+    'p-badge','ps1','ps2','ps3','sc1-lbl','sc2-lbl','sc3-lbl','active-title','all-orders-btn',
+    'notif-title-ov','all-notif-btn','hist-title','th-date','th-shop','th-pay','th-deliver','th-amount','th-status',
+    'notif-title','mark-all-btn','prof-title','stat-title','lbl-name','lbl-phone','lbl-street','lbl-house','btn-save',
+    'st-total-lbl','st-done-lbl','st-spent-lbl','ws-promo-title','ws-promo-desc','ws-promo-btn','addr-title','add-addr-btn'];
+  ids.forEach(k=>{const el=document.getElementById(k);if(el)el.textContent=d[k]||'';});
+  renderAll();
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────
+function showTab(id){
+  document.querySelectorAll('.tab-sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  document.getElementById('nt-'+id).classList.add('active');
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────
+function statusBadge(s){
+  const d=T[lang];
+  const cfg={new:{cls:'badge-new',label:d.stat_new},ready:{cls:'badge-ready',label:d.stat_ready},delivery:{cls:'badge-delivery',label:d.stat_delivery},done:{cls:'badge-done',label:d.stat_done}};
+  const c=cfg[s]||cfg.new;
+  return `<span class="badge ${c.cls}">● ${c.label}</span>`;
+}
+function payBadge(p){
+  const d=T[lang];
+  const map={kaspi:`<span class="badge badge-kaspi">${d.pay_kaspi}</span>`,halyk:`<span class="badge badge-halyk">${d.pay_halyk}</span>`,cash:`<span class="badge badge-cash">${d.pay_cash}</span>`};
+  return map[p]||p;
+}
+function delBadge(t){
+  const d=T[lang];
+  return t==='courier'?`<span class="badge badge-courier">${d.del_courier}</span>`:`<span class="badge badge-pickup">${d.del_pickup}</span>`;
+}
+function tracker(track){
+  const d=T[lang];
+  const steps=[d.tr1,d.tr2,d.tr3,d.tr4];
+  let html='<div class="tracker">';
+  track.forEach((s,i)=>{
+    const cls=s.done?'done':(track[i-1]&&track[i-1].done&&!s.done?'active':'');
+    html+=`<div class="tr-step"><div class="tr-dot ${cls}">${s.done?'✓':i+1}</div><div class="tr-lbl">${steps[i]}</div></div>`;
+    if(i<track.length-1) html+=`<div class="tr-line ${s.done?'done':''}"></div>`;
+  });
+  return html+'</div>';
+}
+
+// ─── RENDER ACTIVE ORDERS ─────────────────────────────────────────────────
+function renderActiveOrders(containerId){
+  const d=T[lang];
+  const active=ORDERS.filter(o=>o.status!=='done');
+  const el=document.getElementById(containerId);
+  if(!active.length){
+    el.innerHTML=`<div class="empty-box"><div class="empty-icon">📭</div><div class="empty-text">${d.empty_orders}</div><a href="catalog.html" class="btn btn-orange">${d.goto_catalog}</a></div>`;
+    return;
+  }
+  el.innerHTML=active.map(o=>{
+    const items=o.items.map(it=>`<div class="oitem-row"><span class="oitem-qty">${it.qty}×</span><span class="oitem-name">${lang==='ru'?it.name_ru:it.name_kk}</span><span style="color:var(--gray);font-size:11px">${it.price.toLocaleString()} ₸</span></div>`).join('');
+    const courierInfo=o.courier?`<div style="background:var(--light);border-radius:8px;padding:9px 12px;font-size:12px;font-weight:700;color:var(--gray);margin-top:8px">🛵 ${d.del_courier}: <span style="color:var(--dark)">${o.courier}</span> &nbsp;|&nbsp; 📍 ${lang==='ru'?o.address_ru:o.address_ru}</div>`:'';
+    return `
+      <div class="order-card">
+        <div class="oh">
+          <div class="oid">#${o.id}</div>
+          <div class="oinfo"><div class="ostore">${o.shop}</div><div class="odate">${o.date}</div></div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">${statusBadge(o.status)}<div style="display:flex;gap:4px">${payBadge(o.pay)}${delBadge(o.delivery)}</div></div>
+        </div>
+        <div class="obody">
+          ${tracker(o.track)}
+          <div class="oitems">${items}</div>
+          ${courierInfo}
+        </div>
+        <div class="ofooter">
+          <span class="oamount">${o.amount.toLocaleString()} ₸</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ─── RENDER MY ORDERS (açılır liste + sayfalama) ──────────────────────────
+function renderMyOrders(){
+  const container = document.getElementById('orders-list');
+  if(!container) return;
+  if(!MY_ORDERS.length){
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--gray)">'+(lang==='ru'?'Нет заказов':'Тапсырыс жоқ')+'</div>';
+    return;
+  }
+  const statusIcons={new:'🔔',preparing:'⚙️',ready:'✅',delivery:'🛵',done:'🎉',cancelled:'❌'};
+  const statusRu={new:'Новый',preparing:'Собирается',ready:'Собран ✅',delivery:'В доставке',done:'Доставлен',cancelled:'Отменён'};
+  const statusKk={new:'Жаңа',preparing:'Жиналуда',ready:'Жиналды ✅',delivery:'Жолда',done:'Жеткізілді',cancelled:'Болдырылмады'};
+  const statusColor={new:'#f97316',preparing:'#f59e0b',ready:'#10b981',delivery:'#3b82f6',done:'#10b981',cancelled:'#ef4444'};
+
+  const totalPages = Math.ceil(MY_ORDERS.length / ORD_PER_PAGE);
+  if(ORD_PAGE > totalPages) ORD_PAGE = totalPages;
+  const start = (ORD_PAGE-1)*ORD_PER_PAGE;
+  const pageOrders = MY_ORDERS.slice(start, start+ORD_PER_PAGE);
+
+  let html = pageOrders.map(o => {
+    const total = parseFloat(o.total)||0;
+    const date = new Date(o.created_at).toLocaleDateString('ru-RU');
+    const icon = statusIcons[o.status]||'📦';
+    const status = lang==='ru'?(statusRu[o.status]||o.status):(statusKk[o.status]||o.status);
+    const items = o.order_items||[];
+    const isOpen = expandedOrders.has(o.id);
+    return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden">
+      <div onclick="toggleOrder('${o.id}')" style="padding:14px;cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange)">#${o.order_number||o.id}</div>
+          <div style="font-size:12px;font-weight:800;background:${(statusColor[o.status]||'#64748b')}1a;color:${statusColor[o.status]||'#64748b'};padding:4px 10px;border-radius:20px">${icon} ${status}</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:12px;color:var(--gray)">${date} · ${(o.payment_method||'QR').toUpperCase()} · ${items.length} ${lang==='ru'?'тов.':'тауар'}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:16px;font-weight:900;color:var(--orange-dark)">${total.toLocaleString('ru')} ₸</span>
+            <span style="font-size:13px;color:var(--gray);transition:transform .2s;display:inline-block;transform:rotate(${isOpen?'180':'0'}deg)">▼</span>
+          </div>
+        </div>
+      </div>
+      ${isOpen?`<div style="padding:0 14px 14px;border-top:1px dashed var(--border)">
+        <div style="font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;margin:10px 0 6px">${lang==='ru'?'Товары':'Тауарлар'}</div>
+        ${items.map(i=>`<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span>• ${i.product_name} ×${i.quantity}</span>
+          <span style="color:var(--gray)">${((parseFloat(i.price)||0)*(i.quantity||1)).toLocaleString('ru')} ₸</span>
+        </div>`).join('')}
+        ${o.delivery_address?`<div style="font-size:12px;color:var(--gray);margin-top:8px">📍 ${o.delivery_address}</div>`:''}
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  if(totalPages > 1){
+    html += `<div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:12px">
+      <button onclick="ordPage(${ORD_PAGE-1})" ${ORD_PAGE<=1?'disabled':''} style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;${ORD_PAGE<=1?'opacity:.4':''}">←</button>
+      <span style="font-size:13px;color:var(--gray)">${ORD_PAGE} / ${totalPages}</span>
+      <button onclick="ordPage(${ORD_PAGE+1})" ${ORD_PAGE>=totalPages?'disabled':''} style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;${ORD_PAGE>=totalPages?'opacity:.4':''}">→</button>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+function toggleOrder(id){
+  if(expandedOrders.has(id)) expandedOrders.delete(id);
+  else expandedOrders.add(id);
+  renderMyOrders();
+}
+function ordPage(p){ ORD_PAGE = p; expandedOrders.clear(); renderMyOrders(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+// ─── RENDER ALL ORDERS (tab) ──────────────────────────────────────────────
+function renderAllOrders(){
+  const d=T[lang];
+  const all=[...ORDERS,...HISTORY.map(h=>({...h,items:[],track:[{done:true},{done:true},{done:true},{done:true}],courier:null,address_ru:''}))];
+  renderActiveOrders('orders-list');
+  // Append history section
+  const histHtml=HISTORY.map(o=>`
+    <div class="order-card">
+      <div class="oh" style="background:var(--light)">
+        <div class="oid" style="opacity:.7">#${o.id}</div>
+        <div class="oinfo"><div class="ostore">${o.shop}</div><div class="odate">${o.date}</div></div>
+        <div style="display:flex;gap:4px;align-items:center">${payBadge(o.pay)}${delBadge(o.delivery)}${statusBadge(o.status)}</div>
+      </div>
+      <div class="ofooter">
+        <span class="oamount">${o.amount.toLocaleString()} ₸</span>
+      </div>
+    </div>`).join('');
+  document.getElementById('orders-list').innerHTML+=`<div style="margin-top:16px;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--dark);letter-spacing:1px;margin-bottom:10px">${d['hist-title']||'История'}</div>${histHtml}`;
+}
+
+// ─── RENDER HISTORY (gerçek veri + sayfalama) ─────────────────────────────
+function renderHistory(){
+  const d=T[lang];
+  const body=document.getElementById('hist-body');
+  if(!body) return;
+  // Teslim edilen/tamamlanan siparişler история'da
+  const histOrders = MY_ORDERS.filter(o=>['done','delivery','ready'].includes(o.status));
+  if(!histOrders.length){
+    body.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray)">'+(lang==='ru'?'История пуста':'Тарих бос')+'</td></tr>';
+    const pg=document.getElementById('hist-pagination'); if(pg) pg.innerHTML='';
+    return;
+  }
+  const statusBadgeMap={ready:'✅',delivery:'🛵',done:'🎉'};
+  const totalPages=Math.ceil(histOrders.length/HIST_PER_PAGE);
+  if(HIST_PAGE>totalPages) HIST_PAGE=totalPages;
+  const start=(HIST_PAGE-1)*HIST_PER_PAGE;
+  const pageItems=histOrders.slice(start,start+HIST_PER_PAGE);
+
+  body.innerHTML=pageItems.map(o=>{
+    const total=parseFloat(o.total)||0;
+    const date=new Date(o.created_at).toLocaleDateString('ru-RU');
+    const items=o.order_items||[];
+    const itemNames=items.map(i=>i.product_name+' ×'+i.quantity).join(', ');
+    return `<tr style="cursor:pointer" onclick="toggleHistRow(this)">
+      <td style="color:var(--orange);font-weight:800">#${o.order_number||o.id}</td>
+      <td>${date}</td>
+      <td style="font-weight:700;max-width:200px">${itemNames||'—'}</td>
+      <td>${(o.payment_method||'QR').toUpperCase()}</td>
+      <td>${items.length} ${lang==='ru'?'шт':'дана'}</td>
+      <td style="color:var(--green);font-weight:800">${total.toLocaleString('ru')} ₸</td>
+      <td>${statusBadgeMap[o.status]||'✅'}</td>
+    </tr>`;
+  }).join('');
+
+  // Sayfalama
+  let pg=document.getElementById('hist-pagination');
+  if(!pg){
+    pg=document.createElement('div');
+    pg.id='hist-pagination';
+    pg.style.cssText='display:flex;justify-content:center;align-items:center;gap:8px;margin-top:14px';
+    body.closest('table')?.parentElement?.appendChild(pg);
+  }
+  if(totalPages>1){
+    pg.innerHTML=`<button onclick="histPage(${HIST_PAGE-1})" ${HIST_PAGE<=1?'disabled':''} style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;${HIST_PAGE<=1?'opacity:.4':''}">←</button>
+      <span style="font-size:13px;color:var(--gray)">${HIST_PAGE} / ${totalPages}</span>
+      <button onclick="histPage(${HIST_PAGE+1})" ${HIST_PAGE>=totalPages?'disabled':''} style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;${HIST_PAGE>=totalPages?'opacity:.4':''}">→</button>`;
+  } else pg.innerHTML='';
+}
+function histPage(p){ HIST_PAGE=p; renderHistory(); }
+function toggleHistRow(tr){ /* satıra tıklayınca ileride detay açılabilir */ }
+
+// ─── RENDER FAVS ─────────────────────────────────────────────────────────
+let favList=[...FAVS];
+function renderFavs(){
+  const d=T[lang];
+  if(!favList.length){
+    document.getElementById('favs-grid').innerHTML=`<div class="empty-box" style="grid-column:1/-1"><div class="empty-icon">❤️</div><div class="empty-text">${d.empty_fav}</div><a href="catalog.html" class="btn btn-orange">${d.goto_catalog}</a></div>`;
+    return;
+  }
+  document.getElementById('favs-grid').innerHTML=favList.map(f=>`
+    <div class="fav-card">
+      <div class="fav-img">${f.icon}<button class="fav-del" onclick="removeFav('${f.id}')">✕</button></div>
+      <div class="fav-body">
+        <div class="fav-name">${lang==='ru'?f.name_ru:f.name_kk}</div>
+        <div class="fav-price">${f.price.toLocaleString()} ₸</div>
+        <button class="fav-btn" onclick="addToCart('${f.id}')">${d.fav_add}</button>
+      </div>
+    </div>`).join('');
+}
+function addToCart(id){alert(lang==='ru'?'Добавлено в корзину!':'Себетке қосылды!');}
+
+// Gerçek favorileri Supabase'den yükle
+async function loadFavs(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+    const {data:rows} = await sb.from('favourites')
+      .select('product_id, products(id, name_ru, name_kk, price_retail, image_url)')
+      .eq('user_id', session.user.id);
+    favList = (rows||[]).filter(r=>r.products).map(r=>({
+      id: r.product_id,
+      name_ru: r.products.name_ru,
+      name_kk: r.products.name_kk || r.products.name_ru,
+      price: parseFloat(r.products.price_retail)||0,
+      icon: r.products.image_url ? '<img src="'+r.products.image_url+'" style="width:100%;height:100%;object-fit:cover">' : '📦',
+    }));
+    renderFavs();
+  } catch(e){ console.log('loadFavs:', e.message); }
+}
+
+// removeFav'i gerçek silmeyle değiştir
+async function removeFav(id){
+  favList=favList.filter(f=>f.id!==id);
+  renderFavs();
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(session) await sb.from('favourites').delete()
+      .eq('user_id', session.user.id).eq('product_id', id);
+  } catch(e){ console.log('removeFav:', e.message); }
+}
+
+// ─── RENDER NOTIFS ────────────────────────────────────────────────────────
+function renderNotifs(containerId,limit){
+  const d=T[lang];
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  const list=limit?NOTIFS.slice(0,limit):NOTIFS;
+  if(!list.length){
+    el.innerHTML='<div style="text-align:center;padding:24px;color:var(--gray);font-size:13px">'+(lang==='ru'?'Нет уведомлений':'Хабарламалар жоқ')+'</div>';
+    return;
+  }
+  const typeColor={delivery:'orange',done:'green',promo:'blue',order:'orange'};
+  el.innerHTML=list.map(n=>`
+    <div class="notif-item">
+      <div class="notif-icon ${typeColor[n.type]||'orange'}">${n.icon}</div>
+      <div class="notif-info">
+        <div class="notif-title">${lang==='ru'?n.title_ru:n.title_kk}</div>
+        <div class="notif-sub">${lang==='ru'?n.sub_ru:n.sub_kk}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        <span class="notif-time">${n.time}</span>
+        ${n.isNew?'<span class="notif-dot-new"></span>':''}
+      </div>
+    </div>`).join('');
+}
+
+// Gerçek bildirimleri Supabase'den yükle
+async function loadNotifs(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+    const {data:rows} = await sb.from('notifications')
+      .select('*').eq('user_id', session.user.id)
+      .order('created_at',{ascending:false}).limit(50);
+    NOTIFS.length = 0;
+    const iconMap={delivery:'🛵',done:'✅',promo:'💰',order:'📦'};
+    (rows||[]).forEach(r=>{
+      const dt = r.created_at ? new Date(r.created_at) : null;
+      const tstr = dt ? (dt.toLocaleDateString('ru')===new Date().toLocaleDateString('ru')
+        ? dt.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})
+        : dt.toLocaleDateString('ru')) : '';
+      NOTIFS.push({
+        id:r.id, type:r.type||'order', icon:iconMap[r.type]||'🔔',
+        title_ru:r.title_ru||'', title_kk:r.title_kk||r.title_ru||'',
+        sub_ru:r.body_ru||'', sub_kk:r.body_kk||r.body_ru||'',
+        time:tstr, isNew:!r.is_read,
+      });
+    });
+    renderNotifs('notif-list');
+    renderNotifs('notif-preview',3);
+    // Bildirim sayısı badge
+    const newCount = NOTIFS.filter(n=>n.isNew).length;
+    const badge=document.getElementById('notif-badge');
+    if(badge) badge.textContent = newCount>0?newCount:'';
+  } catch(e){ console.log('loadNotifs:', e.message); }
+}
+function markAllRead(){NOTIFS.forEach(n=>n.isNew=false);renderNotifs('notif-list');}
+
+// ─── RENDER ADDRS ────────────────────────────────────────────────────────
+function renderAddrs(){
+  const d=T[lang];
+  const grid = document.getElementById('addr-grid');
+  if(!grid) return;
+  if(!ADDRS.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--gray);font-size:13px">'+(lang==='ru'?'Нет адресов. Нажмите «+ Добавить» или заполните профиль.':'Мекенжай жоқ. «+ Қосу» басыңыз.')+'</div>';
+    return;
+  }
+  grid.innerHTML=ADDRS.map((a,i)=>`
+    <div style="background:var(--light);border:1.5px solid ${a.isMain?'var(--orange)':'var(--border)'};border-radius:10px;padding:14px;position:relative">
+      ${a.isMain?`<span style="position:absolute;top:10px;right:10px;background:var(--orange);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px">${d.addr_main}</span>`:''}
+      <div style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:4px">${lang==='ru'?a.title_ru:a.title_kk}</div>
+      <div style="font-size:13px;color:var(--gray)">${lang==='ru'?a.addr_ru:a.addr_kk}</div>
+    </div>`).join('');
+}
+
+// ─── PROFILE SAVE ────────────────────────────────────────────────────────
+async function saveProfile(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) { window.location.href='login.html'; return; }
+    const name = document.getElementById('inp-name').value.trim();
+    const street = document.getElementById('inp-street').value.trim();
+    const house = document.getElementById('inp-house').value.trim();
+    // İsim güncelle (telefon değişmez)
+    await sb.from('users').update({full_name: name}).eq('id', session.user.id);
+    // Adres varsa ana adresi güncelle/ekle
+    if(street || house) {
+      const {data:existing} = await sb.from('user_addresses')
+        .select('id').eq('user_id', session.user.id).limit(1);
+      const addrData = {
+        user_id: session.user.id,
+        label: lang==='ru'?'Домашний':'Үй',
+        title_ru: 'Домашний',
+        title_kk: 'Үй',
+        street: street, house: house,
+        address: street + (house ? ', ' + house : ''),
+        is_default: true,
+        is_main: true,
+      };
+      if(existing && existing.length) {
+        await sb.from('user_addresses').update(addrData).eq('id', existing[0].id);
+      } else {
+        await sb.from('user_addresses').insert(addrData);
+      }
+    }
+    alert(T[lang].save_ok);
+  } catch(e) {
+    alert((lang==='ru'?'Ошибка сохранения: ':'Сақтау қатесі: ') + e.message);
+  }
+}
+
+// ─── RENDER ALL ──────────────────────────────────────────────────────────
+function renderAll(){
+  renderActiveOrders('active-orders-body');
+  renderAllOrders();
+  renderHistory();
+  renderFavs();
+  renderNotifs('notif-list');
+  renderNotifs('notif-preview',3);
+  renderAddrs();
+}
+
+// ─── SUPABASE — GERÇEK KULLANICI ─────────────────────────────────────────
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+async function loadCurrentUser() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Session kontrol
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Kullanıcı verisini çek
+    const {data:user} = await sb.from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if(user) {
+      const name = user.full_name || 'Пользователь';
+      const initial = name.charAt(0).toUpperCase();
+      const phone = user.phone || '';
+      const role = user.role || 'customer';
+
+      // Rol kontrolü - sadece customer ve wholesale
+      // NOT: redirect yapmıyoruz - herkes kendi siparişlerini görebilmeli
+      // Manager da sipariş vermiş olabilir
+      if(role === 'super_admin') {
+        // Admin kendi siparişlerini görmek istiyorsa burada kalabilir
+        // Ama admin paneline de link göster
+      }
+
+      // İsim güncelle
+      const nameEls = ['p-name','inp-name'];
+      nameEls.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.textContent = name;
+        if(id === 'inp-name' && el) el.value = name;
+      });
+
+      // Telefon input'a yaz (readonly)
+      const phEl = document.getElementById('inp-phone');
+      if(phEl) phEl.value = phone;
+
+      // İstatistikler — gerçek siparişlerden
+      try {
+        const {data:myOrders} = await sb.from('orders')
+          .select('total, status').eq('customer_id', session.user.id);
+        const total = myOrders ? myOrders.length : 0;
+        const done = myOrders ? myOrders.filter(o=>o.status==='done').length : 0;
+        const spent = myOrders ? myOrders.reduce((s,o)=>s+(parseFloat(o.total)||0),0) : 0;
+        const setTxt = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+        setTxt('st-total-val', total);
+        setTxt('st-done-val', done);
+        setTxt('st-spent-val', spent.toLocaleString('ru')+' ₸');
+        setTxt('ps-spent', spent>=1000 ? (spent/1000).toFixed(0)+'K' : spent);
+        setTxt('ps-total', total);
+        const active = myOrders ? myOrders.filter(o=>['new','preparing','ready','delivery'].includes(o.status)).length : 0;
+        setTxt('ps-active', active);
+      } catch(e2) { console.log('stats:', e2.message); }
+
+      // Adresler — user_addresses tablosundan
+      try {
+        const {data:addrs} = await sb.from('user_addresses')
+          .select('*').eq('user_id', session.user.id).order('created_at',{ascending:false});
+        ADDRS.length = 0;
+        (addrs||[]).forEach(a => ADDRS.push({
+          id: a.id,
+          title_ru: a.label || a.title_ru || 'Адрес', title_kk: a.label || a.title_kk || 'Мекенжай',
+          addr_ru: a.address || '', addr_kk: a.address || '',
+          isMain: a.is_default || a.is_main || false,
+        }));
+        if(typeof renderAddrs === 'function') renderAddrs();
+        // İlk adresi profil formuna yaz
+        if(addrs && addrs.length) {
+          const main = addrs.find(a=>a.is_default || a.is_main) || addrs[0];
+          const st = document.getElementById('inp-street');
+          const hs = document.getElementById('inp-house');
+          if(st && main.street) st.value = main.street;
+          if(hs && main.house) hs.value = main.house;
+        }
+      } catch(e3) { console.log('addrs:', e3.message); }
+
+
+      // Avatar
+      const av = document.getElementById('pav');
+      if(av) av.textContent = initial;
+
+      // Meta bilgi
+      const meta = document.getElementById('p-meta');
+      if(meta) meta.textContent = '📱 ' + phone;
+
+      // Rozet — toptancı mı?
+      const badge = document.getElementById('p-badge');
+      if(badge) {
+        badge.textContent = role === 'wholesale'
+          ? (lang==='ru'?'📦 Оптовый покупатель':'📦 Көтерме сатып алушы')
+          : (lang==='ru'?'🛒 Розничный покупатель':'🛒 Бөлшек сатып алушы');
+      }
+
+      // Profil formu
+      const phoneInp = document.getElementById('inp-phone');
+      if(phoneInp) phoneInp.value = phone;
+
+      // Logout butonu ekle
+      addLogoutBtn(sb);
+    }
+  } catch(e) {
+    console.log('Session yok, demo mod:', e.message);
+  }
+}
+
+function addLogoutBtn(sb) {
+  const hr = document.querySelector('.hr');
+  if(hr && !document.getElementById('logout-btn')) {
+    const btn = document.createElement('button');
+    btn.id = 'logout-btn';
+    btn.textContent = '🚪';
+    btn.title = 'Выйти';
+    btn.style.cssText = 'background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:14px';
+    btn.onclick = async () => {
+      await sb.auth.signOut();
+      window.location.href = 'login.html';
+    };
+    hr.appendChild(btn);
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────
+renderAll();
+loadCurrentUser();
+
+// ─── GERÇEK SİPARİŞLER ───────────────────────────────────────────────────────
+async function loadMyOrders() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+
+    const {data:orders} = await sb.from('orders')
+      .select('*, order_items(*)')
+      .eq('customer_id', session.user.id)
+      .order('created_at', {ascending:false});
+
+    if(!orders || !orders.length) return;
+
+    // Sipariş listesini güncelle
+    const container = document.getElementById('orders-list');
+    if(!container) return;
+
+    const statusIcons = {
+      new:'🔔', preparing:'⚙️', ready:'✅', delivery:'🛵', done:'🎉', cancelled:'❌'
+    };
+    const statusRu = {
+      new:'Новый', preparing:'Собирается на складе', ready:'Собран ✅',
+      delivery:'В доставке', done:'Доставлен', cancelled:'Отменён'
+    };
+    const statusKk = {
+      new:'Жаңа', preparing:'Қоймада жиналуда', ready:'Жиналды ✅',
+      delivery:'Жолда', done:'Жеткізілді', cancelled:'Болдырылмады'
+    };
+    // Цвет статуса
+    const statusColor = {
+      new:'#f97316', preparing:'#f59e0b', ready:'#10b981',
+      delivery:'#3b82f6', done:'#10b981', cancelled:'#ef4444'
+    };
+
+    // Global'e al, render fonksiyonu çizsin (açılır liste + sayfalama)
+    MY_ORDERS = orders;
+    ORD_PAGE = 1;
+    renderMyOrders();
+    renderHistory();
+
+    console.log('✅ '+orders.length+' sipariş yüklendi');
+  } catch(e) { console.log('Demo siparişler:', e.message); }
+}
+
+
+// ─── MÜŞTERİ AI ÖNERİLERİ ───
+async function loadAIRecommendations() {
+  const body = document.getElementById('ai-recommend-body');
+  if(!body) return;
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    // İndirimli + popüler ürünleri çek
+    const {data:prods} = await sb.from('products')
+      .select('id, name_ru, name_kk, price_retail, discount_percent, image_url, category_id')
+      .eq('is_active', true)
+      .order('discount_percent', {ascending:false})
+      .limit(6);
+    if(!prods || !prods.length) {
+      body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">'+(lang==='ru'?'Скоро здесь появятся рекомендации':'Жақында ұсыныстар пайда болады')+'</div>';
+      return;
+    }
+    body.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">' +
+      prods.map(p => {
+        const disc = p.discount_percent || 0;
+        const fp = disc>0 ? Math.round(p.price_retail*(100-disc)/100) : p.price_retail;
+        const nm = lang==='ru'?p.name_ru:(p.name_kk||p.name_ru);
+        return `<div onclick="window.location.href='catalog.html'" style="border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+          <div style="font-size:24px;text-align:center;margin-bottom:6px">${p.image_url?'<img src="'+p.image_url+'" style="width:48px;height:48px;border-radius:8px;object-fit:cover">':'📦'}</div>
+          <div style="font-size:12px;font-weight:700;line-height:1.3;height:32px;overflow:hidden">${nm}</div>
+          <div style="margin-top:6px">${disc>0?'<span style="text-decoration:line-through;color:#94a3b8;font-size:10px">'+p.price_retail.toLocaleString()+'</span> <span style="color:#ef4444;font-weight:800;font-size:13px">'+fp.toLocaleString()+' ₸</span>':'<span style="font-weight:800;font-size:13px">'+p.price_retail.toLocaleString()+' ₸</span>'}</div>
+          ${disc>0?'<span style="display:inline-block;margin-top:4px;background:#fee2e2;color:#ef4444;font-size:10px;font-weight:800;padding:2px 6px;border-radius:8px">-'+disc+'%</span>':''}
+        </div>`;
+      }).join('') + '</div>';
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">'+(lang==='ru'?'Перейдите в каталог →':'Каталогқа өту →')+'</div>';
+  }
+}
+
+// ─── MÜŞTERİ AI CHAT ───
+let custAiHistory = [];
+function openCustAI() {
+  document.getElementById('cust-ai-modal').style.display = 'flex';
+  if(custAiHistory.length === 0) {
+    custAddMsg('bot', lang==='ru'
+      ? 'Привет! 👋 Я ваш AI помощник. Помогу найти товары, оформить заказ, отследить доставку. О чём спросите?'
+      : 'Сәлем! 👋 Мен сіздің AI көмекшіңізмін. Тауар табуға, тапсырыс беруге көмектесемін. Не сұрайсыз?');
+  }
+}
+function closeCustAI(){ document.getElementById('cust-ai-modal').style.display='none'; }
+function custAddMsg(who, text) {
+  const chat = document.getElementById('cust-ai-chat');
+  const m = document.createElement('div');
+  m.style.cssText = who==='bot'
+    ? 'background:#f1f5f9;color:#1e293b;padding:10px 14px;border-radius:14px 14px 14px 4px;max-width:85%;font-size:14px;line-height:1.5'
+    : 'background:#7c3aed;color:#fff;padding:10px 14px;border-radius:14px 14px 4px 14px;max-width:85%;align-self:flex-end;font-size:14px;line-height:1.5';
+  m.textContent = text; chat.appendChild(m); chat.scrollTop = chat.scrollHeight;
+  return m;
+}
+async function custAiSend() {
+  const inp = document.getElementById('cust-ai-input');
+  const text = inp.value.trim(); if(!text) return;
+  inp.value=''; custAddMsg('user', text);
+  custAiHistory.push({role:'user', content:text});
+  const typing = custAddMsg('bot', '...');
+  try {
+    const sys = `Sen BAIBESIK.KZ müşteri yardımcısısın. Almatı mobilya/hırdavat pazaryeri. ${lang==='ru'?'Rusça':'Kazakça'} yanıt ver, kısa ol (3-4 cümle). Konular: sipariş takibi (статусы: новый→собирается→собран→в доставке→доставлен), ödeme (Kaspi/Halyk/нал), teslimat (InDriver/Yandex/самовывоз), toptancı olma (optovikam.html). Yardımcı ve samimi ol.`;
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system:sys, messages:custAiHistory.slice(-6) })
+    });
+    const data = await resp.json();
+    const reply = (data.content||[]).map(b=>b.text||'').join('') || (lang==='ru'?'Попробуйте ещё раз.':'Қайталап көріңіз.');
+    typing.textContent = reply;
+    custAiHistory.push({role:'assistant', content:reply});
+  } catch(e) {
+    typing.textContent = lang==='ru' ? 'Помощник временно недоступен.' : 'Көмекші қолжетімсіз.';
+  }
+}
+
+
+loadMyOrders();
+loadNotifs();
+loadFavs();
+loadAIRecommendations();
+// Авто-обновление каждые 30 сек — чтобы клиент видел когда заказ собран/отправлен
+setInterval(loadMyOrders, 30000);
+setInterval(loadNotifs, 30000);
+</script>
+
+<!-- Müşteri AI modal -->
+<div id="cust-ai-modal" onclick="if(event.target===this)closeCustAI()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:20px;max-width:440px;width:100%;display:flex;flex-direction:column;max-height:80vh">
+    <div style="padding:18px 20px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px">
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:20px">🤖</div>
+      <div style="flex:1"><div style="font-weight:800;font-size:15px">BAIBESIK AI</div><div style="font-size:11px;color:#22c55e">● онлайн</div></div>
+      <button onclick="closeCustAI()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#94a3b8">✕</button>
+    </div>
+    <div id="cust-ai-chat" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:240px"></div>
+    <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:8px">
+      <input id="cust-ai-input" placeholder="Спросите что-нибудь..." style="flex:1;padding:10px 14px;border:1px solid #e2e8f0;border-radius:24px;outline:none;font-family:inherit;font-size:14px" onkeydown="if(event.key==='Enter')custAiSend()">
+      <button onclick="custAiSend()" style="background:#7c3aed;color:#fff;border:none;border-radius:50%;width:42px;height:42px;cursor:pointer;font-size:18px">➤</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
