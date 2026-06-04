@@ -221,7 +221,7 @@ async function badgeLogout(){
     const {data:{session}}=await sb.auth.getSession();
     if(!session) { window.location.replace('login.html'); return; }
     document.documentElement.style.visibility='visible';
-    try { const {data:u}=await sb.from('users').select('role,full_name').eq('id',session.user.id).single(); if(u) showUserBadge(u.full_name, u.role); } catch(e){}
+    try { const {data:u}=await sb.from('users').select('role,full_name').eq('id',session.user.id).single(); if(u){ const hn=document.getElementById('h-name'); if(hn) hn.textContent=u.full_name||'—'; } } catch(e){}
   } catch(e) { window.location.replace('login.html'); }
 })();
 </script>
@@ -1046,7 +1046,7 @@ async function loadCurrentUser() {
       }
 
       // İsim güncelle
-      const nameEls = ['p-name','inp-name'];
+      const nameEls = ['p-name','inp-name','h-name'];
       nameEls.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.textContent = name;
