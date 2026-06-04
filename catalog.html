@@ -189,7 +189,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
       <a href="index.html" class="back-btn" id="back-lnk">← Главная</a>
       <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">RU</button>
       <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">KK</button>
-      <button class="cart-btn" onclick="window.location.href='checkout_and_orders.html'">🛒<span class="cart-count" id="cc">0</span></button>
+      <button class="cart-btn" onclick="goCart()">🛒<span class="cart-count" id="cc">0</span></button>
     </div>
   </div>
 </header>
@@ -886,6 +886,24 @@ function showUserBadge(name, role){
   b.innerHTML = '<span onclick="window.location.href=\''+panel+'\'" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px"><span style="width:26px;height:26px;border-radius:50%;background:'+rc+';color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12px">'+(name?name.charAt(0).toUpperCase():'?')+'</span><span style="font-size:13px;font-weight:700;color:#fff;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(name||'')+'</span></span>'+
     '<button onclick="badgeLogout()" title="Выйти" style="width:26px;height:26px;border:none;border-radius:50%;background:rgba(239,68,68,.2);color:#ef4444;cursor:pointer;font-size:13px">🚪</button>';
 }
+
+// Sepete/Korzina'ya giderken giriş kontrolü
+async function goCart(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL_BADGE, SUPABASE_KEY_BADGE);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session){
+      // Giriş yok → login'e, dönüşte checkout'a gelsin
+      window.location.href = 'login.html?next=checkout_and_orders.html';
+      return;
+    }
+    window.location.href = 'checkout_and_orders.html';
+  } catch(e){
+    window.location.href = 'login.html?next=checkout_and_orders.html';
+  }
+}
+
 async function badgeLogout(){
   try {
     const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
