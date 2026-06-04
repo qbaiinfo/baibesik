@@ -866,20 +866,25 @@ const SUPABASE_KEY_BADGE='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 function showUserBadge(name, role){
   const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'Менеджер',warehouse:'Склад',wholesale:'Оптовик',customer:'Клиент'};
   const roleColors = {super_admin:'#7c3aed',store_owner:'#f97316',manager:'#3b82f6',warehouse:'#10b981',wholesale:'#0891b2',customer:'#64748b'};
-  const rl = roleLabels[role]||role||'';
   const rc = roleColors[role]||'#64748b';
   const panelRoutes = {super_admin:'admin.html',store_owner:'store_owner.html',manager:'vendor.html',warehouse:'depo_panel.html',wholesale:'toptanci_dashboard.html',customer:'musteri_dashboard.html'};
+  const panel = panelRoutes[role]||'musteri_dashboard.html';
+  // Header buton alanını bul (sayfaya göre farklı class)
+  const cont = document.querySelector('.header-actions, .hr, .lang-btns, .htitle')?.parentElement
+            || document.querySelector('header .hi') || document.querySelector('header .header-inner');
+  if(!cont) return;
+  // "Войти" butonu varsa gizle
+  const loginBtn = document.getElementById('btn-login-text') || document.getElementById('btn-login');
+  if(loginBtn) loginBtn.style.display='none';
   let b = document.getElementById('user-badge');
   if(!b){
     b = document.createElement('div');
     b.id = 'user-badge';
-    b.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e2e8f0;border-radius:30px;padding:5px 6px 5px 12px;box-shadow:0 4px 14px rgba(0,0,0,.12);font-family:system-ui,sans-serif;max-width:90vw';
-    document.body.appendChild(b);
+    b.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:4px 6px 4px 10px;flex-shrink:0';
+    cont.appendChild(b);
   }
-  const panel = panelRoutes[role]||'musteri_dashboard.html';
-  b.innerHTML = '<div onclick="window.location.href=\''+panel+'\'" style="cursor:pointer;display:flex;align-items:center;gap:8px"><div style="width:30px;height:30px;border-radius:50%;background:'+rc+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0">'+(name?name.charAt(0).toUpperCase():'?')+'</div>'+
-    '<div style="display:flex;flex-direction:column;line-height:1.1;overflow:hidden"><span style="font-size:13px;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">'+(name||'—')+'</span><span style="font-size:10px;font-weight:700;color:'+rc+'">'+rl+'</span></div></div>'+
-    '<button onclick="badgeLogout()" title="Выйти" style="width:30px;height:30px;border:none;border-radius:50%;background:#fef2f2;color:#ef4444;cursor:pointer;font-size:15px;flex-shrink:0">🚪</button>';
+  b.innerHTML = '<span onclick="window.location.href=\''+panel+'\'" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px"><span style="width:26px;height:26px;border-radius:50%;background:'+rc+';color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12px">'+(name?name.charAt(0).toUpperCase():'?')+'</span><span style="font-size:13px;font-weight:700;color:#fff;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(name||'')+'</span></span>'+
+    '<button onclick="badgeLogout()" title="Выйти" style="width:26px;height:26px;border:none;border-radius:50%;background:rgba(239,68,68,.2);color:#ef4444;cursor:pointer;font-size:13px">🚪</button>';
 }
 async function badgeLogout(){
   try {
