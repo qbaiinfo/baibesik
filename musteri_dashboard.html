@@ -811,7 +811,7 @@ function renderFavs(){
   }
   document.getElementById('favs-grid').innerHTML=favList.map(f=>`
     <div class="fav-card">
-      <div class="fav-img">${f.icon}<button class="fav-del" onclick="removeFav('${f.id}')">✕</button></div>
+      <div class="fav-img">${f.icon}<button class="fav-del" onclick="removeFav('${f.id}',event)">✕</button></div>
       <div class="fav-body">
         <div class="fav-name">${lang==='ru'?f.name_ru:f.name_kk}</div>
         <div class="fav-price">${f.price.toLocaleString()} ₸</div>
@@ -842,16 +842,21 @@ async function loadFavs(){
   } catch(e){ console.log('loadFavs:', e.message); }
 }
 
-// removeFav'i gerçek silmeyle değiştir
-async function removeFav(id){
-  favList=favList.filter(f=>f.id!==id);
+// removeFav — gerçek silme (string-safe + event durdur)
+async function removeFav(id, ev){
+  if(ev){ ev.stopPropagation(); ev.preventDefault(); }
+  const sid = String(id);
+  favList = favList.filter(f => String(f.id) !== sid);
   renderFavs();
   try {
     const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
     const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
     const {data:{session}} = await sb.auth.getSession();
-    if(session) await sb.from('favourites').delete()
-      .eq('user_id', session.user.id).eq('product_id', id);
+    if(session){
+      const {error} = await sb.from('favourites').delete()
+        .eq('user_id', session.user.id).eq('product_id', id);
+      if(error) console.log('fav delete err:', error.message);
+    }
   } catch(e){ console.log('removeFav:', e.message); }
 }
 
