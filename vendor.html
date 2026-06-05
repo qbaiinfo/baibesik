@@ -1454,6 +1454,7 @@ function searchCustomers(q){
             '<div style="flex:1"><div style="font-size:13px;font-weight:700">'+(u.full_name||'—')+'</div><div style="font-size:11px;color:var(--gray)">'+(u.phone||'—')+'</div></div>'+
             (isWs?'<span style="font-size:10px;font-weight:800;background:rgba(16,185,129,.1);color:var(--green);padding:2px 8px;border-radius:20px">📦 '+(lang==='ru'?'Оптовик':'Көтермеші')+'</span>':'')+
             '<button style="font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;cursor:pointer" onclick="openWsModal(\'' + u.id + '\',\'' + (u.full_name||'').replace(/[\x27\x22]/g,"") + '\',\'' + (u.phone||'') + '\',' + isWs + ')">'+(isWs?'⚙️':'📦 '+(lang==='ru'?'Опт':'Көтерме'))+'</button>'+
+            '<button style="font-size:11px;padding:5px 10px;border:1px solid var(--orange);background:#fff7ed;color:var(--orange);border-radius:6px;cursor:pointer;margin-left:4px;font-weight:700" onclick="openVndDisc(\'' + u.id + '\',\'' + (u.full_name||'').replace(/[\x27\x22]/g,"") + '\')">💰</button>'+
           '</div>';
         }).join(''):'<div style="text-align:center;padding:20px;color:var(--gray)">'+(lang==='ru'?'Клиенты не найдены':'Клиент жоқ')+'</div>';
       });
@@ -1490,6 +1491,78 @@ window.closeWsModal=closeWsModal;window.openWsModal=openWsModal;
 window.searchCustomers=searchCustomers;window.setWholesale=setWholesale;
 window.removeWholesale=removeWholesale;
 
+
+// ─── MÜДÜR müşteri indirim (dükkana özel) ───
+let vndDiscUser = null, vndStoreId = null;
+async function openVndDisc(id, name){
+  vndDiscUser = id;
+  document.getElementById('vnd-disc-name').textContent = name;
+  document.getElementById('vnd-disc-orders').textContent = '...';
+  document.getElementById('vnd-disc-spent').textContent = '...';
+  document.getElementById('vnd-disc-pct').value = 0;
+  document.getElementById('vnd-disc-modal').style.display = 'flex';
+  try {
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    const {data:{session}}=await sb.auth.getSession();
+    const {data:mem}=await sb.from('store_members').select('store_id').eq('user_id',session.user.id).limit(1);
+    vndStoreId = mem && mem[0] ? mem[0].store_id : null;
+    if(!vndStoreId) return;
+    // mevcut indirim
+    const {data:cd}=await sb.from('customer_discounts').select('discount_percent').eq('store_id',vndStoreId).eq('customer_id',id).limit(1);
+    if(cd && cd[0]) document.getElementById('vnd-disc-pct').value = cd[0].discount_percent;
+    // istatistik
+    const {data:ords}=await sb.from('orders').select('total').eq('customer_id',id).eq('store_id',vndStoreId);
+    const cnt=ords?ords.length:0, spent=ords?ords.reduce((s,o)=>s+(parseFloat(o.total)||0),0):0;
+    document.getElementById('vnd-disc-orders').textContent=cnt;
+    document.getElementById('vnd-disc-spent').textContent=spent.toLocaleString('ru');
+  } catch(e){ console.log(e.message); }
+}
+function closeVndDisc(){ document.getElementById('vnd-disc-modal').style.display='none'; vndDiscUser=null; }
+async function saveVndDisc(){
+  if(!vndDiscUser || !vndStoreId){ alert('Магазин не найден'); return; }
+  const pct=parseInt(document.getElementById('vnd-disc-pct').value)||0;
+  if(pct<0||pct>50){ alert('0-50%'); return; }
+  try {
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    const {data:{session}}=await sb.auth.getSession();
+    const {error}=await sb.from('customer_discounts').upsert({
+      store_id:vndStoreId, customer_id:vndDiscUser, discount_percent:pct,
+      created_by:session.user.id, updated_at:new Date().toISOString()
+    },{onConflict:'store_id,customer_id'});
+    if(error) throw error;
+    closeVndDisc();
+    searchCustomers(document.getElementById('cust-search')?.value||'');
+    alert(lang==='ru'?'✅ Скидка сохранена':'✅ Жеңілдік сақталды');
+  } catch(e){ alert('Ошибка: '+e.message); }
+}
+window.openVndDisc=openVndDisc; window.closeVndDisc=closeVndDisc; window.saveVndDisc=saveVndDisc;
+
 </script>
+
+<!-- Müдür müşteri indirim modalı -->
+<div id="vnd-disc-modal" onclick="if(event.target===this)closeVndDisc()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:5000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:16px;max-width:380px;width:100%;padding:24px;color:#1e293b">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="margin:0;font-size:16px;font-weight:900" id="vnd-disc-name">—</h3>
+      <button onclick="closeVndDisc()" style="border:none;background:none;font-size:22px;cursor:pointer;color:#94a3b8">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:18px;font-weight:900;color:#f97316" id="vnd-disc-orders">—</div>
+        <div style="font-size:10px;color:#64748b">Заказов</div>
+      </div>
+      <div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:18px;font-weight:900;color:#10b981" id="vnd-disc-spent">—</div>
+        <div style="font-size:10px;color:#64748b">Потрачено ₸</div>
+      </div>
+    </div>
+    <label style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;display:block;margin-bottom:6px">Персональная скидка (%)</label>
+    <input id="vnd-disc-pct" type="number" min="0" max="50" value="0" style="width:100%;padding:11px;border:1px solid #e2e8f0;border-radius:10px;font-size:16px;font-weight:800;text-align:center;margin-bottom:6px">
+    <div style="font-size:11px;color:#64748b;margin-bottom:14px">💡 Скидка только для вашего магазина</div>
+    <button onclick="saveVndDisc()" style="width:100%;padding:12px;border:none;background:#f97316;color:#fff;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit">💾 Сохранить</button>
+  </div>
+</div>
 </body>
 </html>

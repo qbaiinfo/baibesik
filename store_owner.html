@@ -203,6 +203,7 @@ async function badgeLogout(){
   <div class="tabs-inner">
     <button class="tab-btn active" onclick="showTab('overview',this)" id="t-overview">📊 Обзор</button>
     <button class="tab-btn" onclick="showTab('staff',this)" id="t-staff">👥 Сотрудники</button>
+    <button class="tab-btn" onclick="showTab('clients',this)" id="t-clients">🧑‍🤝‍🧑 Клиенты</button>
     <button class="tab-btn" onclick="showTab('products',this)" id="t-products">📦 Товары</button>
     <button class="tab-btn" onclick="showTab('orders',this)" id="t-orders">🛒 Заказы</button>
     <button class="tab-btn" onclick="showTab('analytics',this)" id="t-analytics">🤖 AI Аналитика</button>
@@ -270,6 +271,49 @@ async function badgeLogout(){
       <div class="sc-body" id="staff-list">
         <div style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</div>
       </div>
+    </div>
+  </div>
+
+  <!-- КЛИЕНТЫ -->
+  <div class="tab-section" id="sec-clients">
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title">КЛИЕНТЫ МАГАЗИНА</div>
+      </div>
+      <div class="sc-body">
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <input id="cl-search" placeholder="🔍 Поиск по имени или телефону..." oninput="searchClients(this.value)"
+            style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit">
+        </div>
+        <div id="clients-list"><div style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Müşteri indirim modalı -->
+  <div id="cl-modal" onclick="if(event.target===this)closeClModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#fff;border-radius:16px;max-width:400px;width:100%;padding:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0;font-size:17px;font-weight:900" id="cl-modal-name">—</h3>
+        <button onclick="closeClModal()" style="border:none;background:none;font-size:22px;cursor:pointer;color:#94a3b8">✕</button>
+      </div>
+      <div style="font-size:13px;color:var(--gray);margin-bottom:4px" id="cl-modal-phone">—</div>
+      <!-- Müşteri istatistiği -->
+      <div style="display:flex;gap:8px;margin:14px 0">
+        <div style="flex:1;background:var(--bg,#f8fafc);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:900;color:var(--orange)" id="cl-orders">—</div>
+          <div style="font-size:10px;color:var(--gray)">Заказов</div>
+        </div>
+        <div style="flex:1;background:var(--bg,#f8fafc);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:900;color:#10b981" id="cl-spent">—</div>
+          <div style="font-size:10px;color:var(--gray)">Потрачено ₸</div>
+        </div>
+      </div>
+      <label style="font-size:12px;font-weight:800;color:var(--gray);text-transform:uppercase;display:block;margin-bottom:6px">Персональная скидка (%)</label>
+      <input id="cl-discount" type="number" min="0" max="50" value="0"
+        style="width:100%;padding:11px;border:1px solid var(--border);border-radius:10px;font-size:16px;font-weight:800;text-align:center;margin-bottom:6px">
+      <div style="font-size:11px;color:var(--gray);margin-bottom:14px">💡 Скидка действует только в вашем магазине</div>
+      <button onclick="saveClientDiscount()" style="width:100%;padding:12px;border:none;background:var(--orange);color:#fff;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit">💾 Сохранить скидку</button>
     </div>
   </div>
 
@@ -482,6 +526,7 @@ function showTab(id, btn){
   $('sec-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   if(id==='staff') loadStaff();
+  if(id==='clients') searchClients('');
   if(id==='products') loadProducts();
   if(id==='orders') loadOrders();
   if(id==='analytics') loadAI();
@@ -829,6 +874,93 @@ async function saveDiscount() {
     console.log('saveDiscount:', e.message);
   }
 }
+
+
+// ─── KLIENTLER (dükkana özel indirim) ───
+let clCurrentId = null, clDiscMap = {};
+async function searchClients(q){
+  const list = document.getElementById('clients-list');
+  if(!list || !currentStore) return;
+  try {
+    // Müşteri + toptancıları çek
+    let query = sb.from('users').select('id, full_name, phone, role').in('role',['customer','wholesale']);
+    const {data:users} = await query.limit(100);
+    // Bu dükkanın indirimlerini çek
+    const {data:discs} = await sb.from('customer_discounts')
+      .select('customer_id, discount_percent').eq('store_id', currentStore.id);
+    clDiscMap = {};
+    (discs||[]).forEach(d=>{ clDiscMap[d.customer_id]=d.discount_percent; });
+    // Filtrele
+    const ql = (q||'').toLowerCase().trim();
+    const filtered = (users||[]).filter(u=>{
+      if(!ql) return true;
+      return (u.full_name||'').toLowerCase().includes(ql) || (u.phone||'').includes(ql);
+    });
+    if(!filtered.length){
+      list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray)">Клиенты не найдены</div>';
+      return;
+    }
+    list.innerHTML = filtered.map(u=>{
+      const disc = clDiscMap[u.id]||0;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">${(u.full_name||'?').charAt(0).toUpperCase()}</div>
+          <div>
+            <div style="font-weight:700;font-size:14px">${u.full_name||'—'}</div>
+            <div style="font-size:12px;color:var(--gray)">${u.phone||'—'}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${disc>0?`<span style="background:#dcfce7;color:#16a34a;font-size:12px;font-weight:800;padding:3px 10px;border-radius:20px">-${disc}%</span>`:''}
+          <button onclick="openClModal('${u.id}','${(u.full_name||'').replace(/'/g,'')}','${u.phone||''}')" style="font-size:12px;padding:6px 12px;border:1px solid var(--orange);background:#fff7ed;color:var(--orange);border-radius:8px;cursor:pointer;font-weight:700">💰 Скидка</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){ list.innerHTML='<div style="color:#ef4444;padding:20px;text-align:center">Ошибка: '+e.message+'</div>'; }
+}
+
+async function openClModal(id, name, phone){
+  clCurrentId = id;
+  document.getElementById('cl-modal-name').textContent = name;
+  document.getElementById('cl-modal-phone').textContent = phone;
+  document.getElementById('cl-discount').value = clDiscMap[id] || 0;
+  document.getElementById('cl-orders').textContent = '...';
+  document.getElementById('cl-spent').textContent = '...';
+  document.getElementById('cl-modal').style.display = 'flex';
+  // İstatistik — bu dükkandan yaptığı siparişler
+  try {
+    const {data:ords} = await sb.from('orders')
+      .select('total').eq('customer_id', id).eq('store_id', currentStore.id);
+    const cnt = ords?ords.length:0;
+    const spent = ords?ords.reduce((s,o)=>s+(parseFloat(o.total)||0),0):0;
+    document.getElementById('cl-orders').textContent = cnt;
+    document.getElementById('cl-spent').textContent = spent.toLocaleString('ru');
+  } catch(e){ document.getElementById('cl-orders').textContent='0'; document.getElementById('cl-spent').textContent='0'; }
+}
+function closeClModal(){ document.getElementById('cl-modal').style.display='none'; clCurrentId=null; }
+
+async function saveClientDiscount(){
+  if(!clCurrentId || !currentStore) return;
+  const pct = parseInt(document.getElementById('cl-discount').value)||0;
+  if(pct<0||pct>50){ alert('Скидка 0-50% аралығында'); return; }
+  try {
+    // upsert: varsa güncelle, yoksa ekle (store+customer unique)
+    const {error} = await sb.from('customer_discounts').upsert({
+      store_id: currentStore.id,
+      customer_id: clCurrentId,
+      discount_percent: pct,
+      created_by: currentUser?.id,
+      updated_at: new Date().toISOString(),
+    }, {onConflict:'store_id,customer_id'});
+    if(error) throw error;
+    clDiscMap[clCurrentId] = pct;
+    closeClModal();
+    searchClients(document.getElementById('cl-search')?.value||'');
+    alert(lang==='ru'?'✅ Скидка сохранена (только для вашего магазина)':'✅ Жеңілдік сақталды');
+  } catch(e){ alert('Ошибка: '+e.message); }
+}
+window.searchClients=searchClients; window.openClModal=openClModal;
+window.closeClModal=closeClModal; window.saveClientDiscount=saveClientDiscount;
 
 </script>
 
