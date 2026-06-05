@@ -956,6 +956,8 @@ function showTab(id, el) {
   if(el) el.classList.add('active');
   // Товары sekmesine geçince yükle
   if(id === 'products') loadStoreProductsStandalone();
+  // Клиенты sekmesine geçince müşterileri yükle
+  if(id === 'customers') searchCustomers('');
 }
 
 

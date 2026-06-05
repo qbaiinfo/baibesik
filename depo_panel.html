@@ -816,7 +816,7 @@ async function loadRealDepoOrders() {
 
     // Hazırlanacak siparişleri çek (new veya preparing)
     const {data:dbOrders} = await sb.from('orders')
-      .select('*, order_items(*), users(full_name, phone)')
+      .select('*, order_items(*, products(image_url, shelf_code, name_ru, name_kk)), users(full_name, phone)')
       .eq('store_id', storeId)
       .in('status', ['new', 'preparing'])
       .order('created_at', {ascending: true});
@@ -837,13 +837,13 @@ async function loadRealDepoOrders() {
         delivery: o.delivery_type || 'courier',
         items: (o.order_items||[]).map((i,idx)=>({
           id: idx + 1,
-          name_ru: i.product_name,
-          name_kk: i.product_name,
-          raf: i.shelf_code || i.raf || '—',
+          name_ru: i.product_name || i.products?.name_ru,
+          name_kk: i.product_name || i.products?.name_kk,
+          raf: i.products?.shelf_code || i.shelf_code || i.raf || '—',
           color: i.color || (lang==='ru'?'—':'—'),
           size: i.size || '—',
           qty: i.quantity,
-          img: i.image_url || '',
+          img: i.products?.image_url || i.image_url || '',
           checked: false,
         }))
       });
