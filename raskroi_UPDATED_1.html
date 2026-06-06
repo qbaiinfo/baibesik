@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✂️ Раскрой (Kesim) — Baibesik.kz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f97316;--orange-dark:#c2410c;--green:#10b981;--red:#ef4444;
+  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+
+/* HEADER */
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:1200px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+
+/* AUTH GUARD */
+.auth-guard{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center}
+.auth-guard.show{display:flex}
+.auth-guard a{margin-top:1rem;padding:10px 20px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--dark) 0%,#1a0800 100%);padding:40px 20px;text-align:center}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:42px;color:#fff;letter-spacing:2px;margin-bottom:8px}
+.hero-title span{color:var(--orange)}
+.hero-sub{font-size:14px;color:#94a3b8;max-width:600px;margin:0 auto}
+
+/* CONTENT */
+.content{max-width:1200px;margin:0 auto;padding:32px 20px;display:none}
+
+/* PANEL */
+.panel{background:#fff;border-radius:var(--radius);padding:24px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+
+.panel-title{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--dark);letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+/* LEVHA SEÇİMİ */
+.sheet-selector{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+
+.input-group{display:flex;flex-direction:column}
+.input-group label{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.input-group input, .input-group select{padding:10px;border:2px solid var(--border);border-radius:8px;font-size:13px;font-family:'Noto Sans',sans-serif;outline:none;transition:border-color .2s}
+.input-group input:focus, .input-group select:focus{border-color:var(--orange)}
+
+/* TABLO */
+.table-wrapper{overflow-x:auto;margin:16px 0}
+.parts-table{width:100%;border-collapse:collapse;font-size:12px}
+.parts-table th{background:var(--orange-light);border:1px solid #e2e8f0;padding:10px;text-align:left;font-weight:700;color:var(--dark)}
+.parts-table td{border:1px solid #e2e8f0;padding:8px;background:#fff}
+.parts-table input{width:100%;padding:6px;border:1px solid var(--border);border-radius:4px;font-size:12px;outline:none}
+.parts-table input:focus{border-color:var(--orange);background:#fff9f0}
+.parts-table tr:hover{background:var(--light)}
+
+.checkbox-group{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.checkbox-group label{display:flex;align-items:center;gap:3px;cursor:pointer;font-size:11px}
+.checkbox-group input[type="checkbox"]{cursor:pointer;width:14px;height:14px}
+
+.btn-small{padding:6px 10px;background:var(--orange);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:10px;font-weight:700}
+.btn-small:hover{background:var(--orange-dark)}
+.btn-remove{background:var(--red);padding:4px 8px;font-size:9px}
+
+/* HESAPLAMALAR */
+.calc-box{background:var(--light);border-left:4px solid var(--orange);padding:16px;border-radius:8px;margin:16px 0}
+.calc-row{display:grid;grid-template-columns:200px 1fr;gap:12px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #e2e8f0}
+.calc-row:last-child{border:none}
+.calc-label{font-weight:700;color:var(--dark)}
+.calc-value{color:var(--orange);font-weight:700;font-size:14px}
+
+/* PVC SEÇİMİ */
+.pvc-selector{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:16px 0}
+.pvc-card{border:2px solid var(--border);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .2s}
+.pvc-card:hover{border-color:var(--orange)}
+.pvc-card.selected{border-color:var(--orange);background:var(--orange-light)}
+.pvc-title{font-weight:700;color:var(--dark);margin-bottom:4px}
+.pvc-desc{font-size:10px;color:var(--gray)}
+
+/* UYARILAR */
+.warning{background:#fff3cd;border-left:4px solid #ffc107;padding:12px;border-radius:4px;margin:12px 0;font-size:12px;color:#856404}
+.warning strong{color:#333}
+
+/* BUTTONS */
+.btn-action{padding:12px 24px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;font-family:'Noto Sans',sans-serif;transition:all .2s}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:var(--orange-dark)}
+.btn-secondary{background:var(--green);color:#fff}
+.btn-secondary:hover{background:#059669}
+
+/* KEYBOARD HINT */
+.keyboard-hint{font-size:10px;color:var(--gray);margin-top:8px;padding:8px;background:var(--light);border-radius:4px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sheet-selector{grid-template-columns:1fr}
+  .calc-row{grid-template-columns:1fr}
+  .parts-table{font-size:11px}
+  .parts-table input{padding:4px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH GUARD -->
+<div class="auth-guard" id="authGuard">
+  <h2>🔐 Авторизация қажет</h2>
+  <p>Раскрой сервисін пайдалану үшін кіріңіз.</p>
+  <a href="login.html">Кіру</a>
+</div>
+
+<!-- HEADER -->
+<header id="header" style="display:none">
+  <div class="hi">
+    <a href="index.html" class="logo">BAIBESIK<span>.kz</span></a>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero" id="hero" style="display:none">
+  <h1 class="hero-title">✂️ Раскрой<span>.</span></h1>
+  <p class="hero-sub">Рассчитайте оптимальный раскрой листового материала</p>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="content" style="display:none">
+
+  <!-- PANEL 1: Выбор листа -->
+  <div class="panel">
+    <h2 class="panel-title">📐 1. Выберите размер листа</h2>
+    
+    <div class="sheet-selector">
+      <div class="input-group">
+        <label>Ширина листа (mm)</label>
+        <input type="number" id="sheetWidth" value="1200" min="0" placeholder="1200">
+      </div>
+      <div class="input-group">
+        <label>Высота листа (mm)</label>
+        <input type="number" id="sheetHeight" value="600" min="0" placeholder="600">
+      </div>
+      <div class="input-group">
+        <label>Материал</label>
+        <select id="materialType">
+          <option value="mdf-18">МДФ 18мм</option>
+          <option value="mdf-25">МДФ 25мм</option>
+          <option value="chipboard">ДСП 18мм</option>
+          <option value="plywood">Фанера 12мм</option>
+          <option value="pvc">ПВХ пластик</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Сохранить узор листа?</label>
+        <div style="display:flex;gap:8px;padding:8px">
+          <label><input type="radio" name="pattern" value="yes" checked> Да</label>
+          <label><input type="radio" name="pattern" value="no"> Нет</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning">
+      ⚠️ <strong>Узор листа:</strong> Если выбрано "Да", части расположены с учетом текстуры материала (дерево, паттерн и т.д.)
+    </div>
+  </div>
+
+  <!-- PANEL 2: Части для раскроя -->
+  <div class="panel">
+    <h2 class="panel-title">📦 2. Добавьте части для раскроя</h2>
+    
+    <div style="margin-bottom:12px;display:flex;gap:8px">
+      <label style="display:flex;align-items:center;gap:6px;font-weight:700">
+        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+        Выбрать всё
+      </label>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="parts-table">
+        <thead>
+          <tr>
+            <th style="width:30px">✓</th>
+            <th style="width:80px">Часть</th>
+            <th style="width:70px">X (mm)</th>
+            <th style="width:70px">Y (mm)</th>
+            <th style="width:60px">Кол-во</th>
+            <th style="width:140px">Обрамление (У/П/Л/О)</th>
+            <th style="width:60px">Повернуть</th>
+            <th style="width:40px">✕</th>
+          </tr>
+        </thead>
+        <tbody id="partsTable">
+        </tbody>
+      </table>
+    </div>
+
+    <button class="btn-action btn-primary" onclick="addPart()" style="margin-top:12px">
+      ➕ Добавить часть
+    </button>
+
+    <div class="keyboard-hint">
+      ⌨️ TAB=далее | ENTER в последнем = новая часть | CTRL+Enter=добавить
+    </div>
+  </div>
+
+  <!-- PANEL 3: Расчеты -->
+  <div class="panel">
+    <h2 class="panel-title">📊 3. Расчет раскроя</h2>
+    
+    <button class="btn-action btn-secondary" onclick="calculate()" style="margin-bottom:16px">
+      🧮 Рассчитать
+    </button>
+
+    <div class="calc-box">
+      <div class="calc-row">
+        <span class="calc-label">Площадь листа</span>
+        <span class="calc-value" id="calcSheetArea">0 м²</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">Всего площадь частей</span>
+        <span class="calc-value" id="calcPartsArea">0 м²</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">📋 Листов нужно</span>
+        <span class="calc-value" id="calcSheetsNeeded">0</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">КПД раскроя</span>
+        <span class="calc-value" id="calcEfficiency">0%</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">Отходы</span>
+        <span class="calc-value" id="calcWaste">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: Обрамление -->
+  <div class="panel">
+    <h2 class="panel-title">🎨 4. Обрамление PVC</h2>
+    
+    <p style="font-size:12px;color:var(--gray);margin-bottom:12px">
+      Выберите толщину PVC-ленты
+    </p>
+
+    <div class="pvc-selector">
+      <div class="pvc-card" onclick="selectPVC('0.5', this)">
+        <div class="pvc-title">0.5 mm</div>
+        <div class="pvc-desc">Тонкая</div>
+      </div>
+      <div class="pvc-card selected" onclick="selectPVC('1', this)">
+        <div class="pvc-title">1 mm</div>
+        <div class="pvc-desc">Стандарт ⭐</div>
+      </div>
+      <div class="pvc-card" onclick="selectPVC('2', this)">
+        <div class="pvc-title">2 mm</div>
+        <div class="pvc-desc">Толстая</div>
+      </div>
+    </div>
+
+    <div class="calc-box">
+      <div class="calc-row">
+        <span class="calc-label">Длина краёв</span>
+        <span class="calc-value" id="calcEdgeLength">0 м</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">PVC-лента</span>
+        <span class="calc-value" id="calcEdgeTape">0 м</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">Примерная цена</span>
+        <span class="calc-value" id="calcEdgeCost">0 ₸</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 5: Отправка -->
+  <div class="panel" style="text-align:center">
+    <button class="btn-action btn-primary" onclick="submit()" style="width:100%;min-height:50px;font-size:14px">
+      📤 Отправить менеджеру
+    </button>
+    <p style="font-size:11px;color:var(--gray);margin-top:12px">
+      Менеджер рассчитает и начнет обработку
+    </p>
+  </div>
+
+</div>
+
+<!-- SCRIPTS -->
+<script src="supabase_client.js" type="module"></script>
+<script type="module">
+  import { getCurrentUser } from './supabase_client.js';
+
+  let currentUser = null;
+  let parts = [];
+  let selectedPVC = '1';
+
+  async function init() {
+    try {
+      currentUser = await getCurrentUser();
+      if (!currentUser) {
+        document.getElementById('authGuard').classList.add('show');
+        return;
+      }
+
+      document.getElementById('authGuard').style.display = 'none';
+      document.getElementById('header').style.display = 'block';
+      document.getElementById('hero').style.display = 'block';
+      document.getElementById('content').style.display = 'block';
+
+      // Initial part
+      parts.push({
+        id: 1,
+        name: 'P1',
+        width: 400,
+        height: 300,
+        qty: 1,
+        edges: {top: true, right: false, bottom: true, left: false},
+        rotate: false
+      });
+
+      renderTable();
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'Enter') {
+          addPart();
+        }
+      });
+    } catch (error) {
+      console.error('Init error:', error);
+    }
+  }
+
+  window.addPart = function() {
+    const newId = Math.max(...parts.map(p => p.id), 0) + 1;
+    parts.push({
+      id: newId,
+      name: `P${newId}`,
+      width: 400,
+      height: 300,
+      qty: 1,
+      edges: {top: true, right: false, bottom: true, left: false},
+      rotate: false
+    });
+    renderTable();
+    setTimeout(() => {
+      document.querySelector(`input[data-part-id="${newId}"][data-field="width"]`)?.focus();
+    }, 50);
+  };
+
+  function renderTable() {
+    const tbody = document.getElementById('partsTable');
+    tbody.innerHTML = '';
+
+    parts.forEach((part, idx) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><input type="checkbox" class="part-check" onchange="updatePart()"></td>
+        <td><input type="text" value="${part.name}" data-part-id="${part.id}" data-field="name" onchange="updatePartField(${part.id}, 'name', this.value)" style="width:100%;padding:4px;text-align:center;font-weight:700"></td>
+        <td><input type="number" value="${part.width}" data-part-id="${part.id}" data-field="width" min="0" onchange="updatePartField(${part.id}, 'width', this.value)" onkeypress="handleTableKeyPress(event, ${part.id}, 'width')"></td>
+        <td><input type="number" value="${part.height}" data-part-id="${part.id}" data-field="height" min="0" onchange="updatePartField(${part.id}, 'height', this.value)" onkeypress="handleTableKeyPress(event, ${part.id}, 'height')"></td>
+        <td><input type="number" value="${part.qty}" data-part-id="${part.id}" data-field="qty" min="1" onchange="updatePartField(${part.id}, 'qty', this.value)" onkeypress="handleTableKeyPress(event, ${part.id}, 'qty')"></td>
+        <td>
+          <div class="checkbox-group">
+            <label><input type="checkbox" ${part.edges.top ? 'checked' : ''} onchange="updatePartEdge(${part.id}, 'top', this.checked)" title="Yuqori"> У</label>
+            <label><input type="checkbox" ${part.edges.right ? 'checked' : ''} onchange="updatePartEdge(${part.id}, 'right', this.checked)" title="O'ng"> П</label>
+            <label><input type="checkbox" ${part.edges.bottom ? 'checked' : ''} onchange="updatePartEdge(${part.id}, 'bottom', this.checked)" title="Pastki"> Л</label>
+            <label><input type="checkbox" ${part.edges.left ? 'checked' : ''} onchange="updatePartEdge(${part.id}, 'left', this.checked)" title="Chap"> О</label>
+          </div>
+        </td>
+        <td><label style="display:flex;align-items:center;justify-content:center"><input type="checkbox" ${part.rotate ? 'checked' : ''} onchange="updatePartField(${part.id}, 'rotate', this.checked)" title="90°"> ↻</label></td>
+        <td><button class="btn-small btn-remove" onclick="removePart(${part.id})">✕</button></td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  window.handleTableKeyPress = function(e, partId, field) {
+    if (e.key === 'Enter') {
+      const nextField = field === 'width' ? 'height' : field === 'height' ? 'qty' : null;
+      if (nextField) {
+        const nextInput = document.querySelector(`input[data-part-id="${partId}"][data-field="${nextField}"]`);
+        nextInput?.focus();
+      } else {
+        const nextPart = parts.find(p => p.id > partId);
+        if (nextPart) {
+          document.querySelector(`input[data-part-id="${nextPart.id}"][data-field="width"]`)?.focus();
+        } else {
+          addPart();
+        }
+      }
+      e.preventDefault();
+    }
+  };
+
+  window.updatePartField = function(id, field, value) {
+    const part = parts.find(p => p.id === id);
+    if (part) {
+      if (field === 'qty') {
+        part[field] = Math.max(1, parseInt(value) || 1);
+      } else if (field === 'rotate') {
+        part[field] = value;
+      } else {
+        part[field] = parseFloat(value) || 0;
+      }
+    }
+  };
+
+  window.updatePartEdge = function(id, edge, checked) {
+    const part = parts.find(p => p.id === id);
+    if (part) {
+      part.edges[edge] = checked;
+    }
+  };
+
+  window.removePart = function(id) {
+    parts = parts.filter(p => p.id !== id);
+    renderTable();
+  };
+
+  window.toggleSelectAll = function() {
+    const checked = document.getElementById('selectAll').checked;
+    document.querySelectorAll('.part-check').forEach(cb => cb.checked = checked);
+  };
+
+  window.calculate = function() {
+    const sheetW = parseFloat(document.getElementById('sheetWidth').value) || 1200;
+    const sheetH = parseFloat(document.getElementById('sheetHeight').value) || 600;
+    const sheetArea = (sheetW * sheetH) / 1000000;
+
+    let partsArea = 0;
+    let totalEdgeLength = 0;
+
+    parts.forEach(part => {
+      const partArea = (part.width * part.height / 1000000) * part.qty;
+      partsArea += partArea;
+
+      const edgePerPart = (2 * (part.width + part.height)) / 1000;
+      let enabledEdges = 0;
+      if (part.edges.top) enabledEdges++;
+      if (part.edges.right) enabledEdges++;
+      if (part.edges.bottom) enabledEdges++;
+      if (part.edges.left) enabledEdges++;
+      
+      totalEdgeLength += (enabledEdges > 0 ? (edgePerPart * enabledEdges / 4) : 0) * part.qty;
+    });
+
+    const sheetsNeeded = Math.ceil(partsArea / sheetArea);
+    const efficiency = ((partsArea / (sheetArea * sheetsNeeded)) * 100).toFixed(1);
+    const waste = (100 - efficiency).toFixed(1);
+
+    document.getElementById('calcSheetArea').textContent = sheetArea.toFixed(2) + ' м²';
+    document.getElementById('calcPartsArea').textContent = partsArea.toFixed(2) + ' м²';
+    document.getElementById('calcSheetsNeeded').textContent = sheetsNeeded;
+    document.getElementById('calcEfficiency').textContent = efficiency + '%';
+    document.getElementById('calcWaste').textContent = waste + '%';
+    document.getElementById('calcEdgeLength').textContent = totalEdgeLength.toFixed(1) + ' м';
+    document.getElementById('calcEdgeTape').textContent = (totalEdgeLength * 1.1).toFixed(1) + ' м';
+    document.getElementById('calcEdgeCost').textContent = (totalEdgeLength * 1500).toFixed(0) + ' ₸';
+  };
+
+  window.selectPVC = function(thickness, element) {
+    selectedPVC = thickness;
+    document.querySelectorAll('.pvc-card').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+  };
+
+  window.submit = function() {
+    const pattern = document.querySelector('input[name="pattern"]:checked').value;
+    alert(`✓ Отправлено!\n${parts.length} частей\n${document.getElementById('materialType').value}\nУзор: ${pattern === 'yes' ? 'ДА' : 'НЕТ'}`);
+  };
+
+  window.updatePart = function() {};
+
+  init();
+</script>
+
+</body>
+</html>
