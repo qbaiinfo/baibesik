@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat — Baibesik</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #FF9800;
+      --primary-dark: #F57C00;
+      --bg: #FAFAFA;
+      --bg-dark: #EEEEEE;
+      --text: #212121;
+      --text-light: #757575;
+      --border: #E0E0E0;
+      --white: #FFFFFF;
+      --green: #4CAF50;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .auth-guard { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
+    .auth-guard.show { display: flex; align-items: center; justify-content: center; }
+    .auth-guard-content { text-align: center; }
+    .auth-guard-content h1 { color: var(--primary); margin-bottom: 1rem; }
+    .auth-guard-content a { display: inline-block; margin-top: 1rem; padding: 0.75rem 2rem; background: var(--primary); color: var(--white); border-radius: 4px; text-decoration: none; font-weight: 600; }
+
+    /* ─── Header ─── */
+    .header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex: 1;
+    }
+
+    .identity-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--text-light);
+    }
+
+    .identity-badge .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.75rem;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .header-right button {
+      background: none;
+      border: none;
+      padding: 0.5rem;
+      cursor: pointer;
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+
+    /* ─── Main Container ─── */
+    .container {
+      display: flex;
+      height: calc(100vh - 60px);
+      gap: 0;
+    }
+
+    /* ─── Sidebar ─── */
+    .sidebar {
+      width: 320px;
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-search {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-search input {
+      width: 100%;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.875rem;
+      outline: none;
+    }
+
+    .sidebar-search input:focus {
+      border-color: var(--primary);
+    }
+
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+      list-style: none;
+    }
+
+    .chat-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--bg-dark);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .chat-item:hover { background: var(--bg-dark); }
+    .chat-item.active { background: #FFF3E0; border-left: 3px solid var(--primary); }
+
+    .chat-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.25rem;
+    }
+
+    .chat-item-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      flex: 1;
+    }
+
+    .chat-item-time {
+      font-size: 0.75rem;
+      color: var(--text-light);
+    }
+
+    .chat-item-preview {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-item-unread {
+      background: var(--primary);
+      color: var(--white);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
+    /* ─── Chat Area ─── */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--white);
+    }
+
+    .chat-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-header-info h2 {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .chat-header-info p {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .message {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .message.own { flex-direction: row-reverse; }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .message-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      max-width: 70%;
+    }
+
+    .message.own .message-content { align-items: flex-end; }
+
+    .message-bubble {
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      word-wrap: break-word;
+      font-size: 0.95rem;
+      position: relative;
+    }
+
+    .message.own .message-bubble {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    .message:not(.own) .message-bubble {
+      background: var(--bg-dark);
+      color: var(--text);
+    }
+
+    .message-time {
+      font-size: 0.75rem;
+      color: var(--text-light);
+    }
+
+    .message-meta {
+      font-size: 0.7rem;
+      color: var(--text-light);
+      margin-top: 0.25rem;
+    }
+
+    /* Message Types */
+    .message-file {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-dark);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .message-file-icon { font-size: 1.5rem; }
+
+    /* Cutting Data */
+    .message-cutting {
+      background: #FFF9C4;
+      border-left: 3px solid #FBC02D;
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .message-cutting-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.25rem 0;
+    }
+
+    .message-cutting-label { font-weight: 600; }
+    .message-cutting-value { color: var(--primary); }
+
+    /* ─── Input Area ─── */
+    .chat-input-area {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .chat-input-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .chat-input-wrapper textarea {
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      resize: none;
+      min-height: 40px;
+      max-height: 120px;
+      outline: none;
+    }
+
+    .chat-input-wrapper textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .chat-input-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .chat-input-actions button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.25rem;
+      color: var(--text-light);
+      transition: color 0.2s;
+    }
+
+    .chat-input-actions button:hover { color: var(--primary); }
+
+    .chat-send {
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .chat-send:hover { background: var(--primary-dark); }
+    .chat-send:disabled { background: var(--text-light); cursor: not-allowed; }
+
+    /* ─── Empty State ─── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-light);
+      text-align: center;
+    }
+
+    .empty-state-icon { font-size: 4rem; margin-bottom: 1rem; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .sidebar { position: absolute; width: 100%; height: 100%; left: -100%; transition: left 0.3s; z-index: 10; }
+      .sidebar.open { left: 0; }
+      
+      .chat-area { width: 100%; }
+      
+      .message-content { max-width: 85%; }
+
+      .header { padding: 0.75rem; }
+      .chat-messages { padding: 0.75rem; }
+      .chat-input-area { padding: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Auth Guard -->
+  <div class="auth-guard show" id="authGuard">
+    <div class="auth-guard-content">
+      <h1>🔐 Авторизация қажет</h1>
+      <p>Chat-ке кіру үшін кіріңіз.</p>
+      <a href="login.html">Кіру</a>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="header" id="header" style="display:none;">
+    <div class="header-left">
+      <h1 style="font-size: 1.25rem; color: var(--primary); margin: 0;">💬 Chat</h1>
+      <div class="identity-badge">
+        <div class="avatar" id="identityAvatar">A</div>
+        <div>
+          <div id="identityName">User</div>
+          <div style="font-size: 0.7rem;">Baibesik</div>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button id="sidebarToggle" style="display:none;">☰</button>
+      <button id="newChatBtn" title="Жаңа чат">➕</button>
+      <button id="logoutBtn" title="Шығу">🚪</button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container" id="container" style="display:none;">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-search">
+        <input type="text" id="chatSearch" placeholder="Іздеу...">
+      </div>
+      <ul class="chat-list" id="chatList"></ul>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area" id="chatArea">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-state-icon">💬</div>
+        <h2>Chat қосымшасына қош келдініз</h2>
+        <p>Сөйлесімді бастау үшін сол жақ тарапта адамды таңдаңыз</p>
+      </div>
+
+      <!-- Chat Header (Hidden until chat selected) -->
+      <div class="chat-header" id="chatHeader" style="display:none;">
+        <div class="chat-header-info">
+          <h2 id="chatName">—</h2>
+          <p id="chatStatus">—</p>
+        </div>
+        <button id="closeChatBtn" style="display:none; background: none; border: none; cursor: pointer; font-size: 1.25rem;">✕</button>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-messages" id="chatMessages" style="display:none;"></div>
+
+      <!-- Input -->
+      <div class="chat-input-area" id="chatInputArea" style="display:none;">
+        <div class="chat-input-wrapper">
+          <textarea id="messageInput" placeholder="Хабар жазыңыз..." rows="1"></textarea>
+          <div class="chat-input-actions" id="inputActions"></div>
+        </div>
+        <button class="chat-send" id="sendBtn">Жіберу</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="supabase_client.js" type="module"></script>
+  <script type="module">
+    import {
+      getCurrentUser, redirectByRole,
+      getOrCreateDirectChat, getMyChatRooms, getChatRoom,
+      getMessages, sendMessage, markMessagesAsRead,
+      subscribeToMessages, subscribeToMessageUpdates, subscribeToTyping, broadcastTyping,
+      supabase
+    } from './supabase_client.js';
+
+    // ─── STATE ───
+    let currentUser = null;
+    let currentChatRoom = null;
+    let currentChatId = null;
+    let messageSubscription = null;
+    let typingTimeout = null;
+
+    // ─── INIT ───
+    async function init() {
+      try {
+        currentUser = await getCurrentUser();
+        if (!currentUser) {
+          document.getElementById('authGuard').classList.add('show');
+          return;
+        }
+
+        document.getElementById('authGuard').style.display = 'none';
+        document.getElementById('header').style.display = 'flex';
+        document.getElementById('container').style.display = 'flex';
+
+        // Identity badge
+        document.getElementById('identityName').textContent = currentUser.full_name || 'User';
+        document.getElementById('identityAvatar').textContent = (currentUser.full_name || 'A').charAt(0).toUpperCase();
+
+        // Load chats
+        await loadChatRooms();
+
+        // Event listeners
+        document.getElementById('sendBtn').addEventListener('click', sendCurrentMessage);
+        document.getElementById('messageInput').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendCurrentMessage();
+          }
+        });
+
+        document.getElementById('messageInput').addEventListener('input', () => {
+          clearTimeout(typingTimeout);
+          broadcastTyping(currentChatId, currentUser.id, true);
+          typingTimeout = setTimeout(() => {
+            broadcastTyping(currentChatId, currentUser.id, false);
+          }, 2000);
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+          await supabase.auth.signOut();
+          window.location.href = 'login.html';
+        });
+
+        document.getElementById('newChatBtn').addEventListener('click', newChat);
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+          document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        if (window.innerWidth <= 768) {
+          document.getElementById('sidebarToggle').style.display = 'block';
+          document.getElementById('closeChatBtn').style.display = 'block';
+        }
+
+      } catch (error) {
+        console.error('Init error:', error);
+        document.getElementById('authGuard').classList.add('show');
+      }
+    }
+
+    // ─── Load Chat Rooms ───
+    async function loadChatRooms() {
+      try {
+        const rooms = await getMyChatRooms('baibesik');
+        const chatList = document.getElementById('chatList');
+        chatList.innerHTML = '';
+
+        if (rooms.length === 0) {
+          chatList.innerHTML = '<li style="padding: 1rem; text-align: center; color: var(--text-light);">Бәлкім әрі сөйлесімді бастау үшін ➕ батырмасын басыңыз</li>';
+          return;
+        }
+
+        rooms.forEach(room => {
+          const item = document.createElement('li');
+          item.className = 'chat-item';
+          if (room.id === currentChatId) item.classList.add('active');
+
+          const otherUserId = room.participant_1 === currentUser.id ? room.participant_2 : room.participant_1;
+          const lastMsg = room.lastMsg?.content?.substring(0, 30) || 'Сөйлесім бастау үшін басыңыз';
+
+          item.innerHTML = `
+            <div class="chat-item-header">
+              <span class="chat-item-name">${room.group_name || 'Chat'}</span>
+              <span class="chat-item-time">${room.last_message_at ? new Date(room.last_message_at).toLocaleTimeString('kk-KZ', {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+            </div>
+            <div class="chat-item-preview">${lastMsg}</div>
+          `;
+
+          item.addEventListener('click', () => selectChat(room.id, otherUserId));
+          chatList.appendChild(item);
+        });
+      } catch (error) {
+        console.error('Load chats error:', error);
+      }
+    }
+
+    // ─── Select Chat ───
+    async function selectChat(roomId, otherUserId) {
+      currentChatId = roomId;
+      currentChatRoom = await getChatRoom(roomId);
+
+      if (messageSubscription) messageSubscription.unsubscribe();
+
+      // UI
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('chatHeader').style.display = 'flex';
+      document.getElementById('chatMessages').style.display = 'flex';
+      document.getElementById('chatInputArea').style.display = 'flex';
+
+      document.getElementById('chatName').textContent = currentChatRoom.group_name || 'Chat';
+      document.getElementById('chatStatus').textContent = 'Активті';
+
+      document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
+      event.target.closest('.chat-item').classList.add('active');
+
+      // Load messages
+      await loadMessages();
+      await markMessagesAsRead(roomId);
+
+      // Subscribe to new messages
+      messageSubscription = subscribeToMessages(roomId, async (newMsg) => {
+        await loadMessages();
+      });
+
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    }
+
+    // ─── Load Messages ───
+    async function loadMessages() {
+      try {
+        const { messages } = await getMessages(currentChatId, 1, 100);
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML = '';
+
+        messages.forEach(msg => {
+          const div = document.createElement('div');
+          div.className = `message ${msg.sender_id === currentUser.id ? 'own' : ''}`;
+
+          const time = new Date(msg.created_at).toLocaleTimeString('kk-KZ', {hour: '2-digit', minute:'2-digit'});
+          const edited = msg.is_edited ? ` (өтеді)` : '';
+
+          div.innerHTML = `
+            <div class="message-avatar">${(msg.users?.full_name || 'U').charAt(0).toUpperCase()}</div>
+            <div class="message-content">
+              <div class="message-bubble">${escapeHtml(msg.content)}</div>
+              <div class="message-time">${time}${edited}</div>
+              ${msg.cutting_data ? `
+                <div class="message-cutting">
+                  <div class="message-cutting-row">
+                    <span class="message-cutting-label">Материал:</span>
+                    <span class="message-cutting-value">${msg.cutting_data.materialType || '—'}</span>
+                  </div>
+                  <div class="message-cutting-row">
+                    <span class="message-cutting-label">Өлшем:</span>
+                    <span class="message-cutting-value">${msg.cutting_data.dimensions || '—'}</span>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          `;
+
+          chatMessages.appendChild(div);
+        });
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      } catch (error) {
+        console.error('Load messages error:', error);
+      }
+    }
+
+    // ─── Send Message ───
+    async function sendCurrentMessage() {
+      if (!currentChatId) return;
+
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+      if (!content) return;
+
+      try {
+        await sendMessage(currentChatId, content);
+        input.value = '';
+        input.style.height = '40px';
+        await loadMessages();
+      } catch (error) {
+        console.error('Send error:', error);
+        alert('Хабарлама жіберу сәтсіз болды: ' + error.message);
+      }
+    }
+
+    // ─── New Chat ───
+    async function newChat() {
+      const userId = prompt('Пайдаланушы ID\'сін енгізіңіз (немесе телефон нөмері):');
+      if (!userId) return;
+
+      try {
+        const chatId = await getOrCreateDirectChat(userId, 'baibesik');
+        await loadChatRooms();
+        await selectChat(chatId, userId);
+      } catch (error) {
+        console.error('New chat error:', error);
+        alert('Чат ашу сәтсіз болды: ' + error.message);
+      }
+    }
+
+    // ─── Utilities ───
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ─── Textarea Auto-resize ───
+    document.getElementById('messageInput').addEventListener('input', function() {
+      this.style.height = '40px';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    // Init
+    init();
+  </script>
+</body>
+</html>

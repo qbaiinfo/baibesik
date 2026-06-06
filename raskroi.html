@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Раскрой (Kesim) — Baibesik.kz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;
+  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;
+  --green:#10b981;--red:#ef4444;--yellow:#f59e0b;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+
+/* HEADER */
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:1200px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.nav-user{margin-left:auto;display:flex;align-items:center;gap:8px}
+.identity-badge{display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+/* AUTH GUARD */
+.auth-guard{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center}
+.auth-guard.show{display:flex}
+.auth-guard h2{margin-bottom:1rem;color:var(--orange)}
+.auth-guard a{margin-top:1rem;padding:10px 20px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--dark) 0%,#1a0800 100%);padding:40px 20px;text-align:center}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:42px;color:#fff;letter-spacing:2px;margin-bottom:8px}
+.hero-title span{color:var(--orange)}
+.hero-sub{font-size:14px;color:#94a3b8;max-width:600px;margin:0 auto}
+
+/* CONTENT */
+.content{max-width:1200px;margin:0 auto;padding:32px 20px}
+
+/* SECTION */
+.section{margin-bottom:40px}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--dark);letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-title::before{font-size:28px}
+
+/* INPUT AREA */
+.input-area{background:#fff;border:2px solid var(--orange);border-radius:var(--radius);padding:20px;margin-bottom:24px}
+.input-area label{display:block;font-size:13px;font-weight:700;color:var(--dark);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.input-area textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'Noto Sans',sans-serif;font-size:13px;resize:vertical;min-height:100px;outline:none;margin-bottom:12px}
+.input-area textarea:focus{border-color:var(--orange)}
+.input-hint{font-size:11px;color:var(--gray);margin-bottom:14px}
+
+/* SHOP SELECTION */
+.shop-select-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+
+.shop-item{background:#fff;border:2px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .2s;position:relative}
+.shop-item:hover{border-color:var(--orange);box-shadow:0 6px 20px rgba(249,115,22,.12)}
+.shop-item.cutting-workshop{border-color:var(--orange);background:var(--orange-light)}
+.shop-item.cutting-workshop .shop-badge{background:var(--orange);color:#fff}
+
+.shop-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.shop-icon{font-size:32px}
+.shop-info{flex:1}
+.shop-name{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--dark);letter-spacing:.5px;margin-bottom:2px}
+.shop-addr{font-size:11px;color:var(--gray)}
+
+.shop-services{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.service-tag{background:var(--light);border:1px solid var(--border);border-radius:12px;padding:3px 8px;font-size:10px;font-weight:600;color:var(--gray)}
+.service-tag.cutting{background:rgba(249,115,22,.1);border-color:var(--orange);color:var(--orange);font-weight:700}
+
+.shop-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:10px}
+.shop-rating{font-size:12px;font-weight:700;color:var(--dark)}
+.shop-status{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;background:rgba(16,185,129,.1);color:var(--green)}
+
+.shop-badge{position:absolute;top:10px;right:10px;background:rgba(249,115,22,.15);color:var(--orange);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:800}
+
+/* BUTTON */
+.btn-select{width:100%;background:var(--orange);color:#fff;border:none;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;font-family:'Noto Sans',sans-serif;transition:background .2s;margin-top:10px}
+.btn-select:hover{background:var(--orange-dark)}
+
+.btn-submit{background:var(--orange);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;font-family:'Noto Sans',sans-serif;transition:background .2s}
+.btn-submit:hover{background:var(--orange-dark)}
+.btn-submit:disabled{background:var(--gray);cursor:not-allowed}
+
+/* SELECTED */
+.selected-shop{background:#fff;border:2px solid var(--green);border-radius:var(--radius);padding:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.selected-shop.none{border-color:var(--border);background:var(--light)}
+.selected-info{flex:1}
+.selected-name{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--dark);margin-bottom:3px}
+.selected-addr{font-size:12px;color:var(--gray)}
+.btn-change{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid var(--orange);padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s}
+.btn-change:hover{background:var(--orange);color:#fff}
+
+/* UPLOADER */
+.uploader{background:#fff;border:2px dashed var(--border);border-radius:var(--radius);padding:32px 20px;text-align:center;transition:all .2s;cursor:pointer}
+.uploader.dragover{border-color:var(--orange);background:var(--orange-light)}
+.uploader-icon{font-size:40px;margin-bottom:12px}
+.uploader-text{font-size:13px;font-weight:600;color:var(--dark);margin-bottom:4px}
+.uploader-hint{font-size:11px;color:var(--gray)}
+.uploader input{display:none}
+
+.files-list{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.file-item{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.file-name{flex:1;color:var(--dark);font-weight:600}
+.file-btn{background:var(--red);color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer}
+
+/* MODAL */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-content{background:#fff;border-radius:var(--radius);padding:28px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease-out}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--dark);letter-spacing:1px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--gray)}
+.modal-body{font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:20px}
+.modal-actions{display:flex;gap:10px}
+.modal-actions button{flex:1;padding:10px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;font-size:12px}
+.modal-primary{background:var(--orange);color:#fff}
+.modal-primary:hover{background:var(--orange-dark)}
+.modal-secondary{background:var(--light);color:var(--dark);border:1px solid var(--border)}
+.modal-secondary:hover{background:var(--border)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .hero-title{font-size:32px}
+  .shop-select-grid{grid-template-columns:1fr}
+  .selected-shop{flex-direction:column;text-align:center}
+  .selected-shop .selected-info{margin-bottom:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH GUARD -->
+<div class="auth-guard" id="authGuard">
+  <h2>🔐 Авторизация қажет</h2>
+  <p>Раскрой сервисін пайдалану үшін кіріңіз.</p>
+  <a href="login.html">Кіру</a>
+</div>
+
+<!-- HEADER -->
+<header id="header" style="display:none">
+  <div class="hi">
+    <a href="index.html" class="logo">BAIBESIK<span>.kz</span></a>
+    <div class="nav-user">
+      <div class="identity-badge">
+        <div class="avatar" id="identityAvatar">A</div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Раскрой</div>
+          <div id="identityName" style="font-size:12px;font-weight:700">Пользователь</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero" id="hero" style="display:none">
+  <h1 class="hero-title">✂️ Раскрой<span>.</span></h1>
+  <p class="hero-sub">Выберите магазин или мастерскую для обработки вашего заказа раскроя</p>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="content" style="display:none">
+  
+  <!-- STEP 1: Опишите заказ раскроя -->
+  <div class="section">
+    <h2 class="section-title">✍️ Опишите ваш заказ раскроя</h2>
+    
+    <div class="input-area">
+      <label>Детали вашего проекта раскроя</label>
+      <textarea id="projectDesc" placeholder="Напримеры: МДФ 18мм, размер 1200х600, нужна оптимизация...&#10;Или загрузите DXF/PDF файл ниже."></textarea>
+      
+      <label>Загрузить файлы (DXF, PDF, AI, CDR)</label>
+      <div class="uploader" id="uploader">
+        <div class="uploader-icon">📁</div>
+        <div class="uploader-text">Нажмите или перетащите файлы</div>
+        <div class="uploader-hint">DXF, PDF, AI, CDR макеты</div>
+        <input type="file" id="fileInput" multiple accept=".dxf,.pdf,.ai,.cdr,.dwg">
+      </div>
+      
+      <div class="files-list" id="filesList"></div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Выберите магазин или мастерскую -->
+  <div class="section">
+    <h2 class="section-title">🏪 Выберите магазин или мастерскую раскроя</h2>
+    
+    <div class="selected-shop none" id="selectedShop">
+      <div class="selected-info">
+        <div class="selected-name">Магазин не выбран</div>
+        <div class="selected-addr">Нажмите ниже для выбора</div>
+      </div>
+      <button class="btn-change" id="changeShopBtn" style="display:none">Изменить</button>
+    </div>
+
+    <div class="shop-select-grid" id="shopGrid"></div>
+  </div>
+
+  <!-- STEP 3: Отправить -->
+  <div class="section" style="text-align:center;margin-top:40px">
+    <button class="btn-submit" id="submitBtn" disabled>
+      📤 Отправить заказ раскроя
+    </button>
+    <p style="font-size:11px;color:var(--gray);margin-top:10px">
+      После отправки вы перейдёте на панель управления раскроем
+    </p>
+  </div>
+
+</div>
+
+<!-- MODAL: Условия и подтверждение -->
+<div class="modal" id="confirmModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      ✂️ Подтверждение заказа раскроя
+      <button class="modal-close" id="closeModal">×</button>
+    </div>
+    <div class="modal-body">
+      <p><strong>Магазин:</strong> <span id="confirmShopName"></span></p>
+      <p style="margin-top:10px"><strong>Описание:</strong><br><span id="confirmDesc" style="font-size:12px;color:var(--dark)"></span></p>
+      <p style="margin-top:10px"><strong>Файлы:</strong> <span id="confirmFiles"></span></p>
+      <p style="margin-top:16px;font-size:12px;color:var(--gray)">
+        ✓ Вы получите файлы в формате DXF и G-Code<br>
+        ✓ Можете скачать и отправить в WhatsApp<br>
+        ✓ История сохранится в вашем профиле
+      </p>
+    </div>
+    <div class="modal-actions">
+      <button id="confirmBtn" class="modal-primary">✓ Отправить</button>
+      <button id="cancelBtn" class="modal-secondary">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="supabase_client.js" type="module"></script>
+<script type="module">
+  import { getCurrentUser, supabase } from './supabase_client.js';
+
+  let currentUser = null;
+  let selectedShopId = null;
+  let uploadedFiles = [];
+
+  // ── INIT ──
+  async function init() {
+    try {
+      currentUser = await getCurrentUser();
+      if (!currentUser) {
+        document.getElementById('authGuard').classList.add('show');
+        return;
+      }
+
+      document.getElementById('authGuard').style.display = 'none';
+      document.getElementById('header').style.display = 'block';
+      document.getElementById('hero').style.display = 'block';
+      document.getElementById('content').style.display = 'block';
+
+      // Identity badge
+      document.getElementById('identityName').textContent = currentUser.full_name || 'Пользователь';
+      document.getElementById('identityAvatar').textContent = (currentUser.full_name || 'U').charAt(0).toUpperCase();
+
+      // Load shops
+      await loadShops();
+
+      // Event listeners
+      setupEventListeners();
+    } catch (error) {
+      console.error('Init error:', error);
+    }
+  }
+
+  // ── LOAD SHOPS ──
+  async function loadShops() {
+    try {
+      const { data: stores, error } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('is_active', true)
+        .eq('status', 'active');
+
+      if (error) throw error;
+
+      const grid = document.getElementById('shopGrid');
+      grid.innerHTML = '';
+
+      if (!stores || stores.length === 0) {
+        grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Магазины не найдены</div>';
+        return;
+      }
+
+      stores.forEach(shop => {
+        const hasCutting = Math.random() > 0.4; // Симуляция: ~60% магазинов имеет kesme atolyesi
+        
+        const html = `
+          <div class="shop-item ${hasCutting ? 'cutting-workshop' : ''}">
+            <div class="shop-header">
+              <div class="shop-icon">🏪</div>
+              <div class="shop-info">
+                <div class="shop-name">${shop.name}</div>
+                <div class="shop-addr">📍 ${shop.address || 'Байбесик, Алматы'}</div>
+              </div>
+            </div>
+            
+            <div class="shop-services">
+              <span class="service-tag">🛠️ Детали</span>
+              ${hasCutting ? '<span class="service-tag cutting">✂️ Раскрой</span>' : ''}
+              <span class="service-tag">🎨 Услуги</span>
+            </div>
+
+            ${hasCutting ? '<div class="shop-badge">⚙️ МАСТЕРСКАЯ</div>' : ''}
+
+            <div class="shop-footer">
+              <div class="shop-rating">⭐ ${(Math.random() * 2 + 4).toFixed(1)}</div>
+              <div class="shop-status">Открыто</div>
+            </div>
+
+            <button class="btn-select" onclick="selectShop('${shop.id}', '${shop.name.replace(/'/g, "\\'")}')">
+              ${hasCutting ? '✓ Выбрать мастерскую' : 'Выбрать магазин'}
+            </button>
+          </div>
+        `;
+
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        grid.appendChild(div.firstElementChild);
+      });
+    } catch (error) {
+      console.error('Load shops error:', error);
+    }
+  }
+
+  // ── SELECT SHOP ──
+  window.selectShop = function(shopId, shopName) {
+    selectedShopId = shopId;
+    
+    document.getElementById('selectedShop').innerHTML = `
+      <div class="selected-info">
+        <div class="selected-name">${shopName}</div>
+        <div class="selected-addr">Магазин выбран ✓</div>
+      </div>
+      <button class="btn-change" id="changeShopBtn" onclick="document.getElementById('shopGrid').scrollIntoView()">Изменить</button>
+    `;
+    document.getElementById('selectedShop').classList.remove('none');
+    document.getElementById('submitBtn').disabled = false;
+
+    // Scroll to selected
+    document.getElementById('selectedShop').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // ── FILE UPLOAD ──
+  function setupEventListeners() {
+    const uploader = document.getElementById('uploader');
+    const fileInput = document.getElementById('fileInput');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      uploader.addEventListener(eventName, preventDefaults);
+    });
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploader.addEventListener(eventName, () => uploader.classList.add('dragover'));
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploader.addEventListener(eventName, () => uploader.classList.remove('dragover'));
+    });
+
+    uploader.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      fileInput.files = files;
+      handleFiles(files);
+    });
+
+    uploader.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    // Submit
+    document.getElementById('submitBtn').addEventListener('click', showConfirmModal);
+    document.getElementById('confirmBtn').addEventListener('click', submitOrder);
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+      document.getElementById('confirmModal').classList.remove('show');
+    });
+    document.getElementById('closeModal').addEventListener('click', () => {
+      document.getElementById('confirmModal').classList.remove('show');
+    });
+  }
+
+  function handleFiles(files) {
+    uploadedFiles = Array.from(files);
+    const list = document.getElementById('filesList');
+    list.innerHTML = '';
+
+    uploadedFiles.forEach((file, idx) => {
+      const item = document.createElement('div');
+      item.className = 'file-item';
+      item.innerHTML = `
+        <span class="file-name">📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
+        <button class="file-btn" onclick="removeFile(${idx})">Удалить</button>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  window.removeFile = function(idx) {
+    uploadedFiles.splice(idx, 1);
+    handleFiles(uploadedFiles);
+  };
+
+  function showConfirmModal() {
+    const desc = document.getElementById('projectDesc').value.trim();
+    if (!desc && uploadedFiles.length === 0) {
+      alert('Пожалуйста, опишите ваш проект или загрузьте файл');
+      return;
+    }
+
+    if (!selectedShopId) {
+      alert('Пожалуйста, выберите магазин или мастерскую');
+      return;
+    }
+
+    document.getElementById('confirmDesc').textContent = desc.substring(0, 200) + (desc.length > 200 ? '...' : '');
+    document.getElementById('confirmFiles').textContent = uploadedFiles.length > 0 ? `${uploadedFiles.length} файл(ов)` : 'Нет';
+    document.getElementById('confirmShopName').textContent = document.querySelector('.selected-name').textContent;
+
+    document.getElementById('confirmModal').classList.add('show');
+  }
+
+  async function submitOrder() {
+    try {
+      document.getElementById('confirmBtn').disabled = true;
+      document.getElementById('confirmBtn').textContent = '⏳ Отправка...';
+
+      // Симуляция отправки
+      const orderId = Math.random().toString(36).substring(7).toUpperCase();
+      
+      // Сохранить в историю (временно в localStorage)
+      const history = JSON.parse(localStorage.getItem('cuttingOrders') || '[]');
+      history.push({
+        id: orderId,
+        shopId: selectedShopId,
+        description: document.getElementById('projectDesc').value,
+        files: uploadedFiles.map(f => ({name: f.name, size: f.size})),
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      });
+      localStorage.setItem('cuttingOrders', JSON.stringify(history));
+
+      // Перенаправить на Manager2
+      alert(`✓ Заказ ${orderId} отправлен!\nПеренаправляем на панель управления...`);
+      window.location.href = `manager2.html?orderId=${orderId}&shopId=${selectedShopId}`;
+    } catch (error) {
+      console.error('Submit error:', error);
+      alert('Ошибка: ' + error.message);
+      document.getElementById('confirmBtn').disabled = false;
+      document.getElementById('confirmBtn').textContent = '✓ Отправить';
+    }
+  }
+
+  // Init
+  init();
+</script>
+
+</body>
+</html>

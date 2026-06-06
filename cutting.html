@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cutting (Раскрой) — Baibesik.kz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;
+  --gray:#64748b;--light:#f8fafc;--radius:12px;--green:#10b981;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+
+/* HEADER */
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:1400px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:12px;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.nav-user{display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8;text-decoration:none}
+
+/* AUTH GUARD */
+.auth-guard{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center}
+.auth-guard.show{display:flex}
+
+/* MAIN CONTAINER */
+.main-container{max-width:1400px;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:1fr 1fr;gap:32px}
+
+/* SECTION */
+.section{background:#fff;border-radius:var(--radius);padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--dark);letter-spacing:1px;margin-bottom:16px}
+.section-title span{color:var(--orange)}
+
+.desc{font-size:13px;color:var(--gray);line-height:1.7;margin-bottom:16px}
+
+/* FEATURES */
+.features{list-style:none}
+.features li{padding:10px 0;padding-left:24px;position:relative;font-size:12px;color:var(--dark);line-height:1.6}
+.features li::before{content:'✓';position:absolute;left:0;color:var(--orange);font-weight:900}
+
+/* BUTTON */
+.btn{display:inline-block;padding:12px 24px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:13px;border:none;cursor:pointer;transition:all .2s;font-family:'Noto Sans',sans-serif;margin-top:8px}
+.btn:hover{background:var(--orange-dark);transform:translateY(-2px)}
+.btn-outline{background:transparent;border:2px solid var(--orange);color:var(--orange)}
+.btn-outline:hover{background:var(--orange);color:#fff}
+
+/* TEMPLATE AREA */
+.template-area{background:var(--light);border:2px dashed var(--orange);border-radius:var(--radius);padding:24px;text-align:center;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+.template-icon{font-size:56px;margin-bottom:12px}
+.template-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--dark);letter-spacing:1px;margin-bottom:8px}
+.template-desc{font-size:12px;color:var(--gray);margin-bottom:16px}
+
+/* PARTS BUILDER */
+.parts-section{background:#fff;border-radius:var(--radius);padding:20px;margin-top:16px}
+.parts-header{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--dark);letter-spacing:.5px;margin-bottom:12px;display:flex;justify-content:space-between}
+
+.parts-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+
+.part-card{background:var(--light);border:2px solid var(--orange-light);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.part-card:hover{border-color:var(--orange);background:rgba(249,115,22,.05)}
+
+.part-icon{font-size:32px;margin-bottom:8px}
+.part-name{font-size:11px;font-weight:700;color:var(--dark);margin-bottom:6px}
+.part-dims{font-size:10px;color:var(--gray)}
+
+.part-remove{position:absolute;top:4px;right:4px;background:var(--orange);color:#fff;border:none;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:10px;padding:0;display:none}
+.part-card:hover .part-remove{display:block}
+
+/* ADD PART BUTTON */
+.add-part-btn{width:100%;padding:12px;border:2px dashed var(--orange);background:#fff;color:var(--orange);border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;font-family:'Noto Sans',sans-serif;transition:all .2s}
+.add-part-btn:hover{background:var(--orange-light)}
+
+/* CONTROLS */
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+
+.input-group{display:flex;flex-direction:column}
+.input-group label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px}
+.input-group input{padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;font-family:'Noto Sans',sans-serif;outline:none}
+.input-group input:focus{border-color:var(--orange)}
+
+/* ACTIONS */
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+
+.action-btn{padding:10px;border:none;border-radius:6px;font-weight:700;font-size:11px;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s}
+
+.action-primary{background:var(--green);color:#fff}
+.action-primary:hover{background:#059669}
+
+.action-export{background:var(--orange);color:#fff}
+.action-export:hover{background:var(--orange-dark)}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .main-container{grid-template-columns:1fr}
+}
+
+@media(max-width:768px){
+  .main-container{padding:12px 10px}
+  .section{padding:14px}
+  .controls{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH GUARD -->
+<div class="auth-guard" id="authGuard">
+  <h2>🔐 Авторизация қажет</h2>
+  <p>Cutting uygulamasını kullanmak için giriş yapın.</p>
+  <a href="login.html" style="margin-top:1rem;padding:10px 20px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700">Giriş Yap</a>
+</div>
+
+<!-- HEADER -->
+<header id="header" style="display:none">
+  <div class="hi">
+    <a href="index.html" class="logo">BAIBESIK<span>.kz</span></a>
+    <a href="raskroi.html" class="nav-user" style="background:linear-gradient(135deg,var(--orange) 0%,var(--orange-dark) 100%);padding:8px 16px;border-radius:6px;color:#fff">
+      ← Раскрой Заказа
+    </a>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main-container" id="content" style="display:none">
+
+  <!-- LEFT: Template & Design -->
+  <div>
+    <div class="section">
+      <h2 class="section-title">⚙️ Kesim <span>Tasarımı</span></h2>
+      
+      <p class="desc">
+        Furniture cutting parts'ını tasarla. DXF, PDF veya CDR dosyası yükle veya manuel ölçüler gir.
+      </p>
+
+      <div class="template-area" id="templateArea">
+        <div class="template-icon">📐</div>
+        <div class="template-title">DXF/PDF Yükle Veya Manual Tasarla</div>
+        <div class="template-desc">Makine kesim planını oluştur, parçaları optimize et</div>
+        <input type="file" id="fileInput" style="display:none" accept=".dxf,.pdf,.ai,.cdr">
+        <button class="btn" onclick="document.getElementById('fileInput').click()">📁 Dosya Yükle</button>
+        <button class="btn btn-outline" onclick="startManualDesign()">✏️ Manuel Tasarla</button>
+      </div>
+
+      <!-- Parts Builder -->
+      <div class="parts-section" id="partsSection" style="display:none">
+        <div class="parts-header">
+          📦 Parçalar (Kesim Listesi)
+          <span style="font-size:12px;color:var(--gray)">Toplam: <strong id="partCount">0</strong></span>
+        </div>
+
+        <div class="parts-list" id="partsList">
+          <!-- Dinamik parçalar burada oluşturulacak -->
+        </div>
+
+        <button class="add-part-btn" onclick="addPart()">+ Parça Ekle</button>
+      </div>
+
+      <!-- Control Panel -->
+      <div id="controlsPanel" style="display:none">
+        <div style="margin-top:16px;background:var(--light);border-radius:8px;padding:12px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--dark);letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase">Material Bilgisi</div>
+          
+          <div class="controls">
+            <div class="input-group">
+              <label>Levha Genişliği (mm)</label>
+              <input type="number" id="sheetWidth" placeholder="1200" value="1200" min="0">
+            </div>
+            <div class="input-group">
+              <label>Levha Yüksekliği (mm)</label>
+              <input type="number" id="sheetHeight" placeholder="600" value="600" min="0">
+            </div>
+          </div>
+
+          <div class="controls" style="margin-top:10px">
+            <div class="input-group">
+              <label>Kalınlık (mm)</label>
+              <input type="number" id="thickness" placeholder="18" value="18" min="0">
+            </div>
+            <div class="input-group">
+              <label>Malzeme Tipi</label>
+              <input type="text" id="materialType" placeholder="МДФ" value="МДФ">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Optimization & Export -->
+  <div>
+    <div class="section">
+      <h2 class="section-title">📊 Optimizasyon <span>& Export</span></h2>
+
+      <p class="desc">
+        Guillotine nesting algoritması otomatik optimize eder. DXF, G-Code, PDF rapor ve kenar bandı hesapı.
+      </p>
+
+      <div style="background:#fff7ed;border:2px solid var(--orange);border-radius:8px;padding:16px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;margin-bottom:8px">Optimizasyon Sonuçları</div>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <div style="font-size:10px;color:var(--gray)">Verimlilik</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--orange)">85<span style="font-size:14px">%</span></div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--gray)">Atık</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--dark)">15<span style="font-size:14px">%</span></div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(249,115,22,.2);font-size:11px;color:var(--gray)">
+          💡 <strong>Kesim Planı:</strong> 2 levha, 12 parça<br>
+          📐 <strong>Net Alan:</strong> 0.45 m²<br>
+          💰 <strong>Maliyet (18mm MDF):</strong> 2.250 ₸
+        </div>
+      </div>
+
+      <!-- Kenar Bandı (Edge Banding) -->
+      <div style="background:var(--light);border-radius:8px;padding:12px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--dark);text-transform:uppercase;margin-bottom:8px">Kenar Bandı Hesapı</div>
+        
+        <div class="controls">
+          <div class="input-group">
+            <label>Kenar Bandı Tipi</label>
+            <select style="padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;font-family:'Noto Sans',sans-serif;outline:none" id="edgeBandType">
+              <option value="">— Yok —</option>
+              <option value="pvc-white">PVC Beyaz 20м</option>
+              <option value="pvc-oak">PVC Meşe 20м</option>
+              <option value="veneer">Veneer Meşe 25м</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Kenar Uzunluğu (m)</label>
+            <input type="number" id="edgeLength" placeholder="24" value="24" min="0">
+          </div>
+        </div>
+
+        <div style="margin-top:10px;font-size:11px;color:var(--gray)">
+          💵 Kenar bandı maliyeti: <strong id="edgeCostCalc">0 ₸</strong><br>
+          📦 Toplam işlem maliyeti: <strong id="totalCostCalc">2.250 ₸</strong>
+        </div>
+      </div>
+
+      <!-- Export Options -->
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--dark);text-transform:uppercase;margin-bottom:12px">Export Seçenekleri</div>
+        
+        <div class="actions">
+          <button class="action-btn action-export" onclick="exportDXF()">📥 DXF İndir</button>
+          <button class="action-btn action-export" onclick="exportGCode()">⚙️ G-Code</button>
+        </div>
+
+        <div class="actions">
+          <button class="action-btn action-export" onclick="exportPDF()">📄 Rapor PDF</button>
+          <button class="action-btn action-export" onclick="shareWhatsApp()">💬 WhatsApp</button>
+        </div>
+      </div>
+
+      <!-- Send to Manager -->
+      <div class="actions">
+        <button class="action-btn action-primary" onclick="sendToManager()">📤 Manager'a Gönder</button>
+      </div>
+
+      <p style="font-size:11px;color:var(--gray);margin-top:12px;line-height:1.6">
+        ✓ Dosyaları indir ve WhatsApp'a gönder<br>
+        ✓ Manager panelinden işlem başlatılır<br>
+        ✓ İşlem geçmişi kaydedilir
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<!-- SCRIPTS -->
+<script src="supabase_client.js" type="module"></script>
+<script type="module">
+  import { getCurrentUser, supabase } from './supabase_client.js';
+
+  let currentUser = null;
+  let parts = [];
+
+  async function init() {
+    try {
+      currentUser = await getCurrentUser();
+      if (!currentUser) {
+        document.getElementById('authGuard').classList.add('show');
+        return;
+      }
+
+      document.getElementById('authGuard').style.display = 'none';
+      document.getElementById('header').style.display = 'block';
+      document.getElementById('content').style.display = 'grid';
+
+      // Event listeners
+      document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+    } catch (error) {
+      console.error('Init error:', error);
+    }
+  }
+
+  window.startManualDesign = function() {
+    document.getElementById('templateArea').style.display = 'none';
+    document.getElementById('partsSection').style.display = 'block';
+    document.getElementById('controlsPanel').style.display = 'block';
+  };
+
+  window.addPart = function() {
+    const newPart = {
+      id: Math.random().toString(36).substr(2, 9),
+      width: parseFloat(document.getElementById('sheetWidth').value) / 2 || 600,
+      height: parseFloat(document.getElementById('sheetHeight').value) / 2 || 300,
+      name: `Parça ${parts.length + 1}`
+    };
+
+    parts.push(newPart);
+    renderParts();
+  };
+
+  function renderParts() {
+    const list = document.getElementById('partsList');
+    list.innerHTML = '';
+
+    parts.forEach((part, idx) => {
+      const html = `
+        <div class="part-card">
+          <div class="part-icon">📦</div>
+          <div class="part-name">${part.name}</div>
+          <div class="part-dims">${Math.round(part.width)}×${Math.round(part.height)}</div>
+          <button class="part-remove" onclick="removePart('${part.id}')">×</button>
+        </div>
+      `;
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      list.appendChild(div.firstElementChild);
+    });
+
+    document.getElementById('partCount').textContent = parts.length;
+  }
+
+  window.removePart = function(id) {
+    parts = parts.filter(p => p.id !== id);
+    renderParts();
+  };
+
+  function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    alert(`📁 ${file.name} yüklendi\n(Simüle edildi - gerçek dosya işlemesi yapılacak)`);
+    document.getElementById('templateArea').style.display = 'none';
+    document.getElementById('partsSection').style.display = 'block';
+    document.getElementById('controlsPanel').style.display = 'block';
+
+    // Simulate 3 parts from file
+    parts = [
+      {id: '1', width: 400, height: 300, name: 'Front Panel'},
+      {id: '2', width: 350, height: 250, name: 'Side Panel'},
+      {id: '3', width: 400, height: 30, name: 'Bezel'}
+    ];
+    renderParts();
+  }
+
+  window.exportDXF = function() {
+    alert('📥 DXF dosyası indiriliyor...\n(project.dxf)');
+  };
+
+  window.exportGCode = function() {
+    alert('⚙️ G-Code dosyası indiriliyor...\n(project.gcode)');
+  };
+
+  window.exportPDF = function() {
+    alert('📄 Rapor PDF indiriliyor...\n(cutting_report.pdf)');
+  };
+
+  window.shareWhatsApp = function() {
+    const msg = `🏭 Kesim Projesi Paylaşımı\n\n📦 ${parts.length} parça\n✂️ 2 levha MDF 18mm\n💰 Toplam: 2.250 ₸\n\n📎 Dosyalar: DXF + G-Code`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+  };
+
+  window.sendToManager = function() {
+    alert('✓ Proje Manager paneline gönderildi.\nManager işleme başlayacak ve dosyaları DXF/G-Code formatında oluşturacak.');
+  };
+
+  init();
+</script>
+
+</body>
+</html>

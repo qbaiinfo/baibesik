@@ -416,4 +416,351 @@ export {
   toggleFavourite, getMyFavourites,
   // Уведомления
   getMyNotifications, markNotificationRead, subscribeToNotifications,
+  // 💬 CHAT — baibesik + cutting integration
+  getOrCreateDirectChat, getMyChatRooms, getChatRoom,
+  getMessages, sendMessage, editMessage, deleteMessage, pinMessage,
+  markMessagesAsRead,
+  subscribeToMessages, subscribeToMessageUpdates, broadcastTyping, subscribeToTyping,
+  getStoreChat, createCuttingProjectChat, sendCuttingMessage,
 };
+// ============================================================
+// CHAT MOD — baibesik.kz + Cutting için
+// supabase_client.js'ye eklenecek fonksiyonlar
+// ============================================================
+
+// ────────────────────────────────────────────────────────────
+// CHAT ODALARI
+// ────────────────────────────────────────────────────────────
+
+// Direct chat oluştur veya var olanı al
+async function getOrCreateDirectChat(otherUserId, appContext = 'baibesik') {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const [id1, id2] = [user.id, otherUserId].sort();
+
+  // Var olan odayı ara
+  const { data: existing } = await supabase
+    .from('chat_rooms')
+    .select('id')
+    .eq('type', 'direct')
+    .eq('participant_1', id1)
+    .eq('participant_2', id2)
+    .eq('app_context', appContext)
+    .single();
+
+  if (existing) return existing.id;
+
+  // Yeni oda oluştur
+  const { data: newRoom, error } = await supabase
+    .from('chat_rooms')
+    .insert({
+      type: 'direct',
+      participant_1: id1,
+      participant_2: id2,
+      app_context: appContext,
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return newRoom.id;
+}
+
+// Chat odasını listele (kullanıcının katılımcı olduğu)
+async function getMyChatRooms(appContext = 'baibesik') {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('chat_rooms')
+    .select(`
+      id, type, group_name, group_avatar, app_context,
+      participant_1, participant_2, store_id,
+      last_message_at, is_archived,
+      messages(id, content, sender_id, created_at)
+    `)
+    .eq('app_context', appContext)
+    .or(`participant_1.eq.${user.id}, participant_2.eq.${user.id}`)
+    .eq('is_archived', false)
+    .order('last_message_at', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  // Her odanın en son mesajını ve okuma durumunu ekle
+  const enriched = await Promise.all((data || []).map(async (room) => {
+    const lastMsg = room.messages?.[0];
+    const unreadCount = lastMsg
+      ? (await supabase
+          .from('messages')
+          .select('id')
+          .eq('chat_room_id', room.id)
+          .gt('created_at', lastMsg.created_at)
+          .not('message_reads', 'is', null)
+          .single()).data?.id
+        ? 0
+        : room.messages.length
+      : 0;
+
+    return { ...room, lastMsg, unreadCount };
+  }));
+
+  return enriched;
+}
+
+// Spesifik chat odasını getir
+async function getChatRoom(chatRoomId) {
+  const { data, error } = await supabase
+    .from('chat_rooms')
+    .select('*')
+    .eq('id', chatRoomId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// ────────────────────────────────────────────────────────────
+// MESAJLAR
+// ────────────────────────────────────────────────────────────
+
+// Mesajları getir (pagination)
+async function getMessages(chatRoomId, page = 1, perPage = 50) {
+  const offset = (page - 1) * perPage;
+
+  const { data, count, error } = await supabase
+    .from('messages')
+    .select('*, users:sender_id(id, full_name, avatar_url), message_reads(*)', { count: 'exact' })
+    .eq('chat_room_id', chatRoomId)
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + perPage - 1);
+
+  if (error) throw error;
+  return { messages: (data || []).reverse(), total: count };
+}
+
+// Mesaj gönder
+async function sendMessage(chatRoomId, content, type = 'text', fileUrl = null, cuttingData = null) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('messages')
+    .insert({
+      chat_room_id: chatRoomId,
+      sender_id: user.id,
+      type,
+      content,
+      file_url: fileUrl,
+      cutting_data: cuttingData,
+    })
+    .select('*, users:sender_id(id, full_name, avatar_url)')
+    .single();
+
+  if (error) throw error;
+
+  // Chat room'un last_message_at'ını güncelle
+  await supabase
+    .from('chat_rooms')
+    .update({ last_message_at: new Date().toISOString() })
+    .eq('id', chatRoomId);
+
+  return data;
+}
+
+// Mesajı edit et
+async function editMessage(messageId, newContent) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('messages')
+    .update({
+      content: newContent,
+      is_edited: true,
+      edited_at: new Date().toISOString(),
+    })
+    .eq('id', messageId)
+    .eq('sender_id', user.id);
+
+  if (error) throw error;
+}
+
+// Mesajı sil
+async function deleteMessage(messageId) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('messages')
+    .update({ is_deleted: true })
+    .eq('id', messageId)
+    .eq('sender_id', user.id);
+
+  if (error) throw error;
+}
+
+// Mesajı pin yap
+async function pinMessage(messageId, chatRoomId) {
+  // Önceki pinli mesajı unpin yap
+  await supabase
+    .from('messages')
+    .update({ is_pinned: false })
+    .eq('chat_room_id', chatRoomId)
+    .eq('is_pinned', true);
+
+  // Yeni mesajı pin yap
+  const { error } = await supabase
+    .from('messages')
+    .update({ is_pinned: true })
+    .eq('id', messageId);
+
+  if (error) throw error;
+}
+
+// ────────────────────────────────────────────────────────────
+// OKU DURUMU
+// ────────────────────────────────────────────────────────────
+
+// Mesajları oku olarak işaretle
+async function markMessagesAsRead(chatRoomId) {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  // Okunmamış mesajları bul
+  const { data: unreadMessages } = await supabase
+    .from('messages')
+    .select('id')
+    .eq('chat_room_id', chatRoomId)
+    .not('message_reads', 'is', null);
+
+  if (!unreadMessages || unreadMessages.length === 0) return;
+
+  // Oku kayıtlarını ekle
+  const reads = unreadMessages.map(msg => ({
+    message_id: msg.id,
+    reader_id: user.id,
+  }));
+
+  await supabase.from('message_reads').upsert(reads, {
+    onConflict: 'message_id,reader_id',
+  });
+}
+
+// ────────────────────────────────────────────────────────────
+// REALTIME LISTENERS
+// ────────────────────────────────────────────────────────────
+
+// Yeni mesajları dinle
+function subscribeToMessages(chatRoomId, callback) {
+  return supabase
+    .channel(`chat:${chatRoomId}`)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: `chat_room_id=eq.${chatRoomId}`,
+    }, (payload) => callback(payload.new))
+    .subscribe();
+}
+
+// Mesaj güncellemelerini dinle (edit/delete)
+function subscribeToMessageUpdates(chatRoomId, callback) {
+  return supabase
+    .channel(`chat-updates:${chatRoomId}`)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'messages',
+      filter: `chat_room_id=eq.${chatRoomId}`,
+    }, (payload) => callback(payload.new))
+    .subscribe();
+}
+
+// Typing indicator (Realtime broadcast)
+function broadcastTyping(chatRoomId, userId, isTyping) {
+  return supabase
+    .channel(`typing:${chatRoomId}`)
+    .send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { userId, isTyping },
+    });
+}
+
+function subscribeToTyping(chatRoomId, callback) {
+  return supabase
+    .channel(`typing:${chatRoomId}`)
+    .on('broadcast', { event: 'typing' }, (payload) => {
+      callback(payload.payload);
+    })
+    .subscribe();
+}
+
+// ────────────────────────────────────────────────────────────
+// STORE CHAT (Magaza desteği)
+// ────────────────────────────────────────────────────────────
+
+// Mağazanın support chat'ini getir
+async function getStoreChat(storeId) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data } = await supabase
+    .from('chat_rooms')
+    .select('id')
+    .eq('type', 'support')
+    .eq('store_id', storeId)
+    .single();
+
+  if (data) return data.id;
+
+  // Oluştur
+  const { data: newRoom, error } = await supabase
+    .from('chat_rooms')
+    .insert({
+      type: 'support',
+      store_id: storeId,
+      participant_1: user.id,
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return newRoom.id;
+}
+
+// ────────────────────────────────────────────────────────────
+// CUTTING İNTEGRASYONU
+// ────────────────────────────────────────────────────────────
+
+// Cutting projesine bağlı chat oluştur
+async function createCuttingProjectChat(cuttingJobId, storeOwnerId, appContext = 'both') {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const [id1, id2] = [user.id, storeOwnerId].sort();
+
+  const { data, error } = await supabase
+    .from('chat_rooms')
+    .insert({
+      type: 'direct',
+      participant_1: id1,
+      participant_2: id2,
+      app_context: appContext,
+      related_cutting_job: cuttingJobId,
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data.id;
+}
+
+// Cutting verisiyle mesaj gönder
+async function sendCuttingMessage(chatRoomId, content, cuttingData) {
+  return sendMessage(chatRoomId, content, 'text', null, cuttingData);
+}
+
