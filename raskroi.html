@@ -3,246 +3,247 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Раскрой (Kesim) — Baibesik.kz</title>
+<title>✂️ Раскрой — Baibesik.kz</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-:root{
-  --orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;
-  --dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;
-  --green:#10b981;--red:#ef4444;--yellow:#f59e0b;--radius:12px;
-}
+:root{--orange:#f97316;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark);overflow-x:hidden}
 
-/* HEADER */
-header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
-.hi{max-width:1200px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:12px}
-.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--orange);letter-spacing:2px;text-decoration:none}
-.logo span{color:#fff}
-.nav-user{margin-left:auto;display:flex;align-items:center;gap:8px}
-.identity-badge{display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8}
-.avatar{width:28px;height:28px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:12px 20px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;max-width:1400px;margin:0 auto}
 
-/* AUTH GUARD */
-.auth-guard{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center}
+.auth-guard{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center}
 .auth-guard.show{display:flex}
-.auth-guard h2{margin-bottom:1rem;color:var(--orange)}
-.auth-guard a{margin-top:1rem;padding:10px 20px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
+.auth-guard a{margin-top:1rem;padding:12px 24px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px}
 
-/* HERO */
-.hero{background:linear-gradient(135deg,var(--dark) 0%,#1a0800 100%);padding:40px 20px;text-align:center}
-.hero-title{font-family:'Bebas Neue',sans-serif;font-size:42px;color:#fff;letter-spacing:2px;margin-bottom:8px}
-.hero-title span{color:var(--orange)}
-.hero-sub{font-size:14px;color:#94a3b8;max-width:600px;margin:0 auto}
+.content{max-width:1600px;margin:0 auto;padding:16px;display:none}
 
-/* CONTENT */
-.content{max-width:1200px;margin:0 auto;padding:32px 20px}
+/* MAIN 2-COL LAYOUT */
+.main-container{display:grid;grid-template-columns:450px 1fr;gap:16px;height:calc(100vh - 100px);margin-bottom:20px}
 
-/* SECTION */
-.section{margin-bottom:40px}
-.section-title{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--dark);letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.section-title::before{font-size:28px}
+/* LEFT PANEL */
+.left-panel{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow-y:auto;display:flex;flex-direction:column}
 
-/* INPUT AREA */
-.input-area{background:#fff;border:2px solid var(--orange);border-radius:var(--radius);padding:20px;margin-bottom:24px}
-.input-area label{display:block;font-size:13px;font-weight:700;color:var(--dark);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
-.input-area textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'Noto Sans',sans-serif;font-size:13px;resize:vertical;min-height:100px;outline:none;margin-bottom:12px}
-.input-area textarea:focus{border-color:var(--orange)}
-.input-hint{font-size:11px;color:var(--gray);margin-bottom:14px}
+.panel-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--dark);letter-spacing:1px;margin-bottom:12px;border-bottom:2px solid var(--orange);padding-bottom:8px}
 
-/* SHOP SELECTION */
-.shop-select-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+/* PARAMS SECTION */
+.params-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.input-group{display:flex;flex-direction:column}
+.input-group label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.input-group input, .input-group select{padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none;transition:border-color .2s}
+.input-group input:focus, .input-group select:focus{border-color:var(--orange);background:#fff9f0}
 
-.shop-item{background:#fff;border:2px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .2s;position:relative}
-.shop-item:hover{border-color:var(--orange);box-shadow:0 6px 20px rgba(249,115,22,.12)}
-.shop-item.cutting-workshop{border-color:var(--orange);background:var(--orange-light)}
-.shop-item.cutting-workshop .shop-badge{background:var(--orange);color:#fff}
+/* PASTE AREA */
+.paste-section{margin-bottom:16px}
+.paste-area{background:#f0f7ff;border:2px dashed #2196F3;border-radius:8px;padding:12px;margin:8px 0}
+.paste-area textarea{width:100%;min-height:70px;padding:8px;border:1px solid #90caf9;border-radius:6px;font-family:monospace;font-size:10px;resize:vertical;outline:none}
+.paste-area textarea:focus{border-color:var(--orange)}
 
-.shop-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
-.shop-icon{font-size:32px}
-.shop-info{flex:1}
-.shop-name{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--dark);letter-spacing:.5px;margin-bottom:2px}
-.shop-addr{font-size:11px;color:var(--gray)}
+.btn{padding:10px 16px;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px;font-family:'Noto Sans';transition:all .2s;width:100%;margin-bottom:8px}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:#d97706}
+.btn-secondary{background:#10b981;color:#fff}
+.btn-secondary:hover{background:#059669}
 
-.shop-services{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
-.service-tag{background:var(--light);border:1px solid var(--border);border-radius:12px;padding:3px 8px;font-size:10px;font-weight:600;color:var(--gray)}
-.service-tag.cutting{background:rgba(249,115,22,.1);border-color:var(--orange);color:var(--orange);font-weight:700}
+/* PARTS TABLE */
+.table-header{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;padding:8px;background:var(--light);border-radius:6px;margin-top:12px;margin-bottom:8px;display:grid;grid-template-columns:50px 40px 40px 35px 80px 35px 30px;gap:6px}
+.table-rows{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
+.table-row{display:grid;grid-template-columns:50px 40px 40px 35px 80px 35px 30px;gap:6px;align-items:center;padding:8px;background:#fff;border:1px solid var(--border);border-radius:6px}
+.table-row input{width:100%;padding:4px;border:1px solid var(--border);border-radius:4px;font-size:10px;outline:none}
+.table-row input:focus{border-color:var(--orange);background:#fffbf0}
 
-.shop-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:10px}
-.shop-rating{font-size:12px;font-weight:700;color:var(--dark)}
-.shop-status{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;background:rgba(16,185,129,.1);color:var(--green)}
+.edge-check{display:flex;gap:2px;font-size:9px}
+.edge-check label{display:flex;align-items:center;gap:2px;cursor:pointer}
 
-.shop-badge{position:absolute;top:10px;right:10px;background:rgba(249,115,22,.15);color:var(--orange);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:800}
+.btn-remove{background:#ef4444;color:#fff;border:none;padding:4px 6px;border-radius:3px;cursor:pointer;font-size:9px;font-weight:700}
+.btn-remove:hover{background:#dc2626}
 
-/* BUTTON */
-.btn-select{width:100%;background:var(--orange);color:#fff;border:none;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;font-family:'Noto Sans',sans-serif;transition:background .2s;margin-top:10px}
-.btn-select:hover{background:var(--orange-dark)}
+/* CALC SECTION */
+.calc-section{background:linear-gradient(135deg,#fff9f0 0%,#fffbf7 100%);border-left:4px solid var(--orange);padding:12px;border-radius:8px;margin-top:12px}
+.calc-row{display:grid;grid-template-columns:130px 1fr;gap:10px;margin-bottom:8px;align-items:center;font-size:11px}
+.calc-label{font-weight:700;color:var(--dark)}
+.calc-value{color:var(--orange);font-weight:700;font-size:13px;text-align:right}
 
-.btn-submit{background:var(--orange);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;font-family:'Noto Sans',sans-serif;transition:background .2s}
-.btn-submit:hover{background:var(--orange-dark)}
-.btn-submit:disabled{background:var(--gray);cursor:not-allowed}
+/* RIGHT PANEL - VISUAL */
+.right-panel{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.08);display:flex;flex-direction:column}
 
-/* SELECTED */
-.selected-shop{background:#fff;border:2px solid var(--green);border-radius:var(--radius);padding:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
-.selected-shop.none{border-color:var(--border);background:var(--light)}
-.selected-info{flex:1}
-.selected-name{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--dark);margin-bottom:3px}
-.selected-addr{font-size:12px;color:var(--gray)}
-.btn-change{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid var(--orange);padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s}
-.btn-change:hover{background:var(--orange);color:#fff}
+.canvas-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.canvas-header h3{font-family:'Bebas Neue';font-size:14px;color:var(--dark);letter-spacing:1px}
+.canvas-info{font-size:10px;color:var(--gray);background:var(--light);padding:6px 10px;border-radius:6px}
 
-/* UPLOADER */
-.uploader{background:#fff;border:2px dashed var(--border);border-radius:var(--radius);padding:32px 20px;text-align:center;transition:all .2s;cursor:pointer}
-.uploader.dragover{border-color:var(--orange);background:var(--orange-light)}
-.uploader-icon{font-size:40px;margin-bottom:12px}
-.uploader-text{font-size:13px;font-weight:600;color:var(--dark);margin-bottom:4px}
-.uploader-hint{font-size:11px;color:var(--gray)}
-.uploader input{display:none}
+.canvas-container{flex:1;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-radius:8px;display:flex;align-items:center;justify-content:center;min-height:500px;position:relative;overflow:hidden}
 
-.files-list{margin-top:16px;display:flex;flex-direction:column;gap:8px}
-.file-item{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;font-size:12px}
-.file-name{flex:1;color:var(--dark);font-weight:600}
-.file-btn{background:var(--red);color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer}
+canvas{max-width:100%;height:auto;background:#fff}
 
-/* MODAL */
-.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center}
-.modal.show{display:flex}
-.modal-content{background:#fff;border-radius:var(--radius);padding:28px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease-out}
-@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-header{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--dark);letter-spacing:1px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
-.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--gray)}
-.modal-body{font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:20px}
-.modal-actions{display:flex;gap:10px}
-.modal-actions button{flex:1;padding:10px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;font-size:12px}
-.modal-primary{background:var(--orange);color:#fff}
-.modal-primary:hover{background:var(--orange-dark)}
-.modal-secondary{background:var(--light);color:var(--dark);border:1px solid var(--border)}
-.modal-secondary:hover{background:var(--border)}
+.canvas-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:12px;font-size:9px}
+.legend-item{display:flex;align-items:center;gap:6px}
+.legend-box{width:16px;height:16px;border-radius:3px}
 
 /* RESPONSIVE */
-@media(max-width:768px){
-  .hero-title{font-size:32px}
-  .shop-select-grid{grid-template-columns:1fr}
-  .selected-shop{flex-direction:column;text-align:center}
-  .selected-shop .selected-info{margin-bottom:12px}
+@media(max-width:1200px){
+  .main-container{grid-template-columns:1fr}
+  .main-container{height:auto}
 }
 </style>
 </head>
 <body>
 
-<!-- AUTH GUARD -->
 <div class="auth-guard" id="authGuard">
   <h2>🔐 Авторизация қажет</h2>
-  <p>Раскрой сервисін пайдалану үшін кіріңіз.</p>
   <a href="login.html">Кіру</a>
 </div>
 
-<!-- HEADER -->
 <header id="header" style="display:none">
-  <div class="hi">
-    <a href="index.html" class="logo">BAIBESIK<span>.kz</span></a>
-    <div class="nav-user">
-      <div class="identity-badge">
-        <div class="avatar" id="identityAvatar">A</div>
-        <div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Раскрой</div>
-          <div id="identityName" style="font-size:12px;font-weight:700">Пользователь</div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <a href="index.html" class="logo">BAIBESIK<span style="color:var(--orange);">.kz</span> ✂️ РАСКРОЙ</a>
 </header>
 
-<!-- HERO -->
-<div class="hero" id="hero" style="display:none">
-  <h1 class="hero-title">✂️ Раскрой<span>.</span></h1>
-  <p class="hero-sub">Выберите магазин или мастерскую для обработки вашего заказа раскроя</p>
-</div>
-
-<!-- CONTENT -->
 <div class="content" id="content" style="display:none">
-  
-  <!-- STEP 1: Опишите заказ раскроя -->
-  <div class="section">
-    <h2 class="section-title">✍️ Опишите ваш заказ раскроя</h2>
-    
-    <div class="input-area">
-      <label>Детали вашего проекта раскроя</label>
-      <textarea id="projectDesc" placeholder="Напримеры: МДФ 18мм, размер 1200х600, нужна оптимизация...&#10;Или загрузите DXF/PDF файл ниже."></textarea>
-      
-      <label>Загрузить файлы (DXF, PDF, AI, CDR)</label>
-      <div class="uploader" id="uploader">
-        <div class="uploader-icon">📁</div>
-        <div class="uploader-text">Нажмите или перетащите файлы</div>
-        <div class="uploader-hint">DXF, PDF, AI, CDR макеты</div>
-        <input type="file" id="fileInput" multiple accept=".dxf,.pdf,.ai,.cdr,.dwg">
-      </div>
-      
-      <div class="files-list" id="filesList"></div>
+
+  <!-- IMPORT PANEL (full width) -->
+  <div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+    <h2 class="panel-title">📋 Импорт Excel/TXT</h2>
+    <div style="background:#e3f2fd;border-left:4px solid #2196F3;padding:10px;border-radius:6px;margin-bottom:12px;font-size:11px;color:#1565c0">
+      💡 Ctrl+C из Excel → Ctrl+V → 📥 Импортировать
     </div>
+    <div class="paste-area">
+      <textarea id="pasteData" placeholder="P1	400	300	1	top,bottom	yes
+P2	350	250	2	all	no
+P3	600	100	3	U,L	yes"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="importData()">📥 Импортировать</button>
+    <button class="btn btn-secondary" onclick="clearPaste()" style="background:#999">Очистить</button>
   </div>
 
-  <!-- STEP 2: Выберите магазин или мастерскую -->
-  <div class="section">
-    <h2 class="section-title">🏪 Выберите магазин или мастерскую раскроя</h2>
-    
-    <div class="selected-shop none" id="selectedShop">
-      <div class="selected-info">
-        <div class="selected-name">Магазин не выбран</div>
-        <div class="selected-addr">Нажмите ниже для выбора</div>
+  <!-- MAIN 2-COLUMN -->
+  <div class="main-container">
+
+    <!-- LEFT: Controls & Table -->
+    <div class="left-panel">
+
+      <!-- ПАРАМЕТРЫ ЛИСТА -->
+      <div>
+        <h3 class="panel-title">📐 Параметры листа</h3>
+        <div class="params-grid">
+          <div class="input-group">
+            <label>Ширина (X mm)</label>
+            <input type="number" id="sheetWidth" value="1200" min="100">
+          </div>
+          <div class="input-group">
+            <label>Высота (Y mm)</label>
+            <input type="number" id="sheetHeight" value="600" min="100">
+          </div>
+          <div class="input-group">
+            <label>Материал</label>
+            <select id="materialType">
+              <option>МДФ 18мм</option>
+              <option>ДСП 18мм</option>
+              <option>Фанера</option>
+              <option>PVC</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Узор?</label>
+            <div style="display:flex;gap:8px;font-size:11px">
+              <label><input type="radio" name="pattern" value="yes" checked> Да</label>
+              <label><input type="radio" name="pattern" value="no"> Нет</label>
+            </div>
+          </div>
+        </div>
       </div>
-      <button class="btn-change" id="changeShopBtn" style="display:none">Изменить</button>
+
+      <!-- ЧАСТИ ТАБЛИЦА -->
+      <div style="flex:1;display:flex;flex-direction:column;margin-top:16px">
+        <h3 class="panel-title">📦 Части (детали)</h3>
+        
+        <div class="table-header">
+          <span>Часть</span><span>X</span><span>Y</span><span>Кол</span><span>Обрам</span><span>Пов</span><span>✕</span>
+        </div>
+        
+        <div class="table-rows" id="partsTable"></div>
+        
+        <button class="btn btn-primary" onclick="addPart()" style="margin-top:12px">➕ Добавить часть</button>
+      </div>
+
+      <!-- PVC ВЫБОР -->
+      <div style="margin-top:16px;padding:12px;background:var(--light);border-radius:8px">
+        <h4 style="font-size:11px;font-weight:700;color:var(--gray);margin-bottom:8px;text-transform:uppercase">🎨 PVC Толщина</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div class="pvc-opt" onclick="selectPVC('0.5',this)" style="padding:8px;border:2px solid var(--border);border-radius:6px;text-align:center;cursor:pointer;transition:all .2s">
+            <div style="font-weight:700;font-size:12px">0.5mm</div>
+            <div style="font-size:9px;color:var(--gray)">Тонкая</div>
+          </div>
+          <div class="pvc-opt selected" onclick="selectPVC('1',this)" style="padding:8px;border:2px solid var(--orange);border-radius:6px;text-align:center;cursor:pointer;background:#fff9f0;transition:all .2s">
+            <div style="font-weight:700;font-size:12px">1 mm</div>
+            <div style="font-size:9px;color:var(--orange)">⭐ Стд</div>
+          </div>
+          <div class="pvc-opt" onclick="selectPVC('2',this)" style="padding:8px;border:2px solid var(--border);border-radius:6px;text-align:center;cursor:pointer;transition:all .2s">
+            <div style="font-weight:700;font-size:12px">2 mm</div>
+            <div style="font-size:9px;color:var(--gray)">Толстая</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- РЕЗУЛЬТАТЫ -->
+      <div class="calc-section">
+        <h4 style="font-size:11px;font-weight:700;margin-bottom:10px">📊 Результаты расчета</h4>
+        <div class="calc-row">
+          <span class="calc-label">Листов нужно</span>
+          <span class="calc-value" id="sheetsNeeded">0</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">КПД раскроя</span>
+          <span class="calc-value" id="efficiency">0%</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Отходы</span>
+          <span class="calc-value" id="waste">0%</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">PVC метров</span>
+          <span class="calc-value" id="pvcLength">0 м</span>
+        </div>
+        <div class="calc-row" style="border-top:2px solid rgba(0,0,0,.1);padding-top:10px;margin-top:10px">
+          <span class="calc-label">Итого цена</span>
+          <span class="calc-value" style="font-size:16px;color:#10b981" id="totalPrice">0 ₸</span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="calculate()" style="margin-top:16px">🧮 Рассчитать</button>
+      <button class="btn btn-secondary" onclick="submit()">📤 Отправить менеджеру</button>
+
     </div>
 
-    <div class="shop-select-grid" id="shopGrid"></div>
-  </div>
+    <!-- RIGHT: VISUAL CUTTING PLAN -->
+    <div class="right-panel">
+      <div class="canvas-header">
+        <h3>Kesim Planı (Раскрой Визуал)</h3>
+        <div class="canvas-info">
+          <span id="sheetInfo">1200×600 mm</span>
+        </div>
+      </div>
+      
+      <div class="canvas-container">
+        <canvas id="cuttingCanvas"></canvas>
+      </div>
 
-  <!-- STEP 3: Отправить -->
-  <div class="section" style="text-align:center;margin-top:40px">
-    <button class="btn-submit" id="submitBtn" disabled>
-      📤 Отправить заказ раскроя
-    </button>
-    <p style="font-size:11px;color:var(--gray);margin-top:10px">
-      После отправки вы перейдёте на панель управления раскроем
-    </p>
+      <div class="canvas-legend" id="legend"></div>
+
+      <button class="btn btn-primary" onclick="exportDXF()" style="margin-top:12px">📥 DXF скачать</button>
+    </div>
+
   </div>
 
 </div>
 
-<!-- MODAL: Условия и подтверждение -->
-<div class="modal" id="confirmModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      ✂️ Подтверждение заказа раскроя
-      <button class="modal-close" id="closeModal">×</button>
-    </div>
-    <div class="modal-body">
-      <p><strong>Магазин:</strong> <span id="confirmShopName"></span></p>
-      <p style="margin-top:10px"><strong>Описание:</strong><br><span id="confirmDesc" style="font-size:12px;color:var(--dark)"></span></p>
-      <p style="margin-top:10px"><strong>Файлы:</strong> <span id="confirmFiles"></span></p>
-      <p style="margin-top:16px;font-size:12px;color:var(--gray)">
-        ✓ Вы получите файлы в формате DXF и G-Code<br>
-        ✓ Можете скачать и отправить в WhatsApp<br>
-        ✓ История сохранится в вашем профиле
-      </p>
-    </div>
-    <div class="modal-actions">
-      <button id="confirmBtn" class="modal-primary">✓ Отправить</button>
-      <button id="cancelBtn" class="modal-secondary">Отмена</button>
-    </div>
-  </div>
-</div>
-
-<!-- SCRIPTS -->
 <script src="supabase_client.js" type="module"></script>
 <script type="module">
-  import { getCurrentUser, supabase } from './supabase_client.js';
+  import { getCurrentUser } from './supabase_client.js';
 
   let currentUser = null;
-  let selectedShopId = null;
-  let uploadedFiles = [];
+  let parts = [];
+  let selectedPVC = '1';
 
-  // ── INIT ──
   async function init() {
     try {
       currentUser = await getCurrentUser();
@@ -250,219 +251,221 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
         document.getElementById('authGuard').classList.add('show');
         return;
       }
-
       document.getElementById('authGuard').style.display = 'none';
       document.getElementById('header').style.display = 'block';
-      document.getElementById('hero').style.display = 'block';
       document.getElementById('content').style.display = 'block';
 
-      // Identity badge
-      document.getElementById('identityName').textContent = currentUser.full_name || 'Пользователь';
-      document.getElementById('identityAvatar').textContent = (currentUser.full_name || 'U').charAt(0).toUpperCase();
-
-      // Load shops
-      await loadShops();
-
-      // Event listeners
-      setupEventListeners();
+      parts = [{id:1,name:'P1',width:400,height:300,qty:1,edges:{top:true,right:false,bottom:true,left:false},rotate:false}];
+      renderTable();
     } catch (error) {
-      console.error('Init error:', error);
+      console.error('Init:', error);
     }
   }
 
-  // ── LOAD SHOPS ──
-  async function loadShops() {
-    try {
-      const { data: stores, error } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('is_active', true)
-        .eq('status', 'active');
-
-      if (error) throw error;
-
-      const grid = document.getElementById('shopGrid');
-      grid.innerHTML = '';
-
-      if (!stores || stores.length === 0) {
-        grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Магазины не найдены</div>';
-        return;
-      }
-
-      stores.forEach(shop => {
-        const hasCutting = Math.random() > 0.4; // Симуляция: ~60% магазинов имеет kesme atolyesi
-        
-        const html = `
-          <div class="shop-item ${hasCutting ? 'cutting-workshop' : ''}">
-            <div class="shop-header">
-              <div class="shop-icon">🏪</div>
-              <div class="shop-info">
-                <div class="shop-name">${shop.name}</div>
-                <div class="shop-addr">📍 ${shop.address || 'Байбесик, Алматы'}</div>
-              </div>
-            </div>
-            
-            <div class="shop-services">
-              <span class="service-tag">🛠️ Детали</span>
-              ${hasCutting ? '<span class="service-tag cutting">✂️ Раскрой</span>' : ''}
-              <span class="service-tag">🎨 Услуги</span>
-            </div>
-
-            ${hasCutting ? '<div class="shop-badge">⚙️ МАСТЕРСКАЯ</div>' : ''}
-
-            <div class="shop-footer">
-              <div class="shop-rating">⭐ ${(Math.random() * 2 + 4).toFixed(1)}</div>
-              <div class="shop-status">Открыто</div>
-            </div>
-
-            <button class="btn-select" onclick="selectShop('${shop.id}', '${shop.name.replace(/'/g, "\\'")}')">
-              ${hasCutting ? '✓ Выбрать мастерскую' : 'Выбрать магазин'}
-            </button>
-          </div>
-        `;
-
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        grid.appendChild(div.firstElementChild);
-      });
-    } catch (error) {
-      console.error('Load shops error:', error);
-    }
-  }
-
-  // ── SELECT SHOP ──
-  window.selectShop = function(shopId, shopName) {
-    selectedShopId = shopId;
+  window.importData = function() {
+    const text = document.getElementById('pasteData').value.trim();
+    if (!text) { alert('Вставьте данные!'); return; }
     
-    document.getElementById('selectedShop').innerHTML = `
-      <div class="selected-info">
-        <div class="selected-name">${shopName}</div>
-        <div class="selected-addr">Магазин выбран ✓</div>
-      </div>
-      <button class="btn-change" id="changeShopBtn" onclick="document.getElementById('shopGrid').scrollIntoView()">Изменить</button>
-    `;
-    document.getElementById('selectedShop').classList.remove('none');
-    document.getElementById('submitBtn').disabled = false;
-
-    // Scroll to selected
-    document.getElementById('selectedShop').scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // ── FILE UPLOAD ──
-  function setupEventListeners() {
-    const uploader = document.getElementById('uploader');
-    const fileInput = document.getElementById('fileInput');
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      uploader.addEventListener(eventName, preventDefaults);
-    });
-
-    function preventDefaults(e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-      uploader.addEventListener(eventName, () => uploader.classList.add('dragover'));
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-      uploader.addEventListener(eventName, () => uploader.classList.remove('dragover'));
-    });
-
-    uploader.addEventListener('drop', (e) => {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      fileInput.files = files;
-      handleFiles(files);
-    });
-
-    uploader.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-
-    // Submit
-    document.getElementById('submitBtn').addEventListener('click', showConfirmModal);
-    document.getElementById('confirmBtn').addEventListener('click', submitOrder);
-    document.getElementById('cancelBtn').addEventListener('click', () => {
-      document.getElementById('confirmModal').classList.remove('show');
-    });
-    document.getElementById('closeModal').addEventListener('click', () => {
-      document.getElementById('confirmModal').classList.remove('show');
-    });
-  }
-
-  function handleFiles(files) {
-    uploadedFiles = Array.from(files);
-    const list = document.getElementById('filesList');
-    list.innerHTML = '';
-
-    uploadedFiles.forEach((file, idx) => {
-      const item = document.createElement('div');
-      item.className = 'file-item';
-      item.innerHTML = `
-        <span class="file-name">📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
-        <button class="file-btn" onclick="removeFile(${idx})">Удалить</button>
-      `;
-      list.appendChild(item);
-    });
-  }
-
-  window.removeFile = function(idx) {
-    uploadedFiles.splice(idx, 1);
-    handleFiles(uploadedFiles);
-  };
-
-  function showConfirmModal() {
-    const desc = document.getElementById('projectDesc').value.trim();
-    if (!desc && uploadedFiles.length === 0) {
-      alert('Пожалуйста, опишите ваш проект или загрузьте файл');
-      return;
-    }
-
-    if (!selectedShopId) {
-      alert('Пожалуйста, выберите магазин или мастерскую');
-      return;
-    }
-
-    document.getElementById('confirmDesc').textContent = desc.substring(0, 200) + (desc.length > 200 ? '...' : '');
-    document.getElementById('confirmFiles').textContent = uploadedFiles.length > 0 ? `${uploadedFiles.length} файл(ов)` : 'Нет';
-    document.getElementById('confirmShopName').textContent = document.querySelector('.selected-name').textContent;
-
-    document.getElementById('confirmModal').classList.add('show');
-  }
-
-  async function submitOrder() {
-    try {
-      document.getElementById('confirmBtn').disabled = true;
-      document.getElementById('confirmBtn').textContent = '⏳ Отправка...';
-
-      // Симуляция отправки
-      const orderId = Math.random().toString(36).substring(7).toUpperCase();
+    parts = [];
+    let id = 1;
+    text.split('\n').forEach(line => {
+      line = line.trim();
+      if (!line) return;
+      const cols = line.split(/\t+|\s{2,}/).map(c => c.trim()).filter(c => c);
+      if (cols.length < 3) return;
       
-      // Сохранить в историю (временно в localStorage)
-      const history = JSON.parse(localStorage.getItem('cuttingOrders') || '[]');
-      history.push({
-        id: orderId,
-        shopId: selectedShopId,
-        description: document.getElementById('projectDesc').value,
-        files: uploadedFiles.map(f => ({name: f.name, size: f.size})),
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-      });
-      localStorage.setItem('cuttingOrders', JSON.stringify(history));
+      const name = cols[0];
+      const width = parseFloat(cols[1]) || 0;
+      const height = parseFloat(cols[2]) || 0;
+      const qty = cols[3] ? parseInt(cols[3]) || 1 : 1;
+      
+      let edges = {top:false,right:false,bottom:false,left:false};
+      if (cols[4]) {
+        const e = cols[4].toLowerCase();
+        if (e.includes('all')) edges = {top:true,right:true,bottom:true,left:true};
+        else {
+          if (e.match(/top|u|у/)) edges.top = true;
+          if (e.match(/right|p|п/)) edges.right = true;
+          if (e.match(/bottom|l|л/)) edges.bottom = true;
+          if (e.match(/left|o|о/)) edges.left = true;
+        }
+      }
+      
+      let rotate = false;
+      if (cols[5]) rotate = ['yes','y','1','true'].includes(cols[5].toLowerCase());
+      
+      parts.push({id,name,width,height,qty,edges,rotate});
+      id++;
+    });
+    renderTable();
+    drawCutting();
+  };
 
-      // Перенаправить на Manager2
-      alert(`✓ Заказ ${orderId} отправлен!\nПеренаправляем на панель управления...`);
-      window.location.href = `manager2.html?orderId=${orderId}&shopId=${selectedShopId}`;
-    } catch (error) {
-      console.error('Submit error:', error);
-      alert('Ошибка: ' + error.message);
-      document.getElementById('confirmBtn').disabled = false;
-      document.getElementById('confirmBtn').textContent = '✓ Отправить';
-    }
+  window.clearPaste = () => document.getElementById('pasteData').value = '';
+
+  window.addPart = function() {
+    const id = Math.max(...parts.map(p=>p.id), 0) + 1;
+    parts.push({id,name:`P${id}`,width:400,height:300,qty:1,edges:{top:true,right:false,bottom:true,left:false},rotate:false});
+    renderTable();
+  };
+
+  function renderTable() {
+    const tbody = document.getElementById('partsTable');
+    tbody.innerHTML = '';
+    parts.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'table-row';
+      row.innerHTML = `
+        <input type="text" value="${p.name}" onchange="updatePart(${p.id},'name',this.value)" style="text-align:center;font-weight:700">
+        <input type="number" value="${p.width}" onchange="updatePart(${p.id},'width',this.value)">
+        <input type="number" value="${p.height}" onchange="updatePart(${p.id},'height',this.value)">
+        <input type="number" value="${p.qty}" min="1" onchange="updatePart(${p.id},'qty',this.value)">
+        <div class="edge-check">
+          <label><input type="checkbox" ${p.edges.top?'checked':''} onchange="updateEdge(${p.id},'top',this.checked)">У</label>
+          <label><input type="checkbox" ${p.edges.right?'checked':''} onchange="updateEdge(${p.id},'right',this.checked)">П</label>
+          <label><input type="checkbox" ${p.edges.bottom?'checked':''} onchange="updateEdge(${p.id},'bottom',this.checked)">Л</label>
+          <label><input type="checkbox" ${p.edges.left?'checked':''} onchange="updateEdge(${p.id},'left',this.checked)">О</label>
+        </div>
+        <label style="text-align:center"><input type="checkbox" ${p.rotate?'checked':''} onchange="updatePart(${p.id},'rotate',this.checked)">↻</label>
+        <button class="btn-remove" onclick="removePart(${p.id})">✕</button>
+      `;
+      tbody.appendChild(row);
+    });
   }
 
-  // Init
+  window.updatePart = (id, field, val) => {
+    const p = parts.find(x => x.id === id);
+    if (p) p[field] = field === 'qty' ? Math.max(1, parseInt(val)||1) : field === 'rotate' ? val : parseFloat(val)||0;
+  };
+
+  window.updateEdge = (id, edge, checked) => {
+    const p = parts.find(x => x.id === id);
+    if (p) p.edges[edge] = checked;
+  };
+
+  window.removePart = (id) => {
+    parts = parts.filter(p => p.id !== id);
+    renderTable();
+  };
+
+  window.calculate = function() {
+    const sheetW = parseFloat(document.getElementById('sheetWidth').value) || 1200;
+    const sheetH = parseFloat(document.getElementById('sheetHeight').value) || 600;
+    const sheetArea = (sheetW * sheetH) / 1000000;
+    
+    let partsArea = 0, edgeLength = 0;
+    parts.forEach(p => {
+      partsArea += (p.width * p.height / 1000000) * p.qty;
+      let edges = 0;
+      if (p.edges.top) edges++;
+      if (p.edges.right) edges++;
+      if (p.edges.bottom) edges++;
+      if (p.edges.left) edges++;
+      edgeLength += (2 * (p.width + p.height)) / 1000 * edges / 4 * p.qty;
+    });
+    
+    const sheets = Math.ceil(partsArea / sheetArea);
+    const eff = ((partsArea / (sheetArea * sheets)) * 100).toFixed(1);
+    
+    document.getElementById('sheetInfo').textContent = sheetW + '×' + sheetH + ' mm';
+    document.getElementById('sheetsNeeded').textContent = sheets;
+    document.getElementById('efficiency').textContent = eff + '%';
+    document.getElementById('waste').textContent = (100 - eff).toFixed(1) + '%';
+    document.getElementById('pvcLength').textContent = (edgeLength * 1.1).toFixed(1) + ' м';
+    document.getElementById('totalPrice').textContent = (partsArea * 5000 + edgeLength * 1500).toFixed(0) + ' ₸';
+    
+    drawCutting();
+  };
+
+  function drawCutting() {
+    const can = document.getElementById('cuttingCanvas');
+    const ctx = can.getContext('2d');
+    const sheetW = parseFloat(document.getElementById('sheetWidth').value) || 1200;
+    const sheetH = parseFloat(document.getElementById('sheetHeight').value) || 600;
+    
+    const scale = Math.min(380 / sheetW, 460 / sheetH) || 0.3;
+    can.width = sheetW * scale + 40;
+    can.height = sheetH * scale + 40;
+    
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, can.width, can.height);
+    
+    // Лист
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(20, 20, sheetW * scale, sheetH * scale);
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(20, 20, sheetW * scale, sheetH * scale);
+    
+    const colors = ['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2','#F8A5B8','#A8E6CF'];
+    let colorIdx = 0;
+    let y = 20;
+    let x = 20;
+    let legend = [];
+    
+    parts.forEach(p => {
+      for (let i = 0; i < p.qty; i++) {
+        if (x + p.width * scale > 20 + sheetW * scale - 5) {
+          x = 20;
+          y += p.height * scale + 3;
+        }
+        
+        if (y + p.height * scale > 20 + sheetH * scale - 5) break;
+        
+        const col = colors[colorIdx % colors.length];
+        ctx.fillStyle = col;
+        ctx.globalAlpha = 0.8;
+        ctx.fillRect(x, y, p.width * scale, p.height * scale);
+        ctx.globalAlpha = 1;
+        
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, p.width * scale, p.height * scale);
+        
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.name + '-' + (i+1), x + p.width * scale / 2, y + p.height * scale / 2);
+        
+        ctx.font = '9px monospace';
+        ctx.fillStyle = '#666';
+        ctx.fillText(p.width + 'x' + p.height, x + p.width * scale / 2, y + p.height * scale / 2 + 14);
+        
+        x += p.width * scale + 3;
+      }
+      
+      if (!legend.find(l => l.name === p.name)) {
+        legend.push({name: p.name, color: colors[colorIdx % colors.length]});
+      }
+      colorIdx++;
+    });
+    
+    // Legend
+    const legDiv = document.getElementById('legend');
+    legDiv.innerHTML = '';
+    legend.forEach(l => {
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML = `<div class="legend-box" style="background:${l.color}"></div><span>${l.name}</span>`;
+      legDiv.appendChild(item);
+    });
+  }
+
+  window.selectPVC = (thickness, el) => {
+    selectedPVC = thickness;
+    document.querySelectorAll('.pvc-opt').forEach(e => {
+      e.style.borderColor = '#e2e8f0';
+      e.style.background = '#fff';
+    });
+    el.style.borderColor = 'var(--orange)';
+    el.style.background = '#fff9f0';
+  };
+
+  window.exportDXF = () => alert('DXF export coming soon!');
+  window.submit = () => alert('✓ Отправлено менеджеру!');
+
   init();
 </script>
 
