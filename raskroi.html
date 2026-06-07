@@ -21,7 +21,24 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .import-bar{background:#fff;border-radius:12px;padding:14px 18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .import-bar textarea{flex:1;min-width:200px;min-height:42px;max-height:120px;padding:8px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:11px;resize:vertical;outline:none}
 .import-bar textarea:focus{border-color:var(--orange)}
-.main-grid{display:grid;grid-template-columns:480px 1fr;gap:16px;align-items:start}
+.main-grid{max-width:760px;margin:0 auto}
+.screen{display:none}
+.screen.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.step-bar{display:flex;align-items:center;gap:8px;max-width:760px;margin:0 auto 14px;padding:0 4px}
+.step-dot{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--gray)}
+.step-dot .num{width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--gray);display:flex;align-items:center;justify-content:center;font-size:12px}
+.step-dot.on .num{background:var(--orange);color:#fff}
+.step-dot.on{color:var(--dark)}
+.step-line{flex:1;height:2px;background:var(--border)}
+.back-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 16px;font-weight:700;font-size:14px;cursor:pointer;color:var(--dark);margin-bottom:14px}
+.back-btn:hover{border-color:var(--orange);color:var(--orange-dark)}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat-box{background:#fff9f0;border:1px solid #fde9d2;border-radius:12px;padding:14px 10px;text-align:center}
+.stat-box .v{font-size:24px;font-weight:900;color:var(--orange-dark);line-height:1}
+.stat-box .l{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-top:5px}
+.big-calc{width:100%;padding:18px;font-size:17px;font-weight:900;border-radius:14px}
+@media(max-width:1100px){.main-grid{grid-template-columns:1fr}}
 .panel{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:16px}
 .panel-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;margin-bottom:12px;border-bottom:2px solid var(--orange);padding-bottom:8px}
 .params{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
@@ -35,7 +52,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .btn-green{background:var(--green);color:#fff}
 .btn-green:hover{background:#059669}
 .btn-sm{padding:5px 9px;font-size:10px;border-radius:5px}
-.trows{display:flex;flex-direction:column;gap:12px;max-height:460px;overflow-y:auto;padding:2px}
+.trows{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;max-height:none;overflow:visible;padding:2px}
 /* PARÇA KARTI (mobil-dostu) */
 .pcard{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .pcard-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -108,9 +125,16 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
     <button class="ai-btn" onclick="aiSuggestBanding()">🤖 <span data-i18n="ai">AI Кромка</span></button>
   </div>
 
+  <!-- ADIM GÖSTERGESİ -->
+  <div class="step-bar">
+    <div class="step-dot on" id="stepDot1"><span class="num">1</span><span data-i18n="step1">Детали</span></div>
+    <div class="step-line"></div>
+    <div class="step-dot" id="stepDot2"><span class="num">2</span><span data-i18n="step2">План</span></div>
+  </div>
+
   <div class="main-grid">
-    <!-- LEFT -->
-    <div>
+    <!-- ═══ ЭКРАН 1: ВВОД (tam sayfa) ═══ -->
+    <div class="screen active" id="screenInput">
       <div class="panel">
         <h3 class="panel-title" data-i18n="sheetParams">📐 Параметры листа</h3>
         <div class="params">
@@ -165,27 +189,37 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
       </div>
 
       <div class="panel">
-        <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="calculate()">🧮 <span data-i18n="calc">Рассчитать раскрой</span></button>
-        <div class="results">
-          <div class="rrow"><span class="lbl" data-i18n="sheetsNeed">Листов нужно</span><span class="val" id="rSheets">0</span></div>
-          <div class="rrow"><span class="lbl" data-i18n="totalParts">Всего деталей</span><span class="val" id="rParts">0</span></div>
-          <div class="rrow"><span class="lbl" data-i18n="eff">КПД (использование)</span><span class="val" id="rEff">0%</span></div>
-          <div class="rrow"><span class="lbl" data-i18n="waste">Отходы</span><span class="val" id="rWaste">0%</span></div>
-          <div class="rrow"><span class="lbl" data-i18n="cutLen">Длина реза</span><span class="val" id="rCut">0 м</span></div>
-          <div class="rrow"><span class="lbl" data-i18n="pvcLen">Кромка PVC</span><span class="val" id="rPvc">0 м</span></div>
-        </div>
-        <button class="btn btn-green" style="width:100%;margin-top:10px" onclick="sendToManager()">📤 <span data-i18n="send">Отправить в мастерскую</span></button>
-        <div class="hint" data-i18n="sendHint">После отправки мастер рассчитает финальную цену и начнёт резку.</div>
+        <button class="btn btn-primary big-calc" onclick="calculate()">🧮 <span data-i18n="calc">Рассчитать раскрой</span> →</button>
       </div>
     </div>
 
-    <!-- RIGHT: VISUAL -->
-    <div class="panel" style="position:sticky;top:70px">
-      <h3 class="panel-title">📊 <span data-i18n="cutPlan">План раскроя</span> <span id="planInfo" style="font-size:11px;color:var(--gray);font-weight:400"></span></h3>
-      <div class="canvas-wrap" id="canvasWrap">
-        <div class="empty-canvas" data-i18n="emptyPlan">Добавьте детали и нажмите «Рассчитать раскрой»</div>
+    <!-- ═══ ЭКРАН 2: ПЛАН (tam sayfa) ═══ -->
+    <div class="screen" id="screenPlan">
+      <button class="back-btn" onclick="goInput()">← <span data-i18n="back">Назад / Изменить детали</span></button>
+
+      <div class="stat-grid">
+        <div class="stat-box"><div class="v" id="rSheets">0</div><div class="l" data-i18n="sheetsNeed">Листов</div></div>
+        <div class="stat-box"><div class="v" id="rParts">0</div><div class="l" data-i18n="totalParts">Деталей</div></div>
+        <div class="stat-box"><div class="v" id="rEff">0%</div><div class="l" data-i18n="eff">КПД</div></div>
       </div>
-      <div class="legend" id="legend"></div>
+      <div class="results" style="margin-bottom:16px">
+        <div class="rrow"><span class="lbl" data-i18n="waste">Отходы</span><span class="val" id="rWaste">0%</span></div>
+        <div class="rrow"><span class="lbl" data-i18n="cutLen">Длина реза</span><span class="val" id="rCut">0 м</span></div>
+        <div class="rrow"><span class="lbl" data-i18n="pvcLen">Кромка PVC</span><span class="val" id="rPvc">0 м</span></div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">📊 <span data-i18n="cutPlan">План раскроя</span> <span id="planInfo" style="font-size:11px;color:var(--gray);font-weight:400"></span></h3>
+        <div class="canvas-wrap" id="canvasWrap">
+          <div class="empty-canvas" data-i18n="emptyPlan">Добавьте детали и нажмите «Рассчитать раскрой»</div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="panel">
+        <button class="btn btn-green big-calc" onclick="sendToManager()">📤 <span data-i18n="send">Отправить в мастерскую</span></button>
+        <div class="hint" data-i18n="sendHint">После отправки мастер рассчитает финальную цену и начнёт резку.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -196,8 +230,8 @@ import { getCurrentUser } from './supabase_client.js';
 
 // ─── i18n ───
 const I18N = {
-  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',addPart:'Деталь',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой'},
-  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',addPart:'Бөлшек',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой'}
+  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',addPart:'Деталь',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали'},
+  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',addPart:'Бөлшек',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту'}
 };
 let lang = 'ru';
 function applyLang(){
@@ -429,6 +463,22 @@ window.calculate=function(){
   document.getElementById('rPvc').textContent=pvcM.toFixed(1)+' м';
   document.getElementById('planInfo').textContent=`${L.SW}×${L.SH}mm · ${nSheets} ${lang==='kk'?'парақ':'лист'}`;
   drawSheets(L);
+  goPlan();
+};
+// ─── Ekran geçişleri (adım 1 ↔ adım 2) ───
+window.goPlan=function(){
+  document.getElementById('screenInput').classList.remove('active');
+  document.getElementById('screenPlan').classList.add('active');
+  document.getElementById('stepDot1').classList.remove('on');
+  document.getElementById('stepDot2').classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+window.goInput=function(){
+  document.getElementById('screenPlan').classList.remove('active');
+  document.getElementById('screenInput').classList.add('active');
+  document.getElementById('stepDot2').classList.remove('on');
+  document.getElementById('stepDot1').classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
 };
 
 function drawSheets(L){
