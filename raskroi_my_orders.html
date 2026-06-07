@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📋 Мои раскрои — Baibesik.kz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;--blue:#3b82f6;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark)}
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.lang{display:flex;gap:4px}
+.lang button{background:#0f172a;color:#94a3b8;border:1px solid #334155;border-radius:6px;padding:4px 9px;font-size:11px;cursor:pointer;font-weight:700}
+.lang button.on{background:var(--orange);color:#fff;border-color:var(--orange)}
+.auth-guard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:20px}
+.auth-guard.show{display:flex}
+.auth-guard a{margin-top:1rem;padding:12px 24px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
+.content{max-width:680px;margin:0 auto;padding:16px;display:none}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:4px}
+.page-sub{font-size:12px;color:var(--gray);margin-bottom:18px}
+.new-btn{display:block;width:100%;background:var(--orange);color:#fff;border:none;padding:14px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;text-align:center;text-decoration:none;margin-bottom:18px}
+.new-btn:hover{background:var(--orange-dark)}
+.order-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.oc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.oc-id{font-weight:800;font-size:15px}
+.oc-date{font-size:11px;color:var(--gray);margin-top:2px}
+.st{display:inline-block;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:800;text-transform:uppercase}
+.st-pending{background:rgba(245,158,11,.15);color:#b45309}
+.st-processing{background:rgba(59,130,246,.15);color:#1e40af}
+.st-ready{background:rgba(16,185,129,.15);color:#065f46}
+.st-done{background:rgba(16,185,129,.15);color:#065f46}
+.st-rejected{background:rgba(239,68,68,.15);color:#991b1b}
+.oc-info{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--dark);margin-bottom:12px}
+.oc-info b{color:var(--orange)}
+.oc-actions{display:flex;gap:8px}
+.oc-btn{flex:1;padding:9px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--dark);text-align:center;text-decoration:none}
+.oc-btn.primary{background:var(--orange);color:#fff;border-color:var(--orange)}
+.oc-btn.primary:hover{background:var(--orange-dark)}
+.empty{text-align:center;padding:50px 20px;color:var(--gray)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.steps{display:flex;align-items:center;gap:4px;margin:10px 0;font-size:9px}
+.step{flex:1;text-align:center;padding:5px 2px;border-radius:6px;background:var(--light);color:var(--gray);font-weight:700}
+.step.active{background:var(--orange);color:#fff}
+.step.done{background:var(--green);color:#fff}
+</style>
+</head>
+<body>
+<div class="auth-guard" id="authGuard">
+  <h2>🔐 Кіру қажет / Требуется вход</h2>
+  <a href="login.html">Кіру / Войти</a>
+</div>
+
+<header id="header" style="display:none">
+  <a href="index.html" class="logo">BAIBESIK<span>.kz</span></a>
+  <div class="lang">
+    <button id="lkk" class="on" onclick="setL('kk')">KK</button>
+    <button id="lru" onclick="setL('ru')">RU</button>
+  </div>
+</header>
+
+<div class="content" id="content" style="display:none">
+  <h1 class="page-title" id="tTitle">📋 Менің раскройларым</h1>
+  <p class="page-sub" id="tSub">Тапсырыстарыңыздың күйін қадағалаңыз</p>
+  <a href="raskroi.html" class="new-btn" id="tNew">➕ Жаңа раскрой жасау</a>
+  <div id="orderList"></div>
+</div>
+
+<script src="supabase_client.js" type="module"></script>
+<script type="module">
+import { getCurrentUser } from './supabase_client.js';
+
+let currentUser=null, lang='kk', orders=[];
+const T={
+  kk:{title:'📋 Менің раскройларым',sub:'Тапсырыстарыңыздың күйін қадағалаңыз',neww:'➕ Жаңа раскрой жасау',empty:'Әзірге раскрой жоқ',emptySub:'Жаңа раскрой жасап, шеберханаға жіберіңіз',parts:'бөлшек',sheets:'парақ',resend:'🔄 Қайта жіберу',detail:'👁 Толық',
+    s_pending:'Күтуде',s_processing:'Өңделуде',s_ready:'Дайын',s_done:'Аяқталды',s_rejected:'Қабылданбады',
+    steps:['Жіберілді','Қабылданды','Кесілуде','Дайын']},
+  ru:{title:'📋 Мои раскрои',sub:'Отслеживайте статус ваших заказов',neww:'➕ Создать новый раскрой',empty:'Раскроев пока нет',emptySub:'Создайте новый раскрой и отправьте в мастерскую',parts:'деталей',sheets:'листов',resend:'🔄 Повторить',detail:'👁 Детали',
+    s_pending:'Ожидает',s_processing:'В работе',s_ready:'Готов',s_done:'Завершён',s_rejected:'Отклонён',
+    steps:['Отправлен','Принят','Резка','Готов']}
+};
+window.setL=function(l){lang=l;document.getElementById('lkk').classList.toggle('on',l==='kk');document.getElementById('lru').classList.toggle('on',l==='ru');render();
+  document.getElementById('tTitle').textContent=T[l].title;document.getElementById('tSub').textContent=T[l].sub;document.getElementById('tNew').textContent=T[l].neww;};
+
+async function init(){
+  try{
+    currentUser=await getCurrentUser();
+    if(!currentUser){document.getElementById('authGuard').classList.add('show');return;}
+    document.getElementById('authGuard').style.display='none';
+    document.getElementById('header').style.display='flex';
+    document.getElementById('content').style.display='block';
+    await loadOrders();
+  }catch(e){console.error(e);}
+}
+
+async function loadOrders(){
+  let dbO=[];
+  try{
+    const { getMyRaskroiOrders } = await import('./supabase_client.js');
+    const rows=await getMyRaskroiOrders();
+    dbO=(rows||[]).map(r=>({id:r.order_number,material:r.material,parts:r.parts||[],sheets:r.sheets_used,status:r.status,createdAt:r.created_at,sheetW:r.sheet_w,sheetH:r.sheet_h}));
+  }catch(e){console.warn('Supabase yok:',e.message);}
+  const local=JSON.parse(localStorage.getItem('raskroiOrders')||'[]')
+    .filter(o=>!o.customerId || o.customerId===currentUser.id);
+  const ids=new Set(dbO.map(o=>o.id));
+  orders=[...dbO,...local.filter(o=>!ids.has(o.id))].reverse();
+  render();
+}
+
+function render(){
+  const el=document.getElementById('orderList');const t=T[lang];
+  if(!orders.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><h3>${t.empty}</h3><p style="font-size:12px;margin-top:6px">${t.emptySub}</p></div>`;return;}
+  el.innerHTML='';
+  orders.forEach(o=>{
+    const np=(o.parts||[]).reduce((s,p)=>s+(p.qty||1),0);
+    const stepIdx={pending:1,processing:2,ready:3,done:3,rejected:0}[o.status]??1;
+    const stepsHtml=t.steps.map((s,i)=>{
+      let cls='step';if(o.status==='rejected'){cls='step';}else if(i<stepIdx)cls='step done';else if(i===stepIdx)cls='step active';
+      return `<div class="${cls}">${s}</div>`;
+    }).join('<span style="color:#cbd5e1">›</span>');
+    const card=document.createElement('div');card.className='order-card';
+    card.innerHTML=`
+      <div class="oc-top">
+        <div><div class="oc-id">${o.id}</div><div class="oc-date">${new Date(o.createdAt).toLocaleString(lang==='kk'?'kk-KZ':'ru-RU')}</div></div>
+        <span class="st st-${o.status}">${t['s_'+o.status]||o.status}</span>
+      </div>
+      ${o.status!=='rejected'?`<div class="steps">${stepsHtml}</div>`:''}
+      <div class="oc-info">
+        <span>📐 ${o.sheetW||'?'}×${o.sheetH||'?'}mm</span>
+        <span>📦 ${np} ${t.parts}</span>
+        ${o.sheets?`<span>📄 ${o.sheets} ${t.sheets}</span>`:''}
+        ${o.material?`<span>🪵 ${o.material}</span>`:''}
+      </div>
+      <div class="oc-actions">
+        <button class="oc-btn primary" onclick='resend(${JSON.stringify(o.id)})'>${t.resend}</button>
+        <a class="oc-btn" href="raskroi_manager.html?orderId=${encodeURIComponent(o.id)}">${t.detail}</a>
+      </div>`;
+    el.appendChild(card);
+  });
+}
+
+// Tekrar gönder: parçaları raskroi.html'e taşı (localStorage geçici)
+window.resend=function(id){
+  const o=orders.find(x=>x.id===id);if(!o)return;
+  localStorage.setItem('raskroiResend',JSON.stringify(o));
+  window.location.href='raskroi.html?resend='+encodeURIComponent(id);
+};
+
+init();
+// Canlı takip: 30 sn'de bir durumları yenile
+setInterval(()=>{ if(currentUser) loadOrders(); }, 30000);
+// Sayfa tekrar görünür olunca da yenile
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden && currentUser) loadOrders(); });</script>
+</body>
+</html>

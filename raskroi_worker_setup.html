@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>👷 Раскрой қызметкері — Baibesik.kz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark)}
+header{background:var(--dark2);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.auth-guard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:20px}
+.auth-guard.show{display:flex}
+.auth-guard a{margin-top:1rem;padding:12px 24px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
+.content{max-width:600px;margin:0 auto;padding:16px;display:none}
+.panel{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.panel-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:6px}
+.panel-sub{font-size:12px;color:var(--gray);margin-bottom:14px}
+.search-box{display:flex;gap:8px;margin-bottom:12px}
+.search-box input{flex:1;padding:11px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none}
+.search-box input:focus{border-color:var(--orange)}
+.btn{padding:11px 16px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;font-family:'Noto Sans';transition:.2s}
+.btn-primary{background:var(--orange);color:#fff}.btn-primary:hover{background:var(--orange-dark)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#059669}
+.btn-sm{padding:7px 12px;font-size:12px}
+.user-card{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.user-av{width:40px;height:40px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+.user-info{flex:1}
+.user-name{font-weight:700;font-size:14px}
+.user-meta{font-size:11px;color:var(--gray)}
+.role-tag{display:inline-block;padding:3px 8px;border-radius:10px;font-size:9px;font-weight:800;text-transform:uppercase;background:rgba(249,115,22,.15);color:var(--orange-dark)}
+.empty{text-align:center;padding:30px;color:var(--gray);font-size:13px}
+.msg{padding:10px;border-radius:8px;font-size:12px;margin-bottom:10px;font-weight:600}
+.msg.ok{background:rgba(16,185,129,.12);color:#065f46}
+.msg.err{background:rgba(239,68,68,.12);color:#991b1b}
+</style>
+</head>
+<body>
+<div class="auth-guard" id="authGuard">
+  <h2>🔐 Тек дүкен иесі кіре алады</h2>
+  <p style="margin-top:8px;color:#94a3b8;font-size:13px">Доступ только для владельца магазина</p>
+  <a href="login.html">Кіру / Войти</a>
+</div>
+
+<header id="header" style="display:none">
+  <a href="index.html" class="logo">BAIBESIK<span>.kz</span></a>
+  <span style="color:#94a3b8;font-size:12px">👷 Раскрой қызметкерлері</span>
+</header>
+
+<div class="content" id="content" style="display:none">
+  <div class="panel">
+    <div class="panel-title">👷 Раскрой қызметкерін тағайындау</div>
+    <div class="panel-sub">Қызметкерді телефон нөмірі арқылы тауып, «Раскрой қызметкері» етіп тағайындаңыз. Олар тек раскрой бөлімін басқарады.</div>
+    <div id="msgBox"></div>
+    <div class="search-box">
+      <input type="text" id="searchInp" placeholder="Телефон нөмірі немесе аты..." onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="btn btn-primary" onclick="doSearch()">🔍 Іздеу</button>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">✅ Тағайындалған қызметкерлер</div>
+    <div class="panel-sub">Қазіргі раскрой қызметкерлеріңіз</div>
+    <div id="workersList"><div class="empty">Жүктелуде...</div></div>
+  </div>
+</div>
+
+<script src="supabase_client.js" type="module"></script>
+<script type="module">
+import { getCurrentUser, getMyStore, supabase } from './supabase_client.js';
+
+let currentUser=null, myStore=null;
+
+async function init(){
+  try{
+    currentUser=await getCurrentUser();
+    const allowed=['store_owner','super_admin','owner'];
+    if(!currentUser || !allowed.includes(currentUser.role)){document.getElementById('authGuard').classList.add('show');return;}
+    document.getElementById('authGuard').style.display='none';
+    document.getElementById('header').style.display='flex';
+    document.getElementById('content').style.display='block';
+    try{ myStore=await getMyStore(); }catch(e){}
+    loadWorkers();
+  }catch(e){console.error(e);}
+}
+
+function msg(text,type){document.getElementById('msgBox').innerHTML=`<div class="msg ${type}">${text}</div>`;setTimeout(()=>{document.getElementById('msgBox').innerHTML='';},4000);}
+
+window.doSearch=async function(){
+  const q=document.getElementById('searchInp').value.trim();
+  if(!q){return;}
+  const res=document.getElementById('searchResults');
+  res.innerHTML='<div class="empty">Іздеу...</div>';
+  try{
+    const { data, error } = await supabase.from('users').select('*')
+      .or(`phone.ilike.%${q}%,full_name.ilike.%${q}%`).limit(10);
+    if(error)throw error;
+    if(!data||!data.length){res.innerHTML='<div class="empty">Табылмады</div>';return;}
+    res.innerHTML='';
+    data.forEach(u=>{
+      const card=document.createElement('div');card.className='user-card';
+      const isWorker=u.role==='raskroi_worker';
+      card.innerHTML=`
+        <div class="user-av">${(u.full_name||'U').charAt(0).toUpperCase()}</div>
+        <div class="user-info">
+          <div class="user-name">${u.full_name||'—'}</div>
+          <div class="user-meta">📞 ${u.phone||'—'} · ${isWorker?'<span class="role-tag">Раскрой</span>':u.role}</div>
+        </div>
+        ${isWorker?'<span style="color:var(--green);font-weight:700;font-size:12px">✓ Тағайындалған</span>':`<button class="btn btn-green btn-sm" onclick='assign(${JSON.stringify(u.id)},${JSON.stringify(u.full_name||"")})'>➕ Тағайындау</button>`}`;
+      res.appendChild(card);
+    });
+  }catch(e){res.innerHTML='<div class="empty">Қате: '+e.message+'</div>';}
+};
+
+window.assign=async function(userId,name){
+  try{
+    // 1) users.role = raskroi_worker
+    const { error:e1 } = await supabase.from('users').update({role:'raskroi_worker'}).eq('id',userId);
+    if(e1)throw e1;
+    // 2) store_members'a ekle (dükkan varsa)
+    if(myStore&&myStore.id){
+      try{ await supabase.from('store_members').insert({store_id:myStore.id,user_id:userId,role:'raskroi_worker'}); }catch(e){}
+    }
+    msg(`✅ ${name} раскрой қызметкері етіп тағайындалды!`,'ok');
+    document.getElementById('searchResults').innerHTML='';
+    document.getElementById('searchInp').value='';
+    loadWorkers();
+  }catch(e){msg('❌ Қате: '+e.message,'err');}
+};
+
+async function loadWorkers(){
+  const el=document.getElementById('workersList');
+  try{
+    const { data, error } = await supabase.from('users').select('*').eq('role','raskroi_worker').limit(50);
+    if(error)throw error;
+    if(!data||!data.length){el.innerHTML='<div class="empty">Әзірге қызметкер жоқ</div>';return;}
+    el.innerHTML='';
+    data.forEach(u=>{
+      const card=document.createElement('div');card.className='user-card';
+      card.innerHTML=`
+        <div class="user-av">${(u.full_name||'U').charAt(0).toUpperCase()}</div>
+        <div class="user-info">
+          <div class="user-name">${u.full_name||'—'}</div>
+          <div class="user-meta">📞 ${u.phone||'—'} · <span class="role-tag">Раскрой қызметкері</span></div>
+        </div>
+        <button class="btn btn-sm" style="background:var(--light);border:1px solid var(--border)" onclick='unassign(${JSON.stringify(u.id)})'>✕</button>`;
+      el.appendChild(card);
+    });
+  }catch(e){el.innerHTML='<div class="empty">Қате: '+e.message+'</div>';}
+}
+
+window.unassign=async function(userId){
+  if(!confirm('Қызметкерді алып тастау?'))return;
+  try{
+    await supabase.from('users').update({role:'customer'}).eq('id',userId);
+    msg('✓ Алынды','ok');loadWorkers();
+  }catch(e){msg('❌ '+e.message,'err');}
+};
+
+init();
+</script>
+</body>
+</html>
