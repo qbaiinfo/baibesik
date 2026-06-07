@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚙️ Раскрой — Мастер</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;--blue:#3b82f6;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark)}
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.badge{background:var(--orange);color:#fff;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:800}
+.auth-guard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:20px}
+.auth-guard.show{display:flex}
+.auth-guard a{margin-top:1rem;padding:12px 24px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
+.content{max-width:1600px;margin:0 auto;padding:16px;display:none}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:10px 18px;background:#fff;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;transition:.2s}
+.tab.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.grid2{display:grid;grid-template-columns:420px 1fr;gap:16px;align-items:start}
+.panel{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:16px}
+.panel-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:12px;border-bottom:2px solid var(--orange);padding-bottom:8px}
+.search-box{display:flex;gap:8px;margin-bottom:12px}
+.search-box input{flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none}
+.search-box input:focus{border-color:var(--orange)}
+.order-list{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto}
+.order-card{padding:12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:.2s}
+.order-card:hover{border-color:var(--orange);background:#fff9f0}
+.order-card.sel{border-color:var(--orange);background:#fff9f0;border-width:2px}
+.order-card .oid{font-weight:800;font-size:13px;color:var(--dark)}
+.order-card .ometa{font-size:11px;color:var(--gray);margin-top:4px}
+.st{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:800;text-transform:uppercase}
+.st-pending{background:rgba(245,158,11,.15);color:#b45309}
+.st-processing{background:rgba(59,130,246,.15);color:#1e40af}
+.st-ready{background:rgba(16,185,129,.15);color:#065f46}
+.st-rejected{background:rgba(239,68,68,.15);color:#991b1b}
+.info-row{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:12px}
+.info-row .l{font-weight:700;color:var(--gray);text-transform:uppercase;font-size:10px}
+.info-row .v{font-weight:600}
+.upload-zone{border:2px dashed var(--orange);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:.2s;background:#fff9f0}
+.upload-zone:hover{background:#fff3e0}
+.upload-zone input{display:none}
+.file-chip{display:inline-flex;align-items:center;gap:6px;background:var(--light);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;margin:4px 4px 0 0}
+.file-chip button{background:var(--red);color:#fff;border:none;border-radius:3px;width:18px;height:18px;cursor:pointer;font-size:9px}
+.btn{padding:10px 16px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;transition:.2s;font-family:'Noto Sans'}
+.btn-primary{background:var(--orange);color:#fff}.btn-primary:hover{background:var(--orange-dark)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#059669}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#2563eb}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#dc2626}
+.btn-block{width:100%;margin-bottom:8px}
+.paste-box{width:100%;min-height:70px;padding:8px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:11px;resize:vertical;outline:none}
+.thead{display:grid;grid-template-columns:44px 44px 44px 30px 80px 26px;gap:4px;font-size:9px;font-weight:700;color:var(--gray);text-transform:uppercase;padding:6px 4px;background:var(--light);border-radius:6px;margin-bottom:6px;text-align:center}
+.trows{display:flex;flex-direction:column;gap:5px;max-height:280px;overflow-y:auto}
+.trow{display:grid;grid-template-columns:44px 44px 44px 30px 80px 26px;gap:4px;align-items:center}
+.trow input{width:100%;padding:5px 3px;border:1px solid var(--border);border-radius:4px;font-size:11px;outline:none;text-align:center}
+.trow input:focus{border-color:var(--orange)}
+.edges{display:flex;gap:1px;justify-content:center}
+.edges input{width:13px;height:13px;accent-color:var(--orange)}
+.btn-del{background:var(--red);color:#fff;border:none;padding:3px;border-radius:3px;cursor:pointer;font-size:9px}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.calc-card{background:var(--light);border-radius:8px;padding:10px;text-align:center}
+.calc-card .cv{font-size:18px;font-weight:800;color:var(--orange)}
+.calc-card .cl{font-size:9px;color:var(--gray);text-transform:uppercase;margin-top:3px}
+.canvas-wrap{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:10px;padding:14px;min-height:400px;display:flex;flex-direction:column;gap:12px;align-items:center;overflow-y:auto;max-height:70vh}
+canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
+.empty{color:#64748b;text-align:center;margin:auto;font-size:13px}
+.sheet-label{color:#fff;font-size:11px;font-weight:700;align-self:flex-start;margin-bottom:4px}
+.price-input{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.price-input input{padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none}
+.hidden{display:none}
+@media(max-width:1100px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="auth-guard" id="authGuard">
+  <h2>🔐 Тек раскрой шебері кіре алады</h2>
+  <p style="margin-top:8px;color:#94a3b8;font-size:13px">Доступ только для мастера раскроя (raskroi_worker / manager)</p>
+  <a href="login.html">Кіру / Войти</a>
+</div>
+
+<header id="header" style="display:none">
+  <a href="index.html" class="logo">BAIBESIK<span>.kz</span> ⚙️ Мастер</a>
+  <span class="badge">✂️ РАСКРОЙ</span>
+</header>
+
+<div class="content" id="content" style="display:none">
+  <div class="grid2">
+    <!-- LEFT: Orders + Customer search -->
+    <div>
+      <div class="panel">
+        <h3 class="panel-title">🔍 Поиск заказов / клиента</h3>
+        <div class="search-box">
+          <input type="text" id="searchInp" placeholder="Имя, телефон или № заказа..." oninput="filterOrders()">
+        </div>
+        <div class="order-list" id="orderList"></div>
+      </div>
+
+      <div class="panel" id="orderDetailPanel" style="display:none">
+        <h3 class="panel-title">📋 Детали заказа</h3>
+        <div class="info-row"><span class="l">№ Заказа</span><span class="v" id="dOid">—</span></div>
+        <div class="info-row"><span class="l">Клиент</span><span class="v" id="dCust">—</span></div>
+        <div class="info-row"><span class="l">Телефон</span><span class="v" id="dPhone">—</span></div>
+        <div class="info-row"><span class="l">Дата</span><span class="v" id="dDate">—</span></div>
+        <div class="info-row"><span class="l">Материал</span><span class="v" id="dMat">—</span></div>
+        <div class="info-row"><span class="l">Лист</span><span class="v" id="dSheet">—</span></div>
+        <div class="info-row"><span class="l">Статус</span><span class="v"><span class="st st-pending" id="dStatus">—</span></span></div>
+      </div>
+
+      <!-- File upload (SVG/XML/DXF/PDF) -->
+      <div class="panel">
+        <h3 class="panel-title">📎 Файлы (SVG / XML / DXF / PDF / Excel)</h3>
+        <div class="upload-zone" onclick="document.getElementById('fileInp').click()">
+          <div style="font-size:32px">📁</div>
+          <div style="font-size:12px;font-weight:700;margin-top:6px">Загрузить или перетащить</div>
+          <div style="font-size:10px;color:var(--gray)">SVG, XML, DXF, DWG, PDF, AI, CDR, XLSX, CSV</div>
+          <input type="file" id="fileInp" multiple accept=".svg,.xml,.dxf,.dwg,.pdf,.ai,.cdr,.xlsx,.xls,.csv">
+        </div>
+        <div id="fileChips" style="margin-top:8px"></div>
+      </div>
+
+      <!-- Excel paste -->
+      <div class="panel">
+        <h3 class="panel-title">📋 Импорт из Excel/TXT</h3>
+        <textarea class="paste-box" id="pasteData" placeholder="P1	400	300	2	all	yes&#10;P2	600	350	4	t,b	no"></textarea>
+        <button class="btn btn-primary btn-block" style="margin-top:8px" onclick="importPaste()">📥 Импортировать в детали</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Edit parts + nest + price -->
+    <div>
+      <div class="panel">
+        <h3 class="panel-title">✏️ Редактировать детали</h3>
+        <div class="thead"><span>Деталь</span><span>X</span><span>Y</span><span>Кол</span><span>Кромка</span><span>✕</span></div>
+        <div class="trows" id="partsTable"></div>
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <button class="btn btn-primary" onclick="addPart()">➕ Деталь</button>
+          <button class="btn btn-blue" onclick="calcNest()">🧮 Рассчитать раскрой</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">📊 Раскрой</h3>
+        <div class="calc-grid">
+          <div class="calc-card"><div class="cv" id="cSheets">0</div><div class="cl">Листов</div></div>
+          <div class="calc-card"><div class="cv" id="cEff">0%</div><div class="cl">КПД</div></div>
+          <div class="calc-card"><div class="cv" id="cCut">0м</div><div class="cl">Длина реза</div></div>
+          <div class="calc-card"><div class="cv" id="cPvc">0м</div><div class="cl">Кромка PVC</div></div>
+        </div>
+        <div class="canvas-wrap" id="canvasWrap"><div class="empty">Загрузите заказ и нажмите «Рассчитать»</div></div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">💰 Цена и обработка</h3>
+        <div class="price-input">
+          <input type="number" id="pricePerM2" placeholder="Цена м² (₸)" value="5000">
+          <input type="number" id="pricePvc" placeholder="Цена кромки м (₸)" value="500">
+        </div>
+        <div class="calc-card" style="margin-bottom:10px"><div class="cv" id="finalPrice">0 ₸</div><div class="cl">Итоговая цена</div></div>
+        <button class="btn btn-green btn-block" onclick="startProcess()">✓ Начать резку</button>
+        <button class="btn btn-blue btn-block" onclick="exportDXF()">📥 Экспорт DXF</button>
+        <button class="btn btn-blue btn-block" onclick="sendWhatsApp()">💬 Отправить в WhatsApp</button>
+        <button class="btn btn-red btn-block" onclick="rejectOrder()">✗ Отклонить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="supabase_client.js" type="module"></script>
+<script type="module">
+import { getCurrentUser } from './supabase_client.js';
+
+let currentUser=null, orders=[], currentOrder=null, parts=[], files=[], lastLayout=null;
+const COLORS=['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2','#F8A5B8','#A8E6CF','#FDCB6E','#74B9FF'];
+
+async function init(){
+  try{
+    currentUser=await getCurrentUser();
+    // raskroi_worker veya manager veya store_owner erişebilir
+    const allowed=['raskroi_worker','manager','store_owner','super_admin','owner'];
+    if(!currentUser || !allowed.includes(currentUser.role)){
+      document.getElementById('authGuard').classList.add('show');return;
+    }
+    document.getElementById('authGuard').style.display='none';
+    document.getElementById('header').style.display='flex';
+    document.getElementById('content').style.display='block';
+    loadOrders();
+    setupUpload();
+    // URL'den orderId
+    const oid=new URLSearchParams(location.search).get('orderId');
+    if(oid) setTimeout(()=>selectOrder(oid),200);
+  }catch(e){console.error(e);}
+}
+
+function loadOrders(){
+  orders=JSON.parse(localStorage.getItem('raskroiOrders')||'[]').reverse();
+  renderOrders(orders);
+}
+function renderOrders(list){
+  const el=document.getElementById('orderList');
+  if(!list.length){el.innerHTML='<div class="empty" style="padding:20px">Заказов нет</div>';return;}
+  el.innerHTML='';
+  list.forEach(o=>{
+    const c=document.createElement('div');c.className='order-card'+(currentOrder&&currentOrder.id===o.id?' sel':'');
+    c.onclick=()=>selectOrder(o.id);
+    c.innerHTML=`<div class="oid">${o.id}</div>
+      <div class="ometa">${o.customer||'—'} · ${o.parts?o.parts.length:0} дет. · <span class="st st-${o.status}">${o.status}</span></div>`;
+    el.appendChild(c);
+  });
+}
+window.filterOrders=function(){
+  const q=document.getElementById('searchInp').value.toLowerCase();
+  renderOrders(orders.filter(o=>(o.id+' '+(o.customer||'')+' '+(o.phone||'')).toLowerCase().includes(q)));
+};
+
+window.selectOrder=function(oid){
+  currentOrder=orders.find(o=>o.id===oid);
+  if(!currentOrder)return;
+  parts=JSON.parse(JSON.stringify(currentOrder.parts||[]));
+  document.getElementById('orderDetailPanel').style.display='block';
+  document.getElementById('dOid').textContent=currentOrder.id;
+  document.getElementById('dCust').textContent=currentOrder.customer||'—';
+  document.getElementById('dPhone').textContent=currentOrder.phone||'—';
+  document.getElementById('dDate').textContent=new Date(currentOrder.createdAt).toLocaleString('ru-RU');
+  document.getElementById('dMat').textContent=currentOrder.material||'—';
+  document.getElementById('dSheet').textContent=(currentOrder.sheetW||'?')+'×'+(currentOrder.sheetH||'?')+'mm';
+  const stEl=document.getElementById('dStatus');stEl.textContent=currentOrder.status;stEl.className='st st-'+currentOrder.status;
+  renderParts();renderOrders(orders);calcNest();
+};
+
+// ─── File upload ───
+function setupUpload(){
+  const inp=document.getElementById('fileInp');
+  inp.addEventListener('change',e=>handleFiles(e.target.files));
+  const z=document.querySelector('.upload-zone');
+  ['dragover','dragenter'].forEach(ev=>z.addEventListener(ev,e=>{e.preventDefault();z.style.background='#fff3e0';}));
+  ['dragleave','drop'].forEach(ev=>z.addEventListener(ev,e=>{e.preventDefault();z.style.background='#fff9f0';}));
+  z.addEventListener('drop',e=>{e.preventDefault();handleFiles(e.dataTransfer.files);});
+}
+function handleFiles(fl){
+  Array.from(fl).forEach(f=>{
+    files.push({name:f.name,size:f.size});
+    // Excel/CSV otomatik parse
+    if(/\.(csv|txt)$/i.test(f.name)){
+      const r=new FileReader();r.onload=ev=>{document.getElementById('pasteData').value=ev.target.result;};r.readAsText(f);
+    }
+  });
+  renderChips();
+}
+function renderChips(){
+  const el=document.getElementById('fileChips');el.innerHTML='';
+  files.forEach((f,i)=>{
+    const c=document.createElement('span');c.className='file-chip';
+    c.innerHTML=`📄 ${f.name} <button onclick="rmFile(${i})">✕</button>`;el.appendChild(c);
+  });
+}
+window.rmFile=i=>{files.splice(i,1);renderChips();};
+
+// ─── Excel paste ───
+window.importPaste=function(){
+  const txt=document.getElementById('pasteData').value.trim();if(!txt){alert('Вставьте данные');return;}
+  parts=[];let id=1;
+  txt.split('\n').forEach(line=>{
+    line=line.trim();if(!line)return;
+    const c=line.split(/\t+|\s{2,}|;|,/).map(x=>x.trim()).filter(x=>x);
+    if(c.length<3)return;const w=parseFloat(c[1])||0,h=parseFloat(c[2])||0;if(!w||!h)return;
+    const qty=c[3]?parseInt(c[3])||1:1;
+    let e={t:false,r:false,b:false,l:false};
+    if(c[4]){const s=c[4].toLowerCase();if(s.includes('all')||s.includes('все')||s==='4')e={t:true,r:true,b:true,l:true};
+      else{if(/t|в|top|верх/.test(s))e.t=true;if(/r|п|right|прав/.test(s))e.r=true;if(/b|н|bot|низ/.test(s))e.b=true;if(/l|л|left|лев/.test(s))e.l=true;}}
+    let lock=false;if(c[5]){const s=c[5].toLowerCase();lock=['no','н','0','false','жоқ'].includes(s);}
+    parts.push({id,name:c[0]||('P'+id),w,h,qty,e,lock});id++;
+  });
+  renderParts();calcNest();
+};
+
+// ─── Parts edit ───
+function renderParts(){
+  const tb=document.getElementById('partsTable');tb.innerHTML='';
+  parts.forEach(p=>{
+    const row=document.createElement('div');row.className='trow';
+    row.innerHTML=`<input type="text" value="${p.name}" onchange="upd(${p.id},'name',this.value)" style="font-weight:700">
+      <input type="number" value="${p.w}" onchange="upd(${p.id},'w',this.value)">
+      <input type="number" value="${p.h}" onchange="upd(${p.id},'h',this.value)">
+      <input type="number" value="${p.qty}" min="1" onchange="upd(${p.id},'qty',this.value)">
+      <div class="edges">
+        <input type="checkbox" ${p.e.t?'checked':''} onchange="updE(${p.id},'t',this.checked)" title="верх">
+        <input type="checkbox" ${p.e.r?'checked':''} onchange="updE(${p.id},'r',this.checked)" title="право">
+        <input type="checkbox" ${p.e.b?'checked':''} onchange="updE(${p.id},'b',this.checked)" title="низ">
+        <input type="checkbox" ${p.e.l?'checked':''} onchange="updE(${p.id},'l',this.checked)" title="лево">
+      </div>
+      <button class="btn-del" onclick="delPart(${p.id})">✕</button>`;
+    tb.appendChild(row);
+  });
+}
+window.upd=(id,f,v)=>{const p=parts.find(x=>x.id===id);if(!p)return;if(f==='qty')p.qty=Math.max(1,parseInt(v)||1);else if(f==='name')p.name=v;else p[f]=parseFloat(v)||0;};
+window.updE=(id,e,v)=>{const p=parts.find(x=>x.id===id);if(p)p.e[e]=v;};
+window.delPart=id=>{parts=parts.filter(p=>p.id!==id);renderParts();};
+window.addPart=function(){const id=Math.max(0,...parts.map(p=>p.id))+1;parts.push({id,name:'P'+id,w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false});renderParts();};
+
+// ─── Nesting (same algo as raskroi) ───
+function nest(){
+  const SW=parseFloat(currentOrder?.sheetW)||2800, SH=parseFloat(currentOrder?.sheetH)||2070;
+  const kerf=parseFloat(currentOrder?.kerf)||4, trim=parseFloat(currentOrder?.trim)||10;
+  const grain=currentOrder?.grain||'none';
+  const usableW=SW-2*trim, usableH=SH-2*trim;
+  let items=[];
+  parts.forEach(p=>{for(let i=0;i<p.qty;i++)items.push({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock});});
+  items.sort((a,b)=>(b.w*b.h)-(a.w*a.h)||a.name.localeCompare(b.name));
+  const sheets=[];
+  function tryPlace(sheet,it){
+    let orients=[{w:it.w,h:it.h,rot:false}];
+    if(!it.lock&&grain==='none'&&it.w!==it.h)orients.push({w:it.h,h:it.w,rot:true});
+    for(const o of orients){const pw=o.w+kerf,ph=o.h+kerf;
+      for(const sh of sheet.shelves){if(o.h<=sh.h&&sh.x+pw<=usableW+.01){sheet.parts.push({...it,x:trim+sh.x,y:trim+sh.y,w:o.w,h:o.h,rot:o.rot});sh.x+=pw;sheet.usedArea+=it.w*it.h;return true;}}
+      const uH=sheet.shelves.reduce((s,sh)=>Math.max(s,sh.y+sh.h),0);
+      if(uH+ph<=usableH+.01&&pw<=usableW+.01){const sh={y:uH,x:pw,h:ph};sheet.parts.push({...it,x:trim,y:trim+uH,w:o.w,h:o.h,rot:o.rot});sheet.shelves.push(sh);sheet.usedArea+=it.w*it.h;return true;}
+    }return false;
+  }
+  items.forEach(it=>{let pl=false;for(const s of sheets){if(tryPlace(s,it)){pl=true;break;}}if(!pl){const s={parts:[],shelves:[],usedArea:0};tryPlace(s,it);sheets.push(s);}});
+  return {sheets,SW,SH,usableW,usableH,trim};
+}
+
+window.calcNest=function(){
+  if(!parts.length)return;
+  const L=nest();lastLayout=L;
+  const sheetArea=L.SW*L.SH;let pa=0,cut=0,pvc=0,tp=0;
+  parts.forEach(p=>{pa+=p.w*p.h*p.qty;tp+=p.qty;let per=0;if(p.e.t)per+=p.w;if(p.e.b)per+=p.w;if(p.e.l)per+=p.h;if(p.e.r)per+=p.h;pvc+=per*p.qty;});
+  L.sheets.forEach(s=>s.parts.forEach(pt=>cut+=pt.w+pt.h));
+  const n=L.sheets.length,eff=n?pa/(sheetArea*n)*100:0;
+  document.getElementById('cSheets').textContent=n;
+  document.getElementById('cEff').textContent=eff.toFixed(0)+'%';
+  document.getElementById('cCut').textContent=(cut/1000).toFixed(1)+'м';
+  const pvcM=currentOrder?.pvc==='0'?0:pvc/1000*1.05;
+  document.getElementById('cPvc').textContent=pvcM.toFixed(1)+'м';
+  drawSheets(L);
+  // fiyat
+  const ppm=parseFloat(document.getElementById('pricePerM2').value)||0;
+  const ppvc=parseFloat(document.getElementById('pricePvc').value)||0;
+  const price=(pa/1e6*ppm)+(pvcM*ppvc);
+  document.getElementById('finalPrice').textContent=Math.round(price).toLocaleString('ru-RU')+' ₸';
+};
+
+function drawSheets(L){
+  const wrap=document.getElementById('canvasWrap');wrap.innerHTML='';
+  const cm={};let ci=0;parts.forEach(p=>{if(!(p.name in cm)){cm[p.name]=COLORS[ci%COLORS.length];ci++;}});
+  L.sheets.forEach((sheet,si)=>{
+    const lbl=document.createElement('div');lbl.className='sheet-label';lbl.textContent=`Лист ${si+1} — ${L.SW}×${L.SH}mm`;wrap.appendChild(lbl);
+    const cv=document.createElement('canvas');const sc=Math.min(560/L.SW,360/L.SH);cv.width=L.SW*sc;cv.height=L.SH*sc;
+    const ctx=cv.getContext('2d');ctx.fillStyle='#f1f5f9';ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.strokeStyle='#cbd5e1';ctx.setLineDash([4,3]);ctx.strokeRect(L.trim*sc,L.trim*sc,L.usableW*sc,L.usableH*sc);ctx.setLineDash([]);
+    sheet.parts.forEach(pt=>{const x=pt.x*sc,y=pt.y*sc,w=pt.w*sc,h=pt.h*sc;
+      ctx.fillStyle=cm[pt.name]||'#999';ctx.globalAlpha=.82;ctx.fillRect(x,y,w,h);ctx.globalAlpha=1;
+      ctx.strokeStyle='#1e293b';ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);
+      ctx.strokeStyle='#f97316';ctx.lineWidth=3;
+      if(pt.e.t){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);ctx.stroke();}
+      if(pt.e.b){ctx.beginPath();ctx.moveTo(x,y+h);ctx.lineTo(x+w,y+h);ctx.stroke();}
+      if(pt.e.l){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+h);ctx.stroke();}
+      if(pt.e.r){ctx.beginPath();ctx.moveTo(x+w,y);ctx.lineTo(x+w,y+h);ctx.stroke();}
+      ctx.fillStyle='#0f172a';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+      if(w>28&&h>18){ctx.fillText(pt.name,x+w/2,y+h/2-4);ctx.font='8px monospace';ctx.fillStyle='#334155';ctx.fillText(`${pt.w}×${pt.h}${pt.rot?' ↻':''}`,x+w/2,y+h/2+7);}
+    });
+    wrap.appendChild(cv);
+  });
+}
+
+function saveOrder(){
+  const all=JSON.parse(localStorage.getItem('raskroiOrders')||'[]');
+  const i=all.findIndex(o=>o.id===currentOrder.id);
+  if(i>=0){all[i]=currentOrder;localStorage.setItem('raskroiOrders',JSON.stringify(all));}
+}
+window.startProcess=function(){if(!currentOrder){alert('Выберите заказ');return;}currentOrder.status='processing';currentOrder.parts=parts;currentOrder.startedAt=new Date().toISOString();saveOrder();selectOrder(currentOrder.id);alert('✓ Резка началась! Заказ в работе.');};
+window.rejectOrder=function(){if(!currentOrder)return;if(confirm('Отклонить заказ?')){currentOrder.status='rejected';saveOrder();selectOrder(currentOrder.id);}};
+window.exportDXF=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
+  // Basit DXF üret (her parça için LINE'lar)
+  let dxf='0\nSECTION\n2\nENTITIES\n';
+  lastLayout.sheets.forEach((s,si)=>{const oy=si*(lastLayout.SH+100);
+    s.parts.forEach(pt=>{const x1=pt.x,y1=pt.y+oy,x2=pt.x+pt.w,y2=pt.y+pt.h+oy;
+      [[x1,y1,x2,y1],[x2,y1,x2,y2],[x2,y2,x1,y2],[x1,y2,x1,y1]].forEach(l=>{
+        dxf+=`0\nLINE\n8\n0\n10\n${l[0]}\n20\n${l[1]}\n11\n${l[2]}\n21\n${l[3]}\n`;});});});
+  dxf+='0\nENDSEC\n0\nEOF\n';
+  const blob=new Blob([dxf],{type:'application/dxf'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'.dxf';a.click();
+};
+window.sendWhatsApp=function(){if(!currentOrder){alert('Выберите заказ');return;}
+  const txt=`Раскрой ${currentOrder.id}%0AМатериал: ${currentOrder.material}%0AЛист: ${currentOrder.sheetW}×${currentOrder.sheetH}%0AДеталей: ${parts.reduce((s,p)=>s+p.qty,0)}%0AЛистов: ${lastLayout?lastLayout.sheets.length:'?'}%0AЦена: ${document.getElementById('finalPrice').textContent}`;
+  window.open('https://wa.me/?text='+txt,'_blank');
+};
+
+init();
+</script>
+</body>
+</html>

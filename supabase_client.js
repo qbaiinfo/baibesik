@@ -422,6 +422,10 @@ export {
   markMessagesAsRead,
   subscribeToMessages, subscribeToMessageUpdates, broadcastTyping, subscribeToTyping,
   getStoreChat, createCuttingProjectChat, sendCuttingMessage,
+  // ✂️ RASKROI — Раскрой / Kesim
+  getCuttingStores, createRaskroiOrder, getMyRaskroiOrders,
+  getStoreRaskroiOrders, searchRaskroiOrders, updateRaskroiOrder,
+  assignRaskroiWorker, addRaskroiWorkerToStore,
 };
 // ============================================================
 // CHAT MOD — baibesik.kz + Cutting için
@@ -762,5 +766,115 @@ async function createCuttingProjectChat(cuttingJobId, storeOwnerId, appContext =
 // Cutting verisiyle mesaj gönder
 async function sendCuttingMessage(chatRoomId, content, cuttingData) {
   return sendMessage(chatRoomId, content, 'text', null, cuttingData);
+}
+
+
+// ============================================================
+// ✂️ RASKROI (Раскрой / Kesim) FONKSİYONLARI
+// ============================================================
+
+// Kesme atölyesi olan dükkanlar (has_cutting = true)
+async function getCuttingStores() {
+  const { data, error } = await supabase
+    .from('stores')
+    .select('*')
+    .eq('has_cutting', true)
+    .eq('status', 'active');
+  if (error) { console.error('getCuttingStores', error); return []; }
+  return data || [];
+}
+
+// Yeni raskroi siparişi oluştur (müşteri)
+async function createRaskroiOrder(order) {
+  const user = await getCurrentUser();
+  const { data, error } = await supabase
+    .from('raskroi_orders')
+    .insert({
+      customer_id:    user?.id || null,
+      customer_name:  order.customer_name || user?.full_name,
+      customer_phone: order.customer_phone || user?.phone,
+      store_id:       order.store_id || null,
+      sheet_w:        order.sheet_w,
+      sheet_h:        order.sheet_h,
+      material:       order.material,
+      grain_dir:      order.grain_dir || 'none',
+      kerf:           order.kerf || 4,
+      trim_margin:    order.trim_margin || 10,
+      pvc_thickness:  order.pvc_thickness || '1',
+      parts:          order.parts || [],
+      layout:         order.layout || null,
+      sheets_used:    order.sheets_used || 0,
+      efficiency:     order.efficiency || 0,
+      cut_length_m:   order.cut_length_m || 0,
+      pvc_length_m:   order.pvc_length_m || 0,
+      files:          order.files || [],
+      status:         'pending',
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// Müşterinin kendi raskroi siparişleri (geçmiş + yeniden gönder)
+async function getMyRaskroiOrders() {
+  const user = await getCurrentUser();
+  if (!user) return [];
+  const { data, error } = await supabase
+    .from('raskroi_orders')
+    .select('*')
+    .eq('customer_id', user.id)
+    .order('created_at', { ascending: false });
+  if (error) { console.error('getMyRaskroiOrders', error); return []; }
+  return data || [];
+}
+
+// Atölye/çalışan için gelen siparişler (store_id'ye göre)
+async function getStoreRaskroiOrders(storeId) {
+  let q = supabase.from('raskroi_orders').select('*').order('created_at', { ascending: false });
+  if (storeId) q = q.eq('store_id', storeId);
+  const { data, error } = await q;
+  if (error) { console.error('getStoreRaskroiOrders', error); return []; }
+  return data || [];
+}
+
+// Müşteri arama (isim / telefon / sipariş no) — çalışan kullanır
+async function searchRaskroiOrders(query) {
+  const { data, error } = await supabase
+    .from('raskroi_orders')
+    .select('*')
+    .or(`customer_name.ilike.%${query}%,customer_phone.ilike.%${query}%,order_number.ilike.%${query}%`)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if (error) { console.error('searchRaskroiOrders', error); return []; }
+  return data || [];
+}
+
+// Sipariş güncelle (çalışan: parça düzenle, fiyat, durum, layout)
+async function updateRaskroiOrder(orderId, updates) {
+  const { data, error } = await supabase
+    .from('raskroi_orders')
+    .update(updates)
+    .eq('id', orderId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// Siparişi çalışana ata
+async function assignRaskroiWorker(orderId, workerId) {
+  return updateRaskroiOrder(orderId, { assigned_worker: workerId });
+}
+
+// Çalışanı dükkana raskroi_worker olarak ata (store_owner kullanır)
+async function addRaskroiWorkerToStore(storeId, userId) {
+  const { data, error } = await supabase
+    .from('store_members')
+    .insert({ store_id: storeId, user_id: userId, role: 'raskroi_worker' })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
 }
 

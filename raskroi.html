@@ -6,468 +6,472 @@
 <title>✂️ Раскрой — Baibesik.kz</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--orange:#f97316;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;}
+:root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark);overflow-x:hidden}
-
-header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:12px 20px}
-.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;max-width:1400px;margin:0 auto}
-
-.auth-guard{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center}
+body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark)}
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.nav-user{display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.auth-guard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center}
 .auth-guard.show{display:flex}
-.auth-guard a{margin-top:1rem;padding:12px 24px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px}
-
+.auth-guard a{margin-top:1rem;padding:12px 24px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
 .content{max-width:1600px;margin:0 auto;padding:16px;display:none}
-
-/* MAIN 2-COL LAYOUT */
-.main-container{display:grid;grid-template-columns:450px 1fr;gap:16px;height:calc(100vh - 100px);margin-bottom:20px}
-
-/* LEFT PANEL */
-.left-panel{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow-y:auto;display:flex;flex-direction:column}
-
-.panel-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--dark);letter-spacing:1px;margin-bottom:12px;border-bottom:2px solid var(--orange);padding-bottom:8px}
-
-/* PARAMS SECTION */
-.params-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.input-group{display:flex;flex-direction:column}
-.input-group label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.input-group input, .input-group select{padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none;transition:border-color .2s}
-.input-group input:focus, .input-group select:focus{border-color:var(--orange);background:#fff9f0}
-
-/* PASTE AREA */
-.paste-section{margin-bottom:16px}
-.paste-area{background:#f0f7ff;border:2px dashed #2196F3;border-radius:8px;padding:12px;margin:8px 0}
-.paste-area textarea{width:100%;min-height:70px;padding:8px;border:1px solid #90caf9;border-radius:6px;font-family:monospace;font-size:10px;resize:vertical;outline:none}
-.paste-area textarea:focus{border-color:var(--orange)}
-
-.btn{padding:10px 16px;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px;font-family:'Noto Sans';transition:all .2s;width:100%;margin-bottom:8px}
+.import-bar{background:#fff;border-radius:12px;padding:14px 18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.import-bar textarea{flex:1;min-width:200px;min-height:42px;max-height:120px;padding:8px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:11px;resize:vertical;outline:none}
+.import-bar textarea:focus{border-color:var(--orange)}
+.main-grid{display:grid;grid-template-columns:480px 1fr;gap:16px;align-items:start}
+.panel{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:16px}
+.panel-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;margin-bottom:12px;border-bottom:2px solid var(--orange);padding-bottom:8px}
+.params{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.ig{display:flex;flex-direction:column}
+.ig label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px}
+.ig input,.ig select{padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none}
+.ig input:focus,.ig select:focus{border-color:var(--orange);background:#fff9f0}
+.btn{padding:10px 14px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;font-family:'Noto Sans';transition:.2s}
 .btn-primary{background:var(--orange);color:#fff}
-.btn-primary:hover{background:#d97706}
-.btn-secondary{background:#10b981;color:#fff}
-.btn-secondary:hover{background:#059669}
-
-/* PARTS TABLE */
-.table-header{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;padding:8px;background:var(--light);border-radius:6px;margin-top:12px;margin-bottom:8px;display:grid;grid-template-columns:50px 40px 40px 35px 80px 35px 30px;gap:6px}
-.table-rows{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
-.table-row{display:grid;grid-template-columns:50px 40px 40px 35px 80px 35px 30px;gap:6px;align-items:center;padding:8px;background:#fff;border:1px solid var(--border);border-radius:6px}
-.table-row input{width:100%;padding:4px;border:1px solid var(--border);border-radius:4px;font-size:10px;outline:none}
-.table-row input:focus{border-color:var(--orange);background:#fffbf0}
-
-.edge-check{display:flex;gap:2px;font-size:9px}
-.edge-check label{display:flex;align-items:center;gap:2px;cursor:pointer}
-
-.btn-remove{background:#ef4444;color:#fff;border:none;padding:4px 6px;border-radius:3px;cursor:pointer;font-size:9px;font-weight:700}
-.btn-remove:hover{background:#dc2626}
-
-/* CALC SECTION */
-.calc-section{background:linear-gradient(135deg,#fff9f0 0%,#fffbf7 100%);border-left:4px solid var(--orange);padding:12px;border-radius:8px;margin-top:12px}
-.calc-row{display:grid;grid-template-columns:130px 1fr;gap:10px;margin-bottom:8px;align-items:center;font-size:11px}
-.calc-label{font-weight:700;color:var(--dark)}
-.calc-value{color:var(--orange);font-weight:700;font-size:13px;text-align:right}
-
-/* RIGHT PANEL - VISUAL */
-.right-panel{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.08);display:flex;flex-direction:column}
-
-.canvas-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.canvas-header h3{font-family:'Bebas Neue';font-size:14px;color:var(--dark);letter-spacing:1px}
-.canvas-info{font-size:10px;color:var(--gray);background:var(--light);padding:6px 10px;border-radius:6px}
-
-.canvas-container{flex:1;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-radius:8px;display:flex;align-items:center;justify-content:center;min-height:500px;position:relative;overflow:hidden}
-
-canvas{max-width:100%;height:auto;background:#fff}
-
-.canvas-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:12px;font-size:9px}
-.legend-item{display:flex;align-items:center;gap:6px}
-.legend-box{width:16px;height:16px;border-radius:3px}
-
-/* RESPONSIVE */
-@media(max-width:1200px){
-  .main-container{grid-template-columns:1fr}
-  .main-container{height:auto}
-}
+.btn-primary:hover{background:var(--orange-dark)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#059669}
+.btn-sm{padding:5px 9px;font-size:10px;border-radius:5px}
+.thead{display:grid;grid-template-columns:46px 44px 44px 32px 92px 30px 26px;gap:5px;font-size:9px;font-weight:700;color:var(--gray);text-transform:uppercase;padding:6px 4px;background:var(--light);border-radius:6px;margin-bottom:6px;text-align:center}
+.trows{display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto}
+.trow{display:grid;grid-template-columns:46px 44px 44px 32px 92px 30px 26px;gap:5px;align-items:center}
+.trow input[type=text],.trow input[type=number]{width:100%;padding:5px 3px;border:1px solid var(--border);border-radius:4px;font-size:11px;outline:none;text-align:center}
+.trow input:focus{border-color:var(--orange);background:#fff9f0}
+.edges{display:flex;gap:1px;justify-content:center}
+.edges label{display:flex;flex-direction:column;align-items:center;font-size:7px;color:var(--gray);cursor:pointer;width:21px}
+.edges input{width:14px;height:14px;cursor:pointer;accent-color:var(--orange)}
+.rotcell{display:flex;justify-content:center}
+.rotcell input{width:16px;height:16px;cursor:pointer;accent-color:var(--red)}
+.btn-del{background:var(--red);color:#fff;border:none;padding:4px;border-radius:4px;cursor:pointer;font-size:9px;width:24px}
+.toolbar{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
+.alledge-row{display:flex;align-items:center;gap:8px;padding:8px;background:var(--light);border-radius:6px;margin-bottom:8px;font-size:11px;font-weight:600}
+.results{background:linear-gradient(135deg,#fff9f0,#fffbf7);border-left:4px solid var(--orange);padding:14px;border-radius:8px;margin-top:12px}
+.rrow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid rgba(0,0,0,.05)}
+.rrow:last-child{border:none}
+.rrow .lbl{font-weight:600;color:var(--dark)}
+.rrow .val{font-weight:800;color:var(--orange)}
+.canvas-wrap{background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:10px;padding:14px;min-height:560px;display:flex;flex-direction:column;gap:14px;align-items:center;overflow-y:auto;max-height:80vh}
+.sheet-block{width:100%;display:flex;flex-direction:column;align-items:center}
+.sheet-label{color:#fff;font-size:11px;font-weight:700;margin-bottom:6px;align-self:flex-start}
+canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
+.empty-canvas{color:#64748b;text-align:center;margin:auto;font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.lg-item{display:flex;align-items:center;gap:4px;font-size:9px;color:#cbd5e1}
+.lg-box{width:14px;height:14px;border-radius:3px}
+.pvc-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.pvc-opt{padding:7px 4px;border:2px solid var(--border);border-radius:6px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;transition:.2s}
+.pvc-opt.sel{border-color:var(--orange);background:#fff9f0;color:var(--orange)}
+.hint{font-size:10px;color:var(--gray);margin-top:6px;line-height:1.5}
+.ai-btn{background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer;font-size:11px}
+@media(max-width:1100px){.main-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
 <div class="auth-guard" id="authGuard">
-  <h2>🔐 Авторизация қажет</h2>
-  <a href="login.html">Кіру</a>
+  <h2>🔐 Кіру қажет / Требуется вход</h2>
+  <a href="login.html">Кіру / Войти</a>
 </div>
 
 <header id="header" style="display:none">
-  <a href="index.html" class="logo">BAIBESIK<span style="color:var(--orange);">.kz</span> ✂️ РАСКРОЙ</a>
+  <a href="index.html" class="logo">BAIBESIK<span>.kz</span> ✂️ <span id="hdrTitle">Раскрой</span></a>
+  <div class="nav-user">
+    <select id="langSel" style="background:#0f172a;color:#fff;border:1px solid #334155;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">
+      <option value="ru">RU</option>
+      <option value="kk">KK</option>
+    </select>
+    <div class="avatar" id="av">A</div>
+    <span id="userName">User</span>
+  </div>
 </header>
 
 <div class="content" id="content" style="display:none">
 
-  <!-- IMPORT PANEL (full width) -->
-  <div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.08)">
-    <h2 class="panel-title">📋 Импорт Excel/TXT</h2>
-    <div style="background:#e3f2fd;border-left:4px solid #2196F3;padding:10px;border-radius:6px;margin-bottom:12px;font-size:11px;color:#1565c0">
-      💡 Ctrl+C из Excel → Ctrl+V → 📥 Импортировать
-    </div>
-    <div class="paste-area">
-      <textarea id="pasteData" placeholder="P1	400	300	1	top,bottom	yes
-P2	350	250	2	all	no
-P3	600	100	3	U,L	yes"></textarea>
-    </div>
-    <button class="btn btn-primary" onclick="importData()">📥 Импортировать</button>
-    <button class="btn btn-secondary" onclick="clearPaste()" style="background:#999">Очистить</button>
+  <!-- IMPORT BAR -->
+  <div class="import-bar">
+    <textarea id="pasteData" placeholder="📋 Excel/TXT: Ctrl+V  →  P1	400	300	1	all	yes"></textarea>
+    <button class="btn btn-primary" onclick="importData()">📥 <span data-i18n="import">Импорт</span></button>
+    <button class="ai-btn" onclick="aiSuggestBanding()">🤖 <span data-i18n="ai">AI Кромка</span></button>
   </div>
 
-  <!-- MAIN 2-COLUMN -->
-  <div class="main-container">
-
-    <!-- LEFT: Controls & Table -->
-    <div class="left-panel">
-
-      <!-- ПАРАМЕТРЫ ЛИСТА -->
-      <div>
-        <h3 class="panel-title">📐 Параметры листа</h3>
-        <div class="params-grid">
-          <div class="input-group">
-            <label>Ширина (X mm)</label>
-            <input type="number" id="sheetWidth" value="1200" min="100">
-          </div>
-          <div class="input-group">
-            <label>Высота (Y mm)</label>
-            <input type="number" id="sheetHeight" value="600" min="100">
-          </div>
-          <div class="input-group">
-            <label>Материал</label>
-            <select id="materialType">
-              <option>МДФ 18мм</option>
-              <option>ДСП 18мм</option>
-              <option>Фанера</option>
-              <option>PVC</option>
+  <div class="main-grid">
+    <!-- LEFT -->
+    <div>
+      <div class="panel">
+        <h3 class="panel-title" data-i18n="sheetParams">📐 Параметры листа</h3>
+        <div class="params">
+          <div class="ig"><label data-i18n="width">Ширина X (mm)</label><input type="number" id="sheetW" value="2800" min="100"></div>
+          <div class="ig"><label data-i18n="height">Высота Y (mm)</label><input type="number" id="sheetH" value="2070" min="100"></div>
+          <div class="ig"><label data-i18n="material">Материал</label>
+            <select id="matType">
+              <option value="ldsp16">ЛДСП 16мм</option>
+              <option value="ldsp18">ЛДСП 18мм</option>
+              <option value="mdf18">МДФ 18мм</option>
+              <option value="mdf25">МДФ 25мм</option>
+              <option value="plywood">Фанера</option>
             </select>
           </div>
-          <div class="input-group">
-            <label>Узор?</label>
-            <div style="display:flex;gap:8px;font-size:11px">
-              <label><input type="radio" name="pattern" value="yes" checked> Да</label>
-              <label><input type="radio" name="pattern" value="no"> Нет</label>
-            </div>
+          <div class="ig"><label data-i18n="grain">Текстура (узор)</label>
+            <select id="grainDir">
+              <option value="none" data-i18n="grainNone">Нет — вращать всё</option>
+              <option value="vertical" data-i18n="grainV">Вертикальная ↕</option>
+              <option value="horizontal" data-i18n="grainH">Горизонтальная ↔</option>
+            </select>
           </div>
+        </div>
+        <div class="params">
+          <div class="ig"><label data-i18n="kerf">Рез / Kesme (mm)</label><input type="number" id="kerf" value="4" min="0" step="0.5"></div>
+          <div class="ig"><label data-i18n="trim">Обрезка края (mm)</label><input type="number" id="trim" value="10" min="0"></div>
+        </div>
+        <div class="hint" data-i18n="grainHint">⚠️ Если выбрана текстура — детали с «🔒 Текстура» НЕ вращаются (узор сохраняется).</div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title" data-i18n="parts">📦 Детали</h3>
+        <div class="alledge-row">
+          <input type="checkbox" id="allEdgeAll" onchange="toggleAllEdges()" style="width:16px;height:16px;accent-color:var(--orange)">
+          <span data-i18n="bandAll">Кромковать ВСЕ края всех деталей (□ квадрат)</span>
+        </div>
+        <div class="thead">
+          <span data-i18n="part">Деталь</span><span>X</span><span>Y</span><span data-i18n="qty">Кол</span>
+          <span data-i18n="band">Кромка В/П/Н/Л</span><span>🔒</span><span>✕</span>
+        </div>
+        <div class="trows" id="partsTable"></div>
+        <div class="toolbar">
+          <button class="btn btn-primary btn-sm" onclick="addPart()">➕ <span data-i18n="addPart">Деталь</span></button>
+          <button class="btn btn-sm" style="background:var(--light);color:var(--dark);border:1px solid var(--border)" onclick="clearParts()">🗑 <span data-i18n="clear">Очистить</span></button>
+        </div>
+        <div class="hint" data-i18n="bandHint">Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)</div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title" data-i18n="pvcTitle">🎨 Кромка PVC</h3>
+        <div class="pvc-row">
+          <div class="pvc-opt" onclick="selPVC('0.4',this)">0.4mm</div>
+          <div class="pvc-opt sel" onclick="selPVC('1',this)">1mm ⭐</div>
+          <div class="pvc-opt" onclick="selPVC('2',this)">2mm</div>
+          <div class="pvc-opt" onclick="selPVC('0',this)" data-i18n="pvcNone">Нет</div>
         </div>
       </div>
 
-      <!-- ЧАСТИ ТАБЛИЦА -->
-      <div style="flex:1;display:flex;flex-direction:column;margin-top:16px">
-        <h3 class="panel-title">📦 Части (детали)</h3>
-        
-        <div class="table-header">
-          <span>Часть</span><span>X</span><span>Y</span><span>Кол</span><span>Обрам</span><span>Пов</span><span>✕</span>
+      <div class="panel">
+        <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="calculate()">🧮 <span data-i18n="calc">Рассчитать раскрой</span></button>
+        <div class="results">
+          <div class="rrow"><span class="lbl" data-i18n="sheetsNeed">Листов нужно</span><span class="val" id="rSheets">0</span></div>
+          <div class="rrow"><span class="lbl" data-i18n="totalParts">Всего деталей</span><span class="val" id="rParts">0</span></div>
+          <div class="rrow"><span class="lbl" data-i18n="eff">КПД (использование)</span><span class="val" id="rEff">0%</span></div>
+          <div class="rrow"><span class="lbl" data-i18n="waste">Отходы</span><span class="val" id="rWaste">0%</span></div>
+          <div class="rrow"><span class="lbl" data-i18n="cutLen">Длина реза</span><span class="val" id="rCut">0 м</span></div>
+          <div class="rrow"><span class="lbl" data-i18n="pvcLen">Кромка PVC</span><span class="val" id="rPvc">0 м</span></div>
         </div>
-        
-        <div class="table-rows" id="partsTable"></div>
-        
-        <button class="btn btn-primary" onclick="addPart()" style="margin-top:12px">➕ Добавить часть</button>
+        <button class="btn btn-green" style="width:100%;margin-top:10px" onclick="sendToManager()">📤 <span data-i18n="send">Отправить в мастерскую</span></button>
+        <div class="hint" data-i18n="sendHint">После отправки мастер рассчитает финальную цену и начнёт резку.</div>
       </div>
-
-      <!-- PVC ВЫБОР -->
-      <div style="margin-top:16px;padding:12px;background:var(--light);border-radius:8px">
-        <h4 style="font-size:11px;font-weight:700;color:var(--gray);margin-bottom:8px;text-transform:uppercase">🎨 PVC Толщина</h4>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-          <div class="pvc-opt" onclick="selectPVC('0.5',this)" style="padding:8px;border:2px solid var(--border);border-radius:6px;text-align:center;cursor:pointer;transition:all .2s">
-            <div style="font-weight:700;font-size:12px">0.5mm</div>
-            <div style="font-size:9px;color:var(--gray)">Тонкая</div>
-          </div>
-          <div class="pvc-opt selected" onclick="selectPVC('1',this)" style="padding:8px;border:2px solid var(--orange);border-radius:6px;text-align:center;cursor:pointer;background:#fff9f0;transition:all .2s">
-            <div style="font-weight:700;font-size:12px">1 mm</div>
-            <div style="font-size:9px;color:var(--orange)">⭐ Стд</div>
-          </div>
-          <div class="pvc-opt" onclick="selectPVC('2',this)" style="padding:8px;border:2px solid var(--border);border-radius:6px;text-align:center;cursor:pointer;transition:all .2s">
-            <div style="font-weight:700;font-size:12px">2 mm</div>
-            <div style="font-size:9px;color:var(--gray)">Толстая</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- РЕЗУЛЬТАТЫ -->
-      <div class="calc-section">
-        <h4 style="font-size:11px;font-weight:700;margin-bottom:10px">📊 Результаты расчета</h4>
-        <div class="calc-row">
-          <span class="calc-label">Листов нужно</span>
-          <span class="calc-value" id="sheetsNeeded">0</span>
-        </div>
-        <div class="calc-row">
-          <span class="calc-label">КПД раскроя</span>
-          <span class="calc-value" id="efficiency">0%</span>
-        </div>
-        <div class="calc-row">
-          <span class="calc-label">Отходы</span>
-          <span class="calc-value" id="waste">0%</span>
-        </div>
-        <div class="calc-row">
-          <span class="calc-label">PVC метров</span>
-          <span class="calc-value" id="pvcLength">0 м</span>
-        </div>
-        <div class="calc-row" style="border-top:2px solid rgba(0,0,0,.1);padding-top:10px;margin-top:10px">
-          <span class="calc-label">Итого цена</span>
-          <span class="calc-value" style="font-size:16px;color:#10b981" id="totalPrice">0 ₸</span>
-        </div>
-      </div>
-
-      <button class="btn btn-primary" onclick="calculate()" style="margin-top:16px">🧮 Рассчитать</button>
-      <button class="btn btn-secondary" onclick="submit()">📤 Отправить менеджеру</button>
-
     </div>
 
-    <!-- RIGHT: VISUAL CUTTING PLAN -->
-    <div class="right-panel">
-      <div class="canvas-header">
-        <h3>Kesim Planı (Раскрой Визуал)</h3>
-        <div class="canvas-info">
-          <span id="sheetInfo">1200×600 mm</span>
-        </div>
+    <!-- RIGHT: VISUAL -->
+    <div class="panel" style="position:sticky;top:70px">
+      <h3 class="panel-title">📊 <span data-i18n="cutPlan">План раскроя</span> <span id="planInfo" style="font-size:11px;color:var(--gray);font-weight:400"></span></h3>
+      <div class="canvas-wrap" id="canvasWrap">
+        <div class="empty-canvas" data-i18n="emptyPlan">Добавьте детали и нажмите «Рассчитать раскрой»</div>
       </div>
-      
-      <div class="canvas-container">
-        <canvas id="cuttingCanvas"></canvas>
-      </div>
-
-      <div class="canvas-legend" id="legend"></div>
-
-      <button class="btn btn-primary" onclick="exportDXF()" style="margin-top:12px">📥 DXF скачать</button>
+      <div class="legend" id="legend"></div>
     </div>
-
   </div>
-
 </div>
 
 <script src="supabase_client.js" type="module"></script>
 <script type="module">
-  import { getCurrentUser } from './supabase_client.js';
+import { getCurrentUser } from './supabase_client.js';
 
-  let currentUser = null;
-  let parts = [];
-  let selectedPVC = '1';
+// ─── i18n ───
+const I18N = {
+  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',addPart:'Деталь',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой'},
+  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',addPart:'Бөлшек',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой'}
+};
+let lang = 'ru';
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k = el.getAttribute('data-i18n');
+    if(I18N[lang][k]) el.textContent = I18N[lang][k];
+  });
+  document.documentElement.lang = lang;
+}
 
-  async function init() {
-    try {
-      currentUser = await getCurrentUser();
-      if (!currentUser) {
-        document.getElementById('authGuard').classList.add('show');
-        return;
-      }
-      document.getElementById('authGuard').style.display = 'none';
-      document.getElementById('header').style.display = 'block';
-      document.getElementById('content').style.display = 'block';
+// ─── STATE ───
+let currentUser=null, parts=[], selectedPVC='1', lastLayout=null;
+const COLORS=['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2','#F8A5B8','#A8E6CF','#FDCB6E','#74B9FF','#E17055','#00B894','#6C5CE7'];
 
-      parts = [{id:1,name:'P1',width:400,height:300,qty:1,edges:{top:true,right:false,bottom:true,left:false},rotate:false}];
-      renderTable();
-    } catch (error) {
-      console.error('Init:', error);
+async function init(){
+  try{
+    currentUser = await getCurrentUser();
+    if(!currentUser){ document.getElementById('authGuard').classList.add('show'); return; }
+    document.getElementById('authGuard').style.display='none';
+    document.getElementById('header').style.display='flex';
+    document.getElementById('content').style.display='block';
+    document.getElementById('userName').textContent = currentUser.full_name||'User';
+    document.getElementById('av').textContent = (currentUser.full_name||'A').charAt(0).toUpperCase();
+    document.getElementById('langSel').addEventListener('change',e=>{lang=e.target.value;applyLang();});
+    parts=[{id:1,name:'P1',w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false}];
+    renderTable(); applyLang();
+  }catch(e){console.error(e);}
+}
+
+// ─── IMPORT (Excel/TXT) ───
+window.importData=function(){
+  const txt=document.getElementById('pasteData').value.trim();
+  if(!txt){alert('Вставьте данные / Деректерді қойыңыз');return;}
+  parts=[]; let id=1;
+  txt.split('\n').forEach(line=>{
+    line=line.trim(); if(!line)return;
+    const c=line.split(/\t+|\s{2,}|;|,/).map(x=>x.trim()).filter(x=>x);
+    if(c.length<3)return;
+    const w=parseFloat(c[1])||0, h=parseFloat(c[2])||0;
+    if(!w||!h)return;
+    const qty=c[3]?parseInt(c[3])||1:1;
+    let e={t:false,r:false,b:false,l:false};
+    if(c[4]){const s=c[4].toLowerCase();
+      if(s.includes('all')||s.includes('все')||s.includes('бәрі')||s==='4')e={t:true,r:true,b:true,l:true};
+      else{if(/t|в|ж|top|верх/.test(s))e.t=true;if(/r|п|о|right|прав/.test(s))e.r=true;if(/b|н|т|bot|низ/.test(s))e.b=true;if(/l|л|с|left|лев/.test(s))e.l=true;}
     }
-  }
+    let lock=false;
+    if(c[5]){const s=c[5].toLowerCase();lock=['no','н','жоқ','lock','0','false'].includes(s);}
+    parts.push({id,name:c[0]||('P'+id),w,h,qty,e,lock});id++;
+  });
+  if(!parts.length){alert('Формат: Имя X Y Кол Кромка Поворот');return;}
+  renderTable(); document.getElementById('pasteData').value='';
+};
 
-  window.importData = function() {
-    const text = document.getElementById('pasteData').value.trim();
-    if (!text) { alert('Вставьте данные!'); return; }
-    
-    parts = [];
-    let id = 1;
-    text.split('\n').forEach(line => {
-      line = line.trim();
-      if (!line) return;
-      const cols = line.split(/\t+|\s{2,}/).map(c => c.trim()).filter(c => c);
-      if (cols.length < 3) return;
-      
-      const name = cols[0];
-      const width = parseFloat(cols[1]) || 0;
-      const height = parseFloat(cols[2]) || 0;
-      const qty = cols[3] ? parseInt(cols[3]) || 1 : 1;
-      
-      let edges = {top:false,right:false,bottom:false,left:false};
-      if (cols[4]) {
-        const e = cols[4].toLowerCase();
-        if (e.includes('all')) edges = {top:true,right:true,bottom:true,left:true};
-        else {
-          if (e.match(/top|u|у/)) edges.top = true;
-          if (e.match(/right|p|п/)) edges.right = true;
-          if (e.match(/bottom|l|л/)) edges.bottom = true;
-          if (e.match(/left|o|о/)) edges.left = true;
+// ─── AI BANDING SUGGESTION ───
+window.aiSuggestBanding=function(){
+  // AI mantığı: dış görünen kenarlar bantlanır. Heuristik:
+  // - Büyük parçalar (kapak/cephe) = tüm kenar
+  // - Uzun ince parçalar (raf) = uzun kenarlar
+  // - Küçük parçalar = ön kenar
+  parts.forEach(p=>{
+    const isLong = Math.max(p.w,p.h)/Math.min(p.w,p.h) > 2.5;
+    const big = (p.w*p.h) > 200000;
+    if(big){ p.e={t:true,r:true,b:true,l:true}; }
+    else if(isLong){
+      if(p.w>p.h){ p.e={t:true,r:false,b:true,l:false}; }
+      else { p.e={t:false,r:true,b:false,l:true}; }
+    } else { p.e={t:true,r:false,b:false,l:false}; }
+  });
+  renderTable();
+  alert(lang==='kk'?'🤖 AI жиекті ұсынды! Тексеріп, түзете аласыз.':'🤖 AI предложил кромку! Проверьте и при необходимости измените.');
+};
+
+window.addPart=function(){
+  const id=Math.max(0,...parts.map(p=>p.id))+1;
+  parts.push({id,name:'P'+id,w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false});
+  renderTable();
+  setTimeout(()=>document.querySelector(`input[data-id="${id}"][data-f="w"]`)?.focus(),40);
+};
+window.clearParts=function(){if(confirm('Очистить все детали?')){parts=[];renderTable();}};
+
+function renderTable(){
+  const tb=document.getElementById('partsTable'); tb.innerHTML='';
+  parts.forEach(p=>{
+    const row=document.createElement('div'); row.className='trow';
+    row.innerHTML=`
+      <input type="text" value="${p.name}" data-id="${p.id}" data-f="name" onchange="upd(${p.id},'name',this.value)" style="font-weight:700">
+      <input type="number" value="${p.w}" data-id="${p.id}" data-f="w" onchange="upd(${p.id},'w',this.value)" onkeydown="navKey(event,${p.id},'w')">
+      <input type="number" value="${p.h}" data-id="${p.id}" data-f="h" onchange="upd(${p.id},'h',this.value)" onkeydown="navKey(event,${p.id},'h')">
+      <input type="number" value="${p.qty}" min="1" data-id="${p.id}" data-f="qty" onchange="upd(${p.id},'qty',this.value)" onkeydown="navKey(event,${p.id},'qty')">
+      <div class="edges">
+        <label>В<input type="checkbox" ${p.e.t?'checked':''} onchange="updE(${p.id},'t',this.checked)"></label>
+        <label>П<input type="checkbox" ${p.e.r?'checked':''} onchange="updE(${p.id},'r',this.checked)"></label>
+        <label>Н<input type="checkbox" ${p.e.b?'checked':''} onchange="updE(${p.id},'b',this.checked)"></label>
+        <label>Л<input type="checkbox" ${p.e.l?'checked':''} onchange="updE(${p.id},'l',this.checked)"></label>
+      </div>
+      <div class="rotcell"><input type="checkbox" ${p.lock?'checked':''} onchange="upd(${p.id},'lock',this.checked)" title="Не вращать"></div>
+      <button class="btn-del" onclick="delPart(${p.id})">✕</button>`;
+    tb.appendChild(row);
+  });
+}
+window.upd=(id,f,v)=>{const p=parts.find(x=>x.id===id);if(!p)return;if(f==='qty')p.qty=Math.max(1,parseInt(v)||1);else if(f==='lock')p.lock=v;else if(f==='name')p.name=v;else p[f]=parseFloat(v)||0;};
+window.updE=(id,e,v)=>{const p=parts.find(x=>x.id===id);if(p)p.e[e]=v;};
+window.delPart=(id)=>{parts=parts.filter(p=>p.id!==id);renderTable();};
+window.navKey=(ev,id,f)=>{
+  if(ev.key==='Enter'){ev.preventDefault();
+    const order=['w','h','qty'];const i=order.indexOf(f);
+    if(i<order.length-1){document.querySelector(`input[data-id="${id}"][data-f="${order[i+1]}"]`)?.focus();}
+    else{const np=parts.find(p=>p.id>id);if(np)document.querySelector(`input[data-id="${np.id}"][data-f="w"]`)?.focus();else addPart();}
+  }
+};
+window.toggleAllEdges=function(){
+  const on=document.getElementById('allEdgeAll').checked;
+  parts.forEach(p=>p.e={t:on,r:on,b:on,l:on});
+  renderTable();
+};
+window.selPVC=(t,el)=>{selectedPVC=t;document.querySelectorAll('.pvc-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');};
+
+// ═══════════════════════════════════════════
+// NESTING ALGORITHM (Shelf/Guillotine + kerf + trim + rotation + grouping)
+// ═══════════════════════════════════════════
+function nest(){
+  const SW=parseFloat(document.getElementById('sheetW').value)||2800;
+  const SH=parseFloat(document.getElementById('sheetH').value)||2070;
+  const kerf=parseFloat(document.getElementById('kerf').value)||0;
+  const trim=parseFloat(document.getElementById('trim').value)||0;
+  const grain=document.getElementById('grainDir').value;
+  const usableW=SW-2*trim, usableH=SH-2*trim;
+
+  // Tüm parçaları aç (qty kadar) — gruplama: aynı boyut+isim ardışık gelir
+  let items=[];
+  parts.forEach(p=>{
+    for(let i=0;i<p.qty;i++){
+      items.push({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock,pid:p.id,idx:i+1});
+    }
+  });
+  // Büyükten küçüğe sırala (alan), aynı parçalar yan yana kalsın diye name'e göre ikincil sıralama
+  items.sort((a,b)=> (b.w*b.h)-(a.w*a.h) || a.name.localeCompare(b.name));
+
+  const sheets=[]; 
+  function newSheet(){return {parts:[],shelves:[],usedArea:0};}
+
+  function tryPlace(sheet,it){
+    // rotasyon izni: lock=true ise asla, grain none ise serbest, grain varsa kısıtlı
+    let orients=[{w:it.w,h:it.h,rot:false}];
+    const canRotate = !it.lock && grain==='none';
+    if(canRotate && it.w!==it.h) orients.push({w:it.h,h:it.w,rot:true});
+
+    for(const o of orients){
+      const pw=o.w+kerf, ph=o.h+kerf;
+      // mevcut raflara yerleştirmeyi dene
+      for(const sh of sheet.shelves){
+        if(o.h<=sh.h && sh.x+pw<=usableW+0.01){
+          const part={...it,x:trim+sh.x,y:trim+sh.y,w:o.w,h:o.h,rot:o.rot};
+          sh.x+=pw; sheet.parts.push(part); sheet.usedArea+=it.w*it.h; return true;
         }
       }
-      
-      let rotate = false;
-      if (cols[5]) rotate = ['yes','y','1','true'].includes(cols[5].toLowerCase());
-      
-      parts.push({id,name,width,height,qty,edges,rotate});
-      id++;
-    });
-    renderTable();
-    drawCutting();
-  };
-
-  window.clearPaste = () => document.getElementById('pasteData').value = '';
-
-  window.addPart = function() {
-    const id = Math.max(...parts.map(p=>p.id), 0) + 1;
-    parts.push({id,name:`P${id}`,width:400,height:300,qty:1,edges:{top:true,right:false,bottom:true,left:false},rotate:false});
-    renderTable();
-  };
-
-  function renderTable() {
-    const tbody = document.getElementById('partsTable');
-    tbody.innerHTML = '';
-    parts.forEach(p => {
-      const row = document.createElement('div');
-      row.className = 'table-row';
-      row.innerHTML = `
-        <input type="text" value="${p.name}" onchange="updatePart(${p.id},'name',this.value)" style="text-align:center;font-weight:700">
-        <input type="number" value="${p.width}" onchange="updatePart(${p.id},'width',this.value)">
-        <input type="number" value="${p.height}" onchange="updatePart(${p.id},'height',this.value)">
-        <input type="number" value="${p.qty}" min="1" onchange="updatePart(${p.id},'qty',this.value)">
-        <div class="edge-check">
-          <label><input type="checkbox" ${p.edges.top?'checked':''} onchange="updateEdge(${p.id},'top',this.checked)">У</label>
-          <label><input type="checkbox" ${p.edges.right?'checked':''} onchange="updateEdge(${p.id},'right',this.checked)">П</label>
-          <label><input type="checkbox" ${p.edges.bottom?'checked':''} onchange="updateEdge(${p.id},'bottom',this.checked)">Л</label>
-          <label><input type="checkbox" ${p.edges.left?'checked':''} onchange="updateEdge(${p.id},'left',this.checked)">О</label>
-        </div>
-        <label style="text-align:center"><input type="checkbox" ${p.rotate?'checked':''} onchange="updatePart(${p.id},'rotate',this.checked)">↻</label>
-        <button class="btn-remove" onclick="removePart(${p.id})">✕</button>
-      `;
-      tbody.appendChild(row);
-    });
+      // yeni raf aç
+      const usedH = sheet.shelves.reduce((s,sh)=>Math.max(s,sh.y+sh.h),0);
+      if(usedH+ph<=usableH+0.01 && pw<=usableW+0.01){
+        const sh={y:usedH,x:0,h:ph};
+        const part={...it,x:trim+0,y:trim+usedH,w:o.w,h:o.h,rot:o.rot};
+        sh.x+=pw; sheet.shelves.push(sh); sheet.parts.push(part); sheet.usedArea+=it.w*it.h; return true;
+      }
+    }
+    return false;
   }
 
-  window.updatePart = (id, field, val) => {
-    const p = parts.find(x => x.id === id);
-    if (p) p[field] = field === 'qty' ? Math.max(1, parseInt(val)||1) : field === 'rotate' ? val : parseFloat(val)||0;
-  };
+  items.forEach(it=>{
+    let placed=false;
+    for(const s of sheets){ if(tryPlace(s,it)){placed=true;break;} }
+    if(!placed){ const s=newSheet(); if(tryPlace(s,it)){sheets.push(s);} else {sheets.push(s);} }
+  });
 
-  window.updateEdge = (id, edge, checked) => {
-    const p = parts.find(x => x.id === id);
-    if (p) p.edges[edge] = checked;
-  };
+  return {sheets,SW,SH,usableW,usableH,trim,kerf};
+}
 
-  window.removePart = (id) => {
-    parts = parts.filter(p => p.id !== id);
-    renderTable();
-  };
+window.calculate=function(){
+  if(!parts.length){alert('Добавьте детали');return;}
+  const L=nest(); lastLayout=L;
+  const sheetArea=L.SW*L.SH;
+  let totalPartArea=0,totalParts=0,cutLen=0,pvcLen=0;
+  parts.forEach(p=>{
+    const a=p.w*p.h*p.qty; totalPartArea+=a; totalParts+=p.qty;
+    let per=0; if(p.e.t)per+=p.w; if(p.e.b)per+=p.w; if(p.e.l)per+=p.h; if(p.e.r)per+=p.h;
+    pvcLen+=per*p.qty;
+  });
+  // kesim uzunluğu: her parça çevresi/2 yaklaşık (guillotine)
+  L.sheets.forEach(s=>s.parts.forEach(pt=>{cutLen+=(pt.w+pt.h);}));
+  const nSheets=L.sheets.length;
+  const eff = nSheets? (totalPartArea/(sheetArea*nSheets)*100):0;
 
-  window.calculate = function() {
-    const sheetW = parseFloat(document.getElementById('sheetWidth').value) || 1200;
-    const sheetH = parseFloat(document.getElementById('sheetHeight').value) || 600;
-    const sheetArea = (sheetW * sheetH) / 1000000;
-    
-    let partsArea = 0, edgeLength = 0;
-    parts.forEach(p => {
-      partsArea += (p.width * p.height / 1000000) * p.qty;
-      let edges = 0;
-      if (p.edges.top) edges++;
-      if (p.edges.right) edges++;
-      if (p.edges.bottom) edges++;
-      if (p.edges.left) edges++;
-      edgeLength += (2 * (p.width + p.height)) / 1000 * edges / 4 * p.qty;
-    });
-    
-    const sheets = Math.ceil(partsArea / sheetArea);
-    const eff = ((partsArea / (sheetArea * sheets)) * 100).toFixed(1);
-    
-    document.getElementById('sheetInfo').textContent = sheetW + '×' + sheetH + ' mm';
-    document.getElementById('sheetsNeeded').textContent = sheets;
-    document.getElementById('efficiency').textContent = eff + '%';
-    document.getElementById('waste').textContent = (100 - eff).toFixed(1) + '%';
-    document.getElementById('pvcLength').textContent = (edgeLength * 1.1).toFixed(1) + ' м';
-    document.getElementById('totalPrice').textContent = (partsArea * 5000 + edgeLength * 1500).toFixed(0) + ' ₸';
-    
-    drawCutting();
-  };
+  document.getElementById('rSheets').textContent=nSheets;
+  document.getElementById('rParts').textContent=totalParts;
+  document.getElementById('rEff').textContent=eff.toFixed(1)+'%';
+  document.getElementById('rWaste').textContent=(100-eff).toFixed(1)+'%';
+  document.getElementById('rCut').textContent=(cutLen/1000).toFixed(1)+' м';
+  const pvcM = selectedPVC==='0'?0:(pvcLen/1000*1.05);
+  document.getElementById('rPvc').textContent=pvcM.toFixed(1)+' м';
+  document.getElementById('planInfo').textContent=`${L.SW}×${L.SH}mm · ${nSheets} ${lang==='kk'?'парақ':'лист'}`;
+  drawSheets(L);
+};
 
-  function drawCutting() {
-    const can = document.getElementById('cuttingCanvas');
-    const ctx = can.getContext('2d');
-    const sheetW = parseFloat(document.getElementById('sheetWidth').value) || 1200;
-    const sheetH = parseFloat(document.getElementById('sheetHeight').value) || 600;
-    
-    const scale = Math.min(380 / sheetW, 460 / sheetH) || 0.3;
-    can.width = sheetW * scale + 40;
-    can.height = sheetH * scale + 40;
-    
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, can.width, can.height);
-    
-    // Лист
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(20, 20, sheetW * scale, sheetH * scale);
-    ctx.strokeStyle = '#ccc';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(20, 20, sheetW * scale, sheetH * scale);
-    
-    const colors = ['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2','#F8A5B8','#A8E6CF'];
-    let colorIdx = 0;
-    let y = 20;
-    let x = 20;
-    let legend = [];
-    
-    parts.forEach(p => {
-      for (let i = 0; i < p.qty; i++) {
-        if (x + p.width * scale > 20 + sheetW * scale - 5) {
-          x = 20;
-          y += p.height * scale + 3;
-        }
-        
-        if (y + p.height * scale > 20 + sheetH * scale - 5) break;
-        
-        const col = colors[colorIdx % colors.length];
-        ctx.fillStyle = col;
-        ctx.globalAlpha = 0.8;
-        ctx.fillRect(x, y, p.width * scale, p.height * scale);
-        ctx.globalAlpha = 1;
-        
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x, y, p.width * scale, p.height * scale);
-        
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 11px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(p.name + '-' + (i+1), x + p.width * scale / 2, y + p.height * scale / 2);
-        
-        ctx.font = '9px monospace';
-        ctx.fillStyle = '#666';
-        ctx.fillText(p.width + 'x' + p.height, x + p.width * scale / 2, y + p.height * scale / 2 + 14);
-        
-        x += p.width * scale + 3;
+function drawSheets(L){
+  const wrap=document.getElementById('canvasWrap'); wrap.innerHTML='';
+  const legend=document.getElementById('legend'); legend.innerHTML='';
+  const colorMap={}; let ci=0;
+  parts.forEach(p=>{if(!(p.name in colorMap)){colorMap[p.name]=COLORS[ci%COLORS.length];ci++;}});
+
+  L.sheets.forEach((sheet,si)=>{
+    const block=document.createElement('div'); block.className='sheet-block';
+    const lbl=document.createElement('div'); lbl.className='sheet-label';
+    lbl.textContent=`${lang==='kk'?'Парақ':'Лист'} ${si+1} — ${L.SW}×${L.SH}mm`;
+    block.appendChild(lbl);
+    const cv=document.createElement('canvas');
+    const scale=Math.min(540/L.SW, 380/L.SH);
+    cv.width=L.SW*scale; cv.height=L.SH*scale;
+    const ctx=cv.getContext('2d');
+    // lист zemini
+    ctx.fillStyle='#f1f5f9'; ctx.fillRect(0,0,cv.width,cv.height);
+    // trim alanı
+    ctx.strokeStyle='#cbd5e1'; ctx.setLineDash([4,3]);
+    ctx.strokeRect(L.trim*scale,L.trim*scale,L.usableW*scale,L.usableH*scale);
+    ctx.setLineDash([]);
+    // parçalar
+    sheet.parts.forEach(pt=>{
+      const x=pt.x*scale,y=pt.y*scale,w=pt.w*scale,h=pt.h*scale;
+      ctx.fillStyle=colorMap[pt.name]||'#999'; ctx.globalAlpha=.82;
+      ctx.fillRect(x,y,w,h); ctx.globalAlpha=1;
+      ctx.strokeStyle='#1e293b'; ctx.lineWidth=1; ctx.strokeRect(x,y,w,h);
+      // kenar bantları (kalın turuncu çizgi)
+      ctx.strokeStyle='#f97316'; ctx.lineWidth=3;
+      if(pt.e.t){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);ctx.stroke();}
+      if(pt.e.b){ctx.beginPath();ctx.moveTo(x,y+h);ctx.lineTo(x+w,y+h);ctx.stroke();}
+      if(pt.e.l){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+h);ctx.stroke();}
+      if(pt.e.r){ctx.beginPath();ctx.moveTo(x+w,y);ctx.lineTo(x+w,y+h);ctx.stroke();}
+      // etiket
+      ctx.fillStyle='#0f172a'; ctx.font='bold 10px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      if(w>28&&h>18){
+        ctx.fillText(pt.name,x+w/2,y+h/2-5);
+        ctx.font='8px monospace'; ctx.fillStyle='#334155';
+        ctx.fillText(`${pt.w}×${pt.h}${pt.rot?' ↻':''}`,x+w/2,y+h/2+6);
+        if(pt.lock){ctx.fillText('🔒',x+w/2,y+h/2+15);}
       }
-      
-      if (!legend.find(l => l.name === p.name)) {
-        legend.push({name: p.name, color: colors[colorIdx % colors.length]});
-      }
-      colorIdx++;
     });
-    
-    // Legend
-    const legDiv = document.getElementById('legend');
-    legDiv.innerHTML = '';
-    legend.forEach(l => {
-      const item = document.createElement('div');
-      item.className = 'legend-item';
-      item.innerHTML = `<div class="legend-box" style="background:${l.color}"></div><span>${l.name}</span>`;
-      legDiv.appendChild(item);
-    });
-  }
+    block.appendChild(cv); wrap.appendChild(block);
+  });
 
-  window.selectPVC = (thickness, el) => {
-    selectedPVC = thickness;
-    document.querySelectorAll('.pvc-opt').forEach(e => {
-      e.style.borderColor = '#e2e8f0';
-      e.style.background = '#fff';
-    });
-    el.style.borderColor = 'var(--orange)';
-    el.style.background = '#fff9f0';
+  Object.keys(colorMap).forEach(name=>{
+    const it=document.createElement('div'); it.className='lg-item';
+    it.innerHTML=`<div class="lg-box" style="background:${colorMap[name]}"></div><span>${name}</span>`;
+    legend.appendChild(it);
+  });
+}
+
+window.sendToManager=function(){
+  if(!parts.length){alert('Сначала добавьте детали');return;}
+  if(!lastLayout){calculate();}
+  const order={
+    id:'RSK-'+Date.now().toString(36).toUpperCase(),
+    customer:currentUser.full_name,
+    customerId:currentUser.id,
+    sheetW:document.getElementById('sheetW').value,
+    sheetH:document.getElementById('sheetH').value,
+    material:document.getElementById('matType').value,
+    grain:document.getElementById('grainDir').value,
+    kerf:document.getElementById('kerf').value,
+    trim:document.getElementById('trim').value,
+    pvc:selectedPVC,
+    parts:parts,
+    sheets:lastLayout?lastLayout.sheets.length:0,
+    status:'pending',
+    createdAt:new Date().toISOString()
   };
+  const hist=JSON.parse(localStorage.getItem('raskroiOrders')||'[]');
+  hist.push(order);
+  localStorage.setItem('raskroiOrders',JSON.stringify(hist));
+  alert(`✓ ${order.id}\n${lang==='kk'?'Шеберханаға жіберілді!':'Отправлено в мастерскую!'}`);
+  window.location.href=`raskroi_manager.html?orderId=${order.id}`;
+};
 
-  window.exportDXF = () => alert('DXF export coming soon!');
-  window.submit = () => alert('✓ Отправлено менеджеру!');
-
-  init();
+init();
 </script>
-
 </body>
 </html>
