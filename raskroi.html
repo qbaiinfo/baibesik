@@ -587,13 +587,31 @@ window.scanImage=async function(input){
   status.style.display='block'; status.className='scan-status loading';
   status.textContent=lang==='kk'?'📷 Қағаз оқылуда, күте тұрыңыз...':'📷 Читаю листок, подождите...';
   try{
-    // base64'e çevir (sadece bellekte, geçici)
-    let b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
-    let mediaType=file.type||'image/jpeg';
+    // Resmi küçült (büyük telefon fotoğrafları taramayı bozar) — max 1600px, jpeg
+    let b64=await new Promise((res,rej)=>{
+      const img=new Image(); const url=URL.createObjectURL(file);
+      img.onload=()=>{
+        URL.revokeObjectURL(url);
+        let w=img.width,h=img.height; const M=1600;
+        if(w>M||h>M){ if(w>=h){h=Math.round(h*M/w);w=M;} else {w=Math.round(w*M/h);h=M;} }
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        res(cv.toDataURL('image/jpeg',0.85).split(',')[1]);
+      };
+      img.onerror=()=>rej(new Error('Не удалось открыть фото'));
+      img.src=url;
+    });
+    let mediaType='image/jpeg';
     const { supabase } = await import('./supabase_client.js');
-    const { data, error } = await supabase.functions.invoke('scan-paper',{body:{image:b64,mediaType}});
+    const { data, error } = await supabase.functions.invoke('quick-action',{body:{image:b64,mediaType}});
     b64=null; // resmi hemen unut (DB'ye yazılmaz, hiçbir yere saklanmaz)
-    if(error)throw error;
+    // gerçek hata mesajını çıkar
+    if(error){
+      let msg=error.message||'error';
+      try{ if(error.context&&error.context.json){const c=await error.context.json(); if(c&&c.error)msg=c.error;} }catch(_){}
+      throw new Error(msg);
+    }
+    if(data&&data.error)throw new Error(data.error);
     const items=(data&&(data.parts||data))||[];
     if(!Array.isArray(items)||!items.length)throw new Error('no parts');
     let maxId=Math.max(0,...parts.map(p=>p.id));
@@ -610,7 +628,9 @@ window.scanImage=async function(input){
     status.textContent='✓ '+np.length+(lang==='kk'?' бөлшек танылды! Дұрыстығын тексеріңіз.':' деталей распознано! Проверьте правильность.');
   }catch(e){
     status.className='scan-status err';
-    status.textContent=lang==='kk'?'❌ Оқылмады. Қолмен енгізіңіз немесе анығырақ түсіріңіз.':'❌ Не распозналось. Введите вручную или сфотографируйте чётче.';
+    const base=lang==='kk'?'❌ Оқылмады. ':'❌ Не распозналось. ';
+    const detail=(e&&e.message&&e.message!=='no parts')?('('+e.message+') '):'';
+    status.textContent=base+detail+(lang==='kk'?'Қолмен енгізіңіз немесе анығырақ түсіріңіз.':'Введите вручную или сфотографируйте чётче.');
     console.warn('scan error',e);
   }
 };
