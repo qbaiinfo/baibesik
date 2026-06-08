@@ -39,6 +39,15 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .stat-box .l{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-top:5px}
 .big-calc{width:100%;padding:18px;font-size:17px;font-weight:900;border-radius:14px}
 .dl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.scan-box{background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1.5px dashed var(--orange);border-radius:12px;padding:14px;margin-bottom:14px}
+.scan-title{font-weight:800;font-size:14px;color:var(--orange-dark);margin-bottom:4px}
+.scan-sub{font-size:11px;color:var(--gray);margin-bottom:12px;line-height:1.4}
+.scan-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scan-btns .btn{padding:13px 8px;font-size:14px;font-weight:700}
+.scan-status{margin-top:10px;padding:10px;border-radius:8px;font-size:13px;font-weight:600;text-align:center}
+.scan-status.loading{background:#dbeafe;color:#1e40af}
+.scan-status.ok{background:#d1fae5;color:#065f46}
+.scan-status.err{background:#fee2e2;color:#991b1b}
 .dl-btn{padding:14px 8px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-weight:700;font-size:14px;cursor:pointer;color:var(--dark);transition:.15s}
 .dl-btn:hover{border-color:var(--orange);background:#fff9f0;color:var(--orange-dark)}
 .dl-btn.wa{border-color:#25d366;color:#128c4b}
@@ -175,6 +184,20 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 
       <div class="panel">
         <h3 class="panel-title" data-i18n="parts">📦 Детали</h3>
+
+        <!-- KAĞIT TARAMA -->
+        <div class="scan-box">
+          <div class="scan-title">📷 <span data-i18n="scanTitle">Сфотографируй свой листок с деталями</span></div>
+          <div class="scan-sub" data-i18n="scanSub">Камера прочитает размеры и заполнит детали автоматически. Фото не сохраняется.</div>
+          <div class="scan-btns">
+            <button class="btn btn-primary" onclick="document.getElementById('scanCam').click()">📷 <span data-i18n="scanCam">Камера</span></button>
+            <button class="btn" style="background:#fff;border:1.5px solid var(--orange);color:var(--orange-dark)" onclick="document.getElementById('scanFile').click()">🖼 <span data-i18n="scanUpload">Загрузить фото</span></button>
+          </div>
+          <input type="file" id="scanCam" accept="image/*" capture="environment" style="display:none" onchange="scanImage(this)">
+          <input type="file" id="scanFile" accept="image/*" style="display:none" onchange="scanImage(this)">
+          <div id="scanStatus" class="scan-status" style="display:none"></div>
+        </div>
+
         <div class="alledge-row">
           <input type="checkbox" id="allEdgeAll" onchange="toggleAllEdges()" style="width:16px;height:16px;accent-color:var(--orange)">
           <span data-i18n="bandAll">Кромковать ВСЕ края всех деталей (□ квадрат)</span>
@@ -253,8 +276,8 @@ import { getCurrentUser } from './supabase_client.js';
 
 // ─── i18n ───
 const I18N = {
-  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',addPart:'Деталь',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали',downloadTitle:'Скачать / Поделиться',chooseShop:'Отправить в кесме-цех',loadingShops:'Загрузка цехов...'},
-  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',addPart:'Бөлшек',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту',downloadTitle:'Жүктеу / Бөлісу',chooseShop:'Кесу цехына жіберу',loadingShops:'Цехтар жүктелуде...'}
+  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',addPart:'Деталь',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали',downloadTitle:'Скачать / Поделиться',chooseShop:'Отправить в кесме-цех',loadingShops:'Загрузка цехов...',scanTitle:'Сфотографируй свой листок с деталями',scanSub:'Камера прочитает размеры и заполнит детали автоматически. Фото НЕ сохраняется.',scanCam:'Камера',scanUpload:'Загрузить фото'},
+  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',addPart:'Бөлшек',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту',downloadTitle:'Жүктеу / Бөлісу',chooseShop:'Кесу цехына жіберу',loadingShops:'Цехтар жүктелуде...',scanTitle:'Бөлшектер жазылған қағазды суретке түсір',scanSub:'Камера өлшемдерді оқып, бөлшектерді автоматты толтырады. Сурет САҚТАЛМАЙДЫ.',scanCam:'Камера',scanUpload:'Сурет жүктеу'}
 };
 let lang = 'ru';
 function applyLang(){
@@ -556,6 +579,41 @@ function drawSheets(L){
   });
 }
 
+// ─── KAĞIT TARAMA (foto → parçalar, resim KAYDEDİLMEZ) ───
+window.scanImage=async function(input){
+  const file=input.files&&input.files[0]; if(!file)return;
+  input.value=''; // input'u sıfırla (aynı foto tekrar seçilebilsin)
+  const status=document.getElementById('scanStatus');
+  status.style.display='block'; status.className='scan-status loading';
+  status.textContent=lang==='kk'?'📷 Қағаз оқылуда, күте тұрыңыз...':'📷 Читаю листок, подождите...';
+  try{
+    // base64'e çevir (sadece bellekte, geçici)
+    let b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+    let mediaType=file.type||'image/jpeg';
+    const { supabase } = await import('./supabase_client.js');
+    const { data, error } = await supabase.functions.invoke('scan-paper',{body:{image:b64,mediaType}});
+    b64=null; // resmi hemen unut (DB'ye yazılmaz, hiçbir yere saklanmaz)
+    if(error)throw error;
+    const items=(data&&(data.parts||data))||[];
+    if(!Array.isArray(items)||!items.length)throw new Error('no parts');
+    let maxId=Math.max(0,...parts.map(p=>p.id));
+    const np=items.map(it=>{
+      const ed=it.edges||{};
+      return {id:++maxId, name:it.name||('P'+maxId),
+        w:parseInt(it.w||it.width)||0, h:parseInt(it.h||it.height)||0,
+        qty:parseInt(it.qty||it.quantity)||1,
+        e:{t:!!(ed.t??it.top),r:!!(ed.r??it.right),b:!!(ed.b??it.bottom),l:!!(ed.l??it.left)},
+        lock:!!it.lock};
+    });
+    parts=np; renderTable();
+    status.className='scan-status ok';
+    status.textContent='✓ '+np.length+(lang==='kk'?' бөлшек танылды! Дұрыстығын тексеріңіз.':' деталей распознано! Проверьте правильность.');
+  }catch(e){
+    status.className='scan-status err';
+    status.textContent=lang==='kk'?'❌ Оқылмады. Қолмен енгізіңіз немесе анығырақ түсіріңіз.':'❌ Не распозналось. Введите вручную или сфотографируйте чётче.';
+    console.warn('scan error',e);
+  }
+};
 // ─── İndirme & paylaşım ───
 function orderSummary(){
   const sw=document.getElementById('sheetW').value, sh=document.getElementById('sheetH').value;
