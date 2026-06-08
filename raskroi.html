@@ -38,6 +38,11 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .stat-box .v{font-size:24px;font-weight:900;color:var(--orange-dark);line-height:1}
 .stat-box .l{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-top:5px}
 .big-calc{width:100%;padding:18px;font-size:17px;font-weight:900;border-radius:14px}
+.dl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.dl-btn{padding:14px 8px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-weight:700;font-size:14px;cursor:pointer;color:var(--dark);transition:.15s}
+.dl-btn:hover{border-color:var(--orange);background:#fff9f0;color:var(--orange-dark)}
+.dl-btn.wa{border-color:#25d366;color:#128c4b}
+.dl-btn.wa:hover{background:#e8f9ef}
 @media(max-width:1100px){.main-grid{grid-template-columns:1fr}}
 .panel{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:16px}
 .panel-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;margin-bottom:12px;border-bottom:2px solid var(--orange);padding-bottom:8px}
@@ -54,16 +59,18 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .btn-sm{padding:5px 9px;font-size:10px;border-radius:5px}
 .trows{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;max-height:none;overflow:visible;padding:2px}
 /* PARÇA KARTI (mobil-dostu) */
-.pcard{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.pcard{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden;max-width:100%}
 .pcard-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .pcard-name{flex:1;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-weight:700;outline:none}
 .pcard-name:focus{border-color:var(--orange);background:#fff9f0}
 .pcard-del{background:var(--red);color:#fff;border:none;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0}
-.dims{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
-.dim{display:flex;flex-direction:column;gap:3px}
-.dim label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;text-align:center}
-.dim input{padding:11px 6px;border:1.5px solid var(--border);border-radius:8px;font-size:16px;font-weight:700;text-align:center;outline:none}
+.dims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.dim{display:flex;flex-direction:column;gap:3px;min-width:0}
+.dim label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dim input{width:100%;min-width:0;padding:11px 4px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;font-weight:700;text-align:center;outline:none}
 .dim input:focus{border-color:var(--orange);background:#fff9f0}
+.dim input::-webkit-outer-spin-button,.dim input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.dim input[type=number]{-moz-appearance:textfield}
 .band-section{border-top:1px dashed var(--border);padding-top:10px}
 .band-label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
 .band-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -96,6 +103,8 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 .ai-btn{background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer;font-size:11px}
 @media(max-width:1100px){.main-grid{grid-template-columns:1fr}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="auth-guard" id="authGuard">
@@ -217,6 +226,20 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
       </div>
 
       <div class="panel">
+        <h3 class="panel-title">📥 <span data-i18n="downloadTitle">Скачать / Поделиться</span></h3>
+        <div class="dl-grid">
+          <button class="dl-btn" onclick="exportPDF()">📄 PDF</button>
+          <button class="dl-btn" onclick="exportExcel()">📊 Excel</button>
+          <button class="dl-btn" onclick="exportXML()">📐 XML</button>
+          <button class="dl-btn wa" onclick="shareWhatsApp()">📱 WhatsApp</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">🏪 <span data-i18n="chooseShop">Отправить в кесме-цех</span></h3>
+        <select id="shopSel" style="width:100%;margin-bottom:10px">
+          <option value="" data-i18n="loadingShops">Загрузка цехов...</option>
+        </select>
         <button class="btn btn-green big-calc" onclick="sendToManager()">📤 <span data-i18n="send">Отправить в мастерскую</span></button>
         <div class="hint" data-i18n="sendHint">После отправки мастер рассчитает финальную цену и начнёт резку.</div>
       </div>
@@ -230,8 +253,8 @@ import { getCurrentUser } from './supabase_client.js';
 
 // ─── i18n ───
 const I18N = {
-  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',addPart:'Деталь',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали'},
-  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',addPart:'Бөлшек',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту'}
+  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',addPart:'Деталь',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали',downloadTitle:'Скачать / Поделиться',chooseShop:'Отправить в кесме-цех',loadingShops:'Загрузка цехов...'},
+  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',addPart:'Бөлшек',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту',downloadTitle:'Жүктеу / Бөлісу',chooseShop:'Кесу цехына жіберу',loadingShops:'Цехтар жүктелуде...'}
 };
 let lang = 'ru';
 function applyLang(){
@@ -270,7 +293,7 @@ async function init(){
         }
       }catch(e){}
     }
-    renderTable(); applyLang();
+    renderTable(); applyLang(); loadShops();
   }catch(e){console.error(e);}
 }
 
@@ -533,6 +556,77 @@ function drawSheets(L){
   });
 }
 
+// ─── İndirme & paylaşım ───
+function orderSummary(){
+  const sw=document.getElementById('sheetW').value, sh=document.getElementById('sheetH').value;
+  const mat=document.getElementById('matType').options[document.getElementById('matType').selectedIndex].text;
+  const nSheets=lastLayout?lastLayout.sheets.length:0;
+  const eff=document.getElementById('rEff').textContent;
+  const edgeTxt=p=>{const a=[];if(p.e.t)a.push('В');if(p.e.b)a.push('Н');if(p.e.l)a.push('Л');if(p.e.r)a.push('П');return a.join('')||'—';};
+  return {sw,sh,mat,nSheets,eff,edgeTxt};
+}
+window.exportPDF=function(){
+  if(!lastLayout){alert(lang==='kk'?'Алдымен есептеңіз':'Сначала рассчитайте');return;}
+  try{
+    const { jsPDF } = window.jspdf; const doc=new jsPDF();
+    const s=orderSummary();
+    doc.setFontSize(16); doc.text('Baibesik.kz — Raskroi / Раскрой',14,18);
+    doc.setFontSize(10);
+    doc.text(`List/Лист: ${s.sw}x${s.sh}mm | ${s.mat} | ${s.nSheets} sht | KPD ${s.eff}`,14,27);
+    doc.setFontSize(11); doc.text('Detali / Бөлшектер:',14,38);
+    let y=46; doc.setFontSize(9);
+    doc.text('#   Name        X      Y     Qty   Kromka',14,y); y+=5;
+    parts.forEach((p,i)=>{
+      doc.text(`${i+1}  ${(p.name||'').padEnd(10)}  ${p.w}   ${p.h}   ${p.qty}    ${s.edgeTxt(p)}`,14,y);
+      y+=5; if(y>270){doc.addPage();y=20;}
+    });
+    doc.save((s.id||'raskroi')+'.pdf');
+  }catch(e){alert('PDF: '+e.message);}
+};
+window.exportExcel=function(){
+  if(!parts.length){alert(lang==='kk'?'Бөлшек жоқ':'Нет деталей');return;}
+  try{
+    const s=orderSummary();
+    const rows=[['Деталь','Ширина X','Высота Y','Кол-во','Кромка','Текстура']];
+    parts.forEach(p=>rows.push([p.name,p.w,p.h,p.qty,s.edgeTxt(p),p.lock?'🔒':'']));
+    rows.push([]); rows.push(['Лист',`${s.sw}x${s.sh}`,'Материал',s.mat,'Листов',s.nSheets]);
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Raskroi');
+    XLSX.writeFile(wb,'raskroi.xlsx');
+  }catch(e){alert('Excel: '+e.message);}
+};
+window.exportXML=function(){
+  if(!parts.length){alert(lang==='kk'?'Бөлшек жоқ':'Нет деталей');return;}
+  const s=orderSummary();
+  let xml='<?xml version="1.0" encoding="UTF-8"?>\n<raskroi>\n';
+  xml+=`  <sheet width="${s.sw}" height="${s.sh}" material="${document.getElementById('matType').value}"/>\n  <parts>\n`;
+  parts.forEach(p=>{
+    xml+=`    <part name="${p.name}" w="${p.w}" h="${p.h}" qty="${p.qty}" lock="${p.lock}">\n`;
+    xml+=`      <edges top="${!!p.e.t}" bottom="${!!p.e.b}" left="${!!p.e.l}" right="${!!p.e.r}"/>\n    </part>\n`;
+  });
+  xml+='  </parts>\n</raskroi>';
+  const blob=new Blob([xml],{type:'application/xml'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='raskroi.xml';a.click();
+};
+window.shareWhatsApp=function(){
+  const s=orderSummary();
+  let txt=`*Baibesik Раскрой*\n📐 Лист: ${s.sw}x${s.sh}mm (${s.mat})\n📦 Деталей: ${parts.reduce((a,p)=>a+p.qty,0)}\n📄 Листов: ${s.nSheets} | КПД ${s.eff}\n\n*Детали:*\n`;
+  parts.forEach((p,i)=>{txt+=`${i+1}. ${p.name} ${p.w}×${p.h} ×${p.qty} | кромка: ${s.edgeTxt(p)}\n`;});
+  window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
+};
+// ─── Kesme cehlerini (has_cutting) yükle ───
+async function loadShops(){
+  const sel=document.getElementById('shopSel');
+  try{
+    const { getCuttingStores } = await import('./supabase_client.js');
+    const stores=await getCuttingStores();
+    if(stores&&stores.length){
+      sel.innerHTML='';
+      stores.forEach(st=>{const o=document.createElement('option');o.value=st.id;o.textContent=st.name||st.title||'Цех';sel.appendChild(o);});
+    }else{ sel.innerHTML=`<option value="">${lang==='kk'?'Цех табылмады — кез келгенге жіберіледі':'Цех не найден — отправится в общий'}</option>`; }
+  }catch(e){ sel.innerHTML=`<option value="">${lang==='kk'?'Жалпы шеберхана':'Общая мастерская'}</option>`; }
+}
+
 window.sendToManager=async function(){
   if(!parts.length){alert('Сначала добавьте детали');return;}
   if(!lastLayout){calculate();}
@@ -553,10 +647,13 @@ window.sendToManager=async function(){
     status:'pending',
     createdAt:new Date().toISOString()
   };
+  const selShop=document.getElementById('shopSel'); const storeId=selShop?selShop.value:'';
+  order.storeId=storeId;
   try{
     const { createRaskroiOrder } = await import('./supabase_client.js');
     const saved = await createRaskroiOrder({
       customer_name:order.customer, customer_phone:order.phone,
+      store_id:storeId||null,
       sheet_w:parseInt(order.sheetW), sheet_h:parseInt(order.sheetH),
       material:order.material, grain_dir:order.grain,
       kerf:parseFloat(order.kerf), trim_margin:parseFloat(order.trim),
