@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>👑 Цех өтінімдері — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark)}
+header{background:var(--dark2);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.auth-guard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:20px}
+.auth-guard.show{display:flex}
+.content{max-width:640px;margin:0 auto;padding:16px;display:none}
+.h{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:4px}
+.tabs{display:flex;gap:8px;margin:14px 0}
+.tab{flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-weight:700;font-size:13px;cursor:pointer;text-align:center}
+.tab.on{background:var(--orange);color:#fff;border-color:var(--orange)}
+.app-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.app-name{font-weight:800;font-size:16px;margin-bottom:6px}
+.app-row{font-size:13px;color:var(--gray);margin-bottom:3px}
+.app-row b{color:var(--dark)}
+.app-actions{display:flex;gap:8px;margin-top:12px}
+.btn{flex:1;padding:11px;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:#fff;border:1.5px solid var(--red);color:var(--red)}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:800;text-transform:uppercase}
+.b-pending{background:#fef9c3;color:#854d0e}
+.b-approved{background:#d1fae5;color:#065f46}
+.b-rejected{background:#fee2e2;color:#991b1b}
+.empty{text-align:center;padding:40px;color:var(--gray)}
+.msg{padding:10px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:12px;text-align:center}
+.msg.ok{background:#d1fae5;color:#065f46}
+.msg.err{background:#fee2e2;color:#991b1b}
+</style>
+</head>
+<body>
+<div class="auth-guard" id="authGuard">
+  <h2>🔐 Тек супер-админ</h2>
+  <a href="login.html" style="margin-top:1rem;padding:12px 24px;background:#f97316;color:#fff;text-decoration:none;border-radius:8px;font-weight:700">Войти</a>
+</div>
+
+<header id="header" style="display:none">
+  <a href="index.html" class="logo">BAIBESIK<span>.kz</span></a>
+  <span style="color:#94a3b8;font-size:12px">👑 Цех өтінімдері</span>
+</header>
+
+<div class="content" id="content">
+  <h1 class="h">🏪 Кесу цехы өтінімдері</h1>
+  <div class="tabs">
+    <div class="tab on" data-s="pending" onclick="setTab('pending')">⏳ Жаңа</div>
+    <div class="tab" data-s="approved" onclick="setTab('approved')">✅ Бекітілген</div>
+    <div class="tab" data-s="rejected" onclick="setTab('rejected')">❌ Бас тартылған</div>
+  </div>
+  <div id="msgBox"></div>
+  <div id="list"><div class="empty">Жүктелуде...</div></div>
+</div>
+
+<script src="supabase_client.js" type="module"></script>
+<script type="module">
+import { getCurrentUser, getCuttingApplications, approveCuttingApplication, rejectCuttingApplication } from './supabase_client.js';
+
+let currentTab='pending';
+
+async function init(){
+  try{
+    const u=await getCurrentUser();
+    if(!u || u.role!=='super_admin'){document.getElementById('authGuard').classList.add('show');return;}
+    document.getElementById('header').style.display='flex';
+    document.getElementById('content').style.display='block';
+    load();
+  }catch(e){console.error(e);}
+}
+
+window.setTab=function(s){
+  currentTab=s;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.s===s));
+  load();
+};
+
+function msg(t,type){document.getElementById('msgBox').innerHTML=`<div class="msg ${type}">${t}</div>`;setTimeout(()=>document.getElementById('msgBox').innerHTML='',4000);}
+
+async function load(){
+  const el=document.getElementById('list');
+  el.innerHTML='<div class="empty">Жүктелуде...</div>';
+  try{
+    const apps=await getCuttingApplications(currentTab);
+    if(!apps||!apps.length){el.innerHTML='<div class="empty">Өтінім жоқ</div>';return;}
+    el.innerHTML='';
+    apps.forEach(a=>{
+      const u=a.users||{};
+      const card=document.createElement('div');card.className='app-card';
+      card.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="app-name">${a.shop_name}</div>
+          <span class="badge b-${a.status}">${a.status}</span>
+        </div>
+        <div class="app-row">👤 <b>${u.full_name||'—'}</b></div>
+        <div class="app-row">📞 ${a.phone||u.phone||'—'}</div>
+        <div class="app-row">📍 ${a.address||'—'}</div>
+        ${a.note?`<div class="app-row">📝 ${a.note}</div>`:''}
+        <div class="app-row">🗓 ${new Date(a.created_at).toLocaleString('ru-RU')}</div>
+        ${a.status==='pending'?`<div class="app-actions">
+          <button class="btn btn-green" onclick='approve(${JSON.stringify(a.id)})'>✅ Бекіту</button>
+          <button class="btn btn-red" onclick='reject(${JSON.stringify(a.id)})'>❌ Бас тарту</button>
+        </div>`:''}`;
+      el.appendChild(card);
+    });
+  }catch(e){el.innerHTML='<div class="empty">Қате: '+e.message+'</div>';}
+}
+
+window.approve=async function(id){
+  if(!confirm('Цехты бекіту? Дүкен құрылады және иесі тағайындалады.'))return;
+  try{ await approveCuttingApplication(id); msg('✅ Бекітілді — дүкен құрылды','ok'); load(); }
+  catch(e){ msg('❌ '+e.message,'err'); }
+};
+window.reject=async function(id){
+  if(!confirm('Өтінімді бас тарту?'))return;
+  try{ await rejectCuttingApplication(id); msg('Бас тартылды','ok'); load(); }
+  catch(e){ msg('❌ '+e.message,'err'); }
+};
+
+init();
+</script>
+</body>
+</html>

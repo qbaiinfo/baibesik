@@ -426,6 +426,8 @@ export {
   getCuttingStores, createRaskroiOrder, getMyRaskroiOrders,
   getStoreRaskroiOrders, searchRaskroiOrders, updateRaskroiOrder,
   assignRaskroiWorker, addRaskroiWorkerToStore,
+  applyCuttingShop, getMyCuttingApplication, getCuttingApplications,
+  approveCuttingApplication, rejectCuttingApplication,
 };
 // ============================================================
 // CHAT MOD — baibesik.kz + Cutting için
@@ -876,5 +878,54 @@ async function addRaskroiWorkerToStore(storeId, userId) {
     .single();
   if (error) throw error;
   return data;
+}
+
+// ── ATÖLYE BAŞVURU SİSTEMİ ──
+// Atölye başvurusu yap (giriş yapmış kullanıcı)
+async function applyCuttingShop({ shop_name, phone, address, note }) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Кіру қажет');
+  const { data, error } = await supabase
+    .from('cutting_applications')
+    .insert({ user_id: user.id, shop_name, phone, address, note, status: 'pending' })
+    .select().single();
+  if (error) throw error;
+  return data;
+}
+
+// Kendi başvurumun durumu
+async function getMyCuttingApplication() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from('cutting_applications')
+    .select('*').eq('user_id', user.id)
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
+  return data;
+}
+
+// Süper admin: başvuruları listele
+async function getCuttingApplications(status) {
+  let q = supabase.from('cutting_applications')
+    .select('*, users(full_name, phone)')
+    .order('created_at', { ascending: false });
+  if (status) q = q.eq('status', status);
+  const { data, error } = await q;
+  if (error) throw error;
+  return data;
+}
+
+// Süper admin: onayla (mağaza oluşturur)
+async function approveCuttingApplication(appId) {
+  const { data, error } = await supabase.rpc('approve_cutting_application', { app_id: appId });
+  if (error) throw error;
+  return data;
+}
+
+// Süper admin: reddet
+async function rejectCuttingApplication(appId) {
+  const { error } = await supabase.from('cutting_applications')
+    .update({ status: 'rejected' }).eq('id', appId);
+  if (error) throw error;
 }
 

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏪 Цех ашу — Baibesik.kz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark)}
+header{background:var(--dark2);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.auth-guard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:20px}
+.auth-guard.show{display:flex}
+.auth-guard a{margin-top:1rem;padding:12px 24px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
+.content{max-width:560px;margin:0 auto;padding:16px;display:none}
+.hero{text-align:center;padding:20px 0}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px}
+.hero p{font-size:13px;color:var(--gray);margin-top:6px;line-height:1.5}
+.panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:12px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase}
+.fg input,.fg textarea{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none;font-family:inherit}
+.fg input:focus,.fg textarea:focus{border-color:var(--orange)}
+.btn{width:100%;padding:16px;border:none;border-radius:12px;font-weight:800;font-size:16px;cursor:pointer;background:var(--orange);color:#fff}
+.btn:hover{background:var(--orange-dark)}
+.btn:disabled{opacity:.5}
+.status-card{padding:18px;border-radius:12px;text-align:center;margin-bottom:16px}
+.status-card.pending{background:#fef9c3;color:#854d0e}
+.status-card.approved{background:#d1fae5;color:#065f46}
+.status-card.rejected{background:#fee2e2;color:#991b1b}
+.status-card h3{font-size:18px;margin-bottom:6px}
+.status-card a{display:inline-block;margin-top:10px;padding:10px 20px;background:var(--green);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
+.benefits{list-style:none;margin:14px 0}
+.benefits li{padding:8px 0;font-size:14px;display:flex;gap:8px}
+.msg{padding:10px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:12px}
+.msg.err{background:#fee2e2;color:#991b1b}
+</style>
+</head>
+<body>
+<div class="auth-guard" id="authGuard">
+  <h2>🔐 Кіру қажет / Требуется вход</h2>
+  <a href="login.html">Кіру / Войти</a>
+</div>
+
+<header id="header" style="display:none">
+  <a href="index.html" class="logo">BAIBESIK<span>.kz</span></a>
+  <a href="index.html" style="color:#94a3b8;text-decoration:none;font-size:13px">← Басты бет</a>
+</header>
+
+<div class="content" id="content">
+  <div class="hero">
+    <h1>🏪 Кесу цехын қосу</h1>
+    <p>Раскрой (кесу) қызметін ұсынатын цехыңыз бар ма? Baibesik платформасына қосылыңыз — клиенттер сізге онлайн тапсырыс берсін.</p>
+  </div>
+
+  <div id="statusArea"></div>
+
+  <div class="panel" id="formArea">
+    <div id="msgBox"></div>
+    <div class="fg">
+      <label>Цех / дүкен атауы *</label>
+      <input type="text" id="shopName" placeholder="Мысалы: Мебель-Раскрой Байбесик">
+    </div>
+    <div class="fg">
+      <label>Телефон</label>
+      <input type="tel" id="phone" placeholder="+7 ...">
+    </div>
+    <div class="fg">
+      <label>Мекенжай</label>
+      <input type="text" id="address" placeholder="Байбесик ауданы, ...">
+    </div>
+    <div class="fg">
+      <label>Қосымша ақпарат</label>
+      <textarea id="note" rows="3" placeholder="Жабдықтар, жұмыс уақыты, т.б."></textarea>
+    </div>
+    <button class="btn" id="submitBtn" onclick="submitApp()">📨 Өтінім жіберу</button>
+    <ul class="benefits">
+      <li>✅ Клиенттер раскрой тапсырысын онлайн жібереді</li>
+      <li>✅ Қызметкерлер мен менеджер қоса аласыз</li>
+      <li>✅ Тапсырыстарды бір жерден басқарасыз</li>
+    </ul>
+    <p style="font-size:12px;color:var(--gray);text-align:center">Өтінім супер-админ тарапынан тексеріледі.</p>
+  </div>
+</div>
+
+<script src="supabase_client.js" type="module"></script>
+<script type="module">
+import { getCurrentUser, applyCuttingShop, getMyCuttingApplication } from './supabase_client.js';
+
+let currentUser=null;
+
+async function init(){
+  try{
+    currentUser=await getCurrentUser();
+    if(!currentUser){document.getElementById('authGuard').classList.add('show');return;}
+    document.getElementById('header').style.display='flex';
+    document.getElementById('content').style.display='block';
+    const app=await getMyCuttingApplication();
+    if(app) showStatus(app);
+  }catch(e){console.error(e);}
+}
+
+function showStatus(app){
+  const area=document.getElementById('statusArea');
+  const form=document.getElementById('formArea');
+  if(app.status==='pending'){
+    area.innerHTML=`<div class="status-card pending"><h3>⏳ Өтінім қаралуда</h3><p>«${app.shop_name}» өтініміңіз супер-админ тексеруінде. Күте тұрыңыз.</p></div>`;
+    form.style.display='none';
+  }else if(app.status==='approved'){
+    area.innerHTML=`<div class="status-card approved"><h3>✅ Цехыңыз белсенді!</h3><p>«${app.shop_name}» қосылды. Енді қызметкер қосып, тапсырыстарды басқара аласыз.</p><a href="raskroi_worker_setup.html">👷 Қызметкерлерді басқару</a></div>`;
+    form.style.display='none';
+  }else if(app.status==='rejected'){
+    area.innerHTML=`<div class="status-card rejected"><h3>❌ Өтінім қабылданбады</h3><p>Қайта өтінім бере аласыз.</p></div>`;
+  }
+}
+
+window.submitApp=async function(){
+  const shop_name=document.getElementById('shopName').value.trim();
+  if(!shop_name){document.getElementById('msgBox').innerHTML='<div class="msg err">Цех атауын жазыңыз</div>';return;}
+  const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='Жіберілуде...';
+  try{
+    await applyCuttingShop({
+      shop_name,
+      phone:document.getElementById('phone').value.trim(),
+      address:document.getElementById('address').value.trim(),
+      note:document.getElementById('note').value.trim()
+    });
+    const app=await getMyCuttingApplication();
+    showStatus(app||{status:'pending',shop_name});
+  }catch(e){
+    document.getElementById('msgBox').innerHTML='<div class="msg err">Қате: '+e.message+'</div>';
+    btn.disabled=false;btn.textContent='📨 Өтінім жіберу';
+  }
+};
+
+init();
+</script>
+</body>
+</html>

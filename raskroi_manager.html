@@ -66,6 +66,10 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .band-section{border-top:1px dashed var(--border);padding-top:10px}
 .band-label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:7px}
 .band-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pp{display:flex;justify-content:center;margin:4px 0 12px}
+.pp-rect{width:120px;height:74px;border-radius:6px;background:#fafafa;display:flex;align-items:center;justify-content:center;box-sizing:border-box;transition:.15s}
+.pp-dim{font-size:12px;font-weight:800;color:var(--gray)}
+.edge-ul{height:5px;border-radius:3px;margin-top:5px;transition:.15s}
 .eb{padding:10px 4px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:11px;font-weight:700;color:var(--gray);text-align:center;transition:.15s;user-select:none}
 .eb.on{border-color:var(--orange);background:var(--orange);color:#fff}
 .pcard-flags{display:flex;gap:6px;margin-top:8px}
@@ -330,12 +334,17 @@ function renderParts(){
         <button class="pcard-del" onclick="delPart(${p.id})">✕</button>
       </div>
       <div class="dims">
-        <div class="dim"><label>Ширина X</label><input type="number" inputmode="numeric" value="${p.w}" onchange="upd(${p.id},'w',this.value)"></div>
-        <div class="dim"><label>Высота Y</label><input type="number" inputmode="numeric" value="${p.h}" onchange="upd(${p.id},'h',this.value)"></div>
-        <div class="dim"><label>Кол-во</label><input type="number" inputmode="numeric" min="1" value="${p.qty}" onchange="upd(${p.id},'qty',this.value)"></div>
+        <div class="dim"><label>Ширина X</label><input type="number" inputmode="numeric" value="${p.w}" onchange="upd(${p.id},'w',this.value)"><div class="edge-ul" style="background:${(p.e.t||p.e.b)?'#f97316':'transparent'}"></div></div>
+        <div class="dim"><label>Высота Y</label><input type="number" inputmode="numeric" value="${p.h}" onchange="upd(${p.id},'h',this.value)"><div class="edge-ul" style="background:${(p.e.l||p.e.r)?'#f97316':'transparent'}"></div></div>
+        <div class="dim"><label>Кол-во</label><input type="number" inputmode="numeric" min="1" value="${p.qty}" onchange="upd(${p.id},'qty',this.value)"><div class="edge-ul" style="background:transparent"></div></div>
       </div>
       <div class="band-section">
         <div class="band-label">Кромка (какие края клеить)</div>
+        <div class="pp">
+          <div class="pp-rect" style="border-top:${p.e.t?'5px solid #f97316':'2px solid #e2e8f0'};border-bottom:${p.e.b?'5px solid #f97316':'2px solid #e2e8f0'};border-left:${p.e.l?'5px solid #f97316':'2px solid #e2e8f0'};border-right:${p.e.r?'5px solid #f97316':'2px solid #e2e8f0'}">
+            <span class="pp-dim">${p.w}×${p.h}</span>
+          </div>
+        </div>
         <div class="band-btns">
           <div class="eb ${p.e.t?'on':''}" onclick="togE(${p.id},'t')">↑ Верх</div>
           <div class="eb ${p.e.b?'on':''}" onclick="togE(${p.id},'b')">↓ Низ</div>
