@@ -119,7 +119,7 @@ const SUPABASE_KEY_BADGE='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 
 // ── KULLANICI ROZETİ (kim giriş yaptı) ──
 function showUserBadge(name, role){
-  const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'Менеджер',warehouse:'Склад',wholesale:'Оптовик',customer:'Клиент'};
+  const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'Менеджер',warehouse:'Склад',wholesale:'Оптовик',customer:'Клиент',raskroi_manager:'✂️ Раскрой менеджер',raskroi_worker:'🪚 Раскрой работник'};
   const roleColors = {super_admin:'#7c3aed',store_owner:'#f97316',manager:'#3b82f6',warehouse:'#10b981',wholesale:'#0891b2',customer:'#64748b'};
   const rl = roleLabels[role]||role||'';
   const rc = roleColors[role]||'#64748b';
@@ -425,6 +425,8 @@ async function badgeLogout(){
         <select class="fg-sel" id="sel-staff-role">
           <option value="manager">👔 Менеджер</option>
           <option value="warehouse">🏭 Складской работник</option>
+          <option value="raskroi_manager">✂️ Раскрой менеджер</option>
+          <option value="raskroi_worker">🪚 Раскрой работник</option>
         </select>
       </div>
       <div class="fg">
