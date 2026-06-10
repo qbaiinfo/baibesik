@@ -195,9 +195,16 @@ async function init(){
   try{
     currentUser=await getCurrentUser();
     // raskroi_worker veya manager veya store_owner erişebilir
-    const allowed=['raskroi_worker','manager','store_owner','super_admin','owner'];
+    const allowed=['raskroi_worker','raskroi_manager','manager','store_owner','super_admin','owner'];
     if(!currentUser || !allowed.includes(currentUser.role)){
       document.getElementById('authGuard').classList.add('show');return;
+    }
+    // Sadece kesim çalışanı → fiyat alanları kilitli (fiyatı menajer belirler)
+    if(currentUser.role==='raskroi_worker'){
+      ['pricePerM2','pricePvc'].forEach(id=>{
+        const el=document.getElementById(id);
+        if(el){el.disabled=true;el.style.background='#f1f5f9';el.title='Цену устанавливает менеджер';}
+      });
     }
     document.getElementById('authGuard').style.display='none';
     document.getElementById('header').style.display='flex';

@@ -104,28 +104,36 @@ window.doSearch=async function(){
     data.forEach(u=>{
       const card=document.createElement('div');card.className='user-card';
       const isWorker=u.role==='raskroi_worker';
+      const isManager=u.role==='raskroi_manager';
+      const roleTag=isManager?'<span class="role-tag" style="background:rgba(59,130,246,.15);color:#1d4ed8">Раскрой менеджер</span>':(isWorker?'<span class="role-tag">Раскрой қызметкері</span>':u.role);
       card.innerHTML=`
         <div class="user-av">${(u.full_name||'U').charAt(0).toUpperCase()}</div>
         <div class="user-info">
           <div class="user-name">${u.full_name||'—'}</div>
-          <div class="user-meta">📞 ${u.phone||'—'} · ${isWorker?'<span class="role-tag">Раскрой</span>':u.role}</div>
+          <div class="user-meta">📞 ${u.phone||'—'} · ${roleTag}</div>
         </div>
-        ${isWorker?'<span style="color:var(--green);font-weight:700;font-size:12px">✓ Тағайындалған</span>':`<button class="btn btn-green btn-sm" onclick='assign(${JSON.stringify(u.id)},${JSON.stringify(u.full_name||"")})'>➕ Тағайындау</button>`}`;
+        ${(isWorker||isManager)?'<span style="color:var(--green);font-weight:700;font-size:12px">✓ Тағайындалған</span>'
+          :`<div style="display:flex;gap:6px;flex-wrap:wrap">
+             <button class="btn btn-green btn-sm" onclick='assign(${JSON.stringify(u.id)},${JSON.stringify(u.full_name||"")},"raskroi_worker")'>✂️ Қызметкер</button>
+             <button class="btn btn-sm" style="background:#3b82f6;color:#fff" onclick='assign(${JSON.stringify(u.id)},${JSON.stringify(u.full_name||"")},"raskroi_manager")'>👔 Менеджер</button>
+           </div>`}`;
       res.appendChild(card);
     });
   }catch(e){res.innerHTML='<div class="empty">Қате: '+e.message+'</div>';}
 };
 
-window.assign=async function(userId,name){
+window.assign=async function(userId,name,role){
+  role=role||'raskroi_worker';
   try{
-    // 1) users.role = raskroi_worker
-    const { error:e1 } = await supabase.from('users').update({role:'raskroi_worker'}).eq('id',userId);
+    // 1) users.role güncelle
+    const { error:e1 } = await supabase.from('users').update({role:role}).eq('id',userId);
     if(e1)throw e1;
     // 2) store_members'a ekle (dükkan varsa)
     if(myStore&&myStore.id){
-      try{ await supabase.from('store_members').insert({store_id:myStore.id,user_id:userId,role:'raskroi_worker'}); }catch(e){}
+      try{ await supabase.from('store_members').insert({store_id:myStore.id,user_id:userId,role:role}); }catch(e){}
     }
-    msg(`✅ ${name} раскрой қызметкері етіп тағайындалды!`,'ok');
+    const roleName=role==='raskroi_manager'?'раскрой МЕНЕДЖЕРІ':'раскрой қызметкері';
+    msg(`✅ ${name} ${roleName} етіп тағайындалды!`,'ok');
     document.getElementById('searchResults').innerHTML='';
     document.getElementById('searchInp').value='';
     loadWorkers();
@@ -135,17 +143,18 @@ window.assign=async function(userId,name){
 async function loadWorkers(){
   const el=document.getElementById('workersList');
   try{
-    const { data, error } = await supabase.from('users').select('*').eq('role','raskroi_worker').limit(50);
+    const { data, error } = await supabase.from('users').select('*').in('role',['raskroi_worker','raskroi_manager']).limit(50);
     if(error)throw error;
     if(!data||!data.length){el.innerHTML='<div class="empty">Әзірге қызметкер жоқ</div>';return;}
     el.innerHTML='';
     data.forEach(u=>{
+      const isMgr=u.role==='raskroi_manager';
       const card=document.createElement('div');card.className='user-card';
       card.innerHTML=`
-        <div class="user-av">${(u.full_name||'U').charAt(0).toUpperCase()}</div>
+        <div class="user-av" style="${isMgr?'background:#3b82f6':''}">${(u.full_name||'U').charAt(0).toUpperCase()}</div>
         <div class="user-info">
           <div class="user-name">${u.full_name||'—'}</div>
-          <div class="user-meta">📞 ${u.phone||'—'} · <span class="role-tag">Раскрой қызметкері</span></div>
+          <div class="user-meta">📞 ${u.phone||'—'} · ${isMgr?'<span class="role-tag" style="background:rgba(59,130,246,.15);color:#1d4ed8">👔 Раскрой менеджер</span>':'<span class="role-tag">✂️ Раскрой қызметкері</span>'}</div>
         </div>
         <button class="btn btn-sm" style="background:var(--light);border:1px solid var(--border)" onclick='unassign(${JSON.stringify(u.id)})'>✕</button>`;
       el.appendChild(card);

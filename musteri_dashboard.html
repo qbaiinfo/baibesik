@@ -264,6 +264,7 @@ async function badgeLogout(){
       <span class="nbadge" id="active-badge">2</span>
     </button>
     <button class="ntab" onclick="showTab('history')" id="nt-history">📋 <span id="tl-hist">История</span></button>
+    <button class="ntab" onclick="showTab('raskroi');loadRaskroi()" id="nt-raskroi">✂️ <span id="tl-rask">Раскрой</span></button>
     <button class="ntab" onclick="showTab('favs')" id="nt-favs">❤️ <span id="tl-fav">Избранное</span></button>
     <button class="ntab" onclick="showTab('notif')" id="nt-notif">
       🔔 <span id="tl-notif">Уведомления</span>
@@ -396,6 +397,30 @@ async function badgeLogout(){
     </div>
   </div>
 
+  <!-- ══ РАСКРОЙ ══ -->
+  <div class="tab-sec" id="sec-raskroi">
+    <div class="sec-card">
+      <div class="sec-head">
+        <span class="sec-title" id="rask-title">✂️ Мои раскрои</span>
+        <button class="btn btn-sm" style="background:var(--orange);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-weight:800;cursor:pointer" onclick="window.location.href='raskroi.html'" id="rask-new">+ Новый раскрой</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" style="min-width:580px">
+          <thead><tr>
+            <th>№</th>
+            <th id="rth-date">Дата</th>
+            <th id="rth-shop">Цех</th>
+            <th id="rth-parts">Деталей</th>
+            <th id="rth-sheets">Листов</th>
+            <th id="rth-status">Статус</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="rask-body"><tr><td colspan="7" style="text-align:center;color:var(--gray);padding:24px">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ ИЗБРАННОЕ ══ -->
   <div class="tab-sec" id="sec-favs">
     <div class="fav-grid" id="favs-grid"></div>
@@ -521,7 +546,7 @@ let lang = 'ru';
 const T = {
   ru:{
     'h-label':'Личный кабинет','btn-cat':'← Каталог',
-    'tl-ov':'Обзор','tl-ord':'Заказы','tl-hist':'История',
+    'tl-ov':'Обзор','tl-ord':'Заказы','tl-hist':'История','tl-rask':'Раскрой','rask-title':'✂️ Мои раскрои','rask-new':'+ Новый раскрой','rth-date':'Дата','rth-shop':'Цех','rth-parts':'Деталей','rth-sheets':'Листов','rth-status':'Статус',
     'tl-fav':'Избранное','tl-notif':'Уведомления','tl-prof':'Профиль',
     'p-badge':'🛒 Розничный покупатель',
     'ps1':'Заказов','ps2':'₸ Итого','ps3':'Активных',
@@ -552,7 +577,7 @@ const T = {
   },
   kk:{
     'h-label':'Жеке кабинет','btn-cat':'← Каталог',
-    'tl-ov':'Шолу','tl-ord':'Тапсырыстар','tl-hist':'Тарих',
+    'tl-ov':'Шолу','tl-ord':'Тапсырыстар','tl-hist':'Тарих','tl-rask':'Раскрой','rask-title':'✂️ Менің раскройларым','rask-new':'+ Жаңа раскрой','rth-date':'Күні','rth-shop':'Цех','rth-parts':'Бөлшек','rth-sheets':'Парақ','rth-status':'Статус',
     'tl-fav':'Таңдаулылар','tl-notif':'Хабарламалар','tl-prof':'Профиль',
     'p-badge':'🛒 Бөлшек сатып алушы',
     'ps1':'Тапсырыс','ps2':'₸ Барлығы','ps3':'Белсенді',
@@ -588,7 +613,7 @@ function setLang(l){
   lang=l;
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
   const d=T[l];
-  const ids=['h-label','btn-cat','tl-ov','tl-ord','tl-hist','tl-fav','tl-notif','tl-prof',
+  const ids=['h-label','btn-cat','tl-ov','tl-ord','tl-hist','tl-rask','rask-title','rask-new','rth-date','rth-shop','rth-parts','rth-sheets','rth-status','tl-fav','tl-notif','tl-prof',
     'p-badge','ps1','ps2','ps3','sc1-lbl','sc2-lbl','sc3-lbl','active-title','all-orders-btn',
     'notif-title-ov','all-notif-btn','hist-title','th-date','th-shop','th-pay','th-deliver','th-amount','th-status',
     'notif-title','mark-all-btn','prof-title','stat-title','lbl-name','lbl-phone','lbl-street','lbl-house','btn-save',
@@ -844,6 +869,48 @@ function renderFavs(){
     </div>`).join('');
 }
 function addToCart(id){alert(lang==='ru'?'Добавлено в корзину!':'Себетке қосылды!');}
+
+// ─── RASKROI SİPARİŞLERİ ───
+let raskroiLoaded=false;
+async function loadRaskroi(){
+  if(raskroiLoaded) return; // bir kez yükle
+  const tb=document.getElementById('rask-body');
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:24px">—</td></tr>'; return; }
+    const {data:rows,error} = await sb.from('raskroi_orders')
+      .select('id, order_number, status, parts, layout, created_at, stores(name)')
+      .eq('customer_id', session.user.id)
+      .order('created_at',{ascending:false});
+    if(error) throw error;
+    raskroiLoaded=true;
+    if(!rows||!rows.length){
+      tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:24px">'+(lang==='ru'?'Раскроев пока нет. Создайте первый!':'Әзірге раскрой жоқ. Алғашқысын жасаңыз!')+'</td></tr>';
+      return;
+    }
+    const stMap={new:['#3b82f6',lang==='ru'?'Новый':'Жаңа'],accepted:['#f59e0b',lang==='ru'?'Принят':'Қабылданды'],cutting:['#f97316',lang==='ru'?'Резка':'Кесілуде'],ready:['#16a34a',lang==='ru'?'Готов':'Дайын'],done:['#16a34a',lang==='ru'?'Выдан':'Берілді'],cancelled:['#dc2626',lang==='ru'?'Отменён':'Бас тартылды']};
+    tb.innerHTML=rows.map(r=>{
+      const st=stMap[r.status]||stMap.new;
+      const nParts=Array.isArray(r.parts)?r.parts.reduce((s,p)=>s+(parseInt(p.qty)||1),0):'—';
+      const d=new Date(r.created_at);
+      const dateTxt=d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'});
+      return `<tr>
+        <td style="font-weight:800">${r.order_number||r.id.substring(0,6)}</td>
+        <td>${dateTxt}</td>
+        <td>${(r.stores&&r.stores.name)||'—'}</td>
+        <td>${nParts}</td>
+        <td>${(r.layout&&r.layout.sheets&&r.layout.sheets.length)||(r.layout&&r.layout.nSheets)||'—'}</td>
+        <td><span style="color:${st[0]};font-weight:800">● ${st[1]}</span></td>
+        <td><a href="raskroi_my_orders.html" style="color:var(--orange);font-weight:800;text-decoration:none">${lang==='ru'?'Открыть →':'Ашу →'}</a></td>
+      </tr>`;
+    }).join('');
+  } catch(e){
+    console.log('loadRaskroi:', e.message);
+    tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:24px">'+(lang==='ru'?'Ошибка загрузки':'Жүктеу қатесі')+'</td></tr>';
+  }
+}
 
 // Gerçek favorileri Supabase'den yükle
 async function loadFavs(){
