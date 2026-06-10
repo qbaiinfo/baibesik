@@ -656,7 +656,8 @@ window.scanImage=async function(input){
     if(!Array.isArray(items)||!items.length)throw new Error('no parts');
     let maxId=Math.max(0,...parts.map(p=>p.id));
     const np=items.map(it=>{
-      const ed=it.edges||{t:true,b:true,l:true,r:true}; // Kağıdta yazılmazsa tüm kenarlar bantlı varsay
+      const ed=it.edges||{};
+      // Eksik kenarları default false yap (Claude'un eksikleri tamamla)
       return {id:++maxId, name:it.name||('P'+maxId),
         w:parseInt(it.w||it.width)||0, h:parseInt(it.h||it.height)||0,
         qty:parseInt(it.qty||it.quantity)||1,
@@ -669,7 +670,7 @@ window.scanImage=async function(input){
   }catch(e){
     status.className='scan-status err';
     const base=lang==='kk'?'❌ Оқылмады. ':'❌ Не распозналось. ';
-    const detail=(e&&e.message&&e.message!=='no parts')?('('+e.message+') '):'';
+    const detail=(e&&e.message)?('('+e.message.substring(0,50)+'...) '):'';
     status.textContent=base+detail+(lang==='kk'?'Қолмен енгізіңіз немесе анығырақ түсіріңіз.':'Введите вручную или сфотографируйте чётче.');
     console.warn('scan error',e);
   }
