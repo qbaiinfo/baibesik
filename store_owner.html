@@ -677,66 +677,44 @@ async function addStaff(){
   btn.disabled=true;btn.innerHTML='<span class="loading-ring"></span>';
 
   try{
+    const phone='+7'+ph;
     const email = ph + '@baibesik.kz';
     const password = 'Baibesik' + ph + '!';
-    let userId = null;
 
-    // 1. users tablosunda bu telefon var mı?
-    const {data:existing} = await sb.from('users')
-      .select('id,role').eq('phone','+7'+ph).maybeSingle();
-    
-    if(existing) {
-      // Zaten kayıtlı - sadece rol ve mağazaya ekle
-      userId = existing.id;
-      await sb.from('users').update({role}).eq('id', userId);
-    } else {
-      // Yeni kayıt - önce signUp dene
-      const {data:signUpData, error:signUpErr} = await sb.auth.signUp({
+    // 1. RPC ile dene (SECURITY DEFINER — RLS sorunu yok)
+    let {data:res, error:rpcErr} = await sb.rpc('add_staff_to_store',{
+      p_store: currentStore.id, p_phone: phone, p_name: name, p_role: role
+    });
+    if(rpcErr) throw rpcErr;
+
+    // 2. Kullanıcı sistemde yoksa → AYRI client ile auth kaydı oluştur
+    //    (ana sb ile signUp yapılırsa sahibin oturumu yeni kullanıcıya geçer!)
+    if(res && res.found===false){
+      const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+      const sb2 = createClient(
+        'https://fciofuexujtxxjlamxno.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80',
+        {auth:{storageKey:'sb-staff-signup',persistSession:false,autoRefreshToken:false}}
+      );
+      const {data:su, error:suErr} = await sb2.auth.signUp({
         email, password,
-        options:{data:{full_name: name||ph, phone: '+7'+ph}}
+        options:{data:{full_name: name||ph, phone: phone}}
       });
-      
-      if(signUpErr && !signUpErr.message.includes('already registered')) {
-        throw signUpErr;
-      }
-      
-      // signUp sonrası user ID al
-      if(signUpData?.user?.id) {
-        userId = signUpData.user.id;
-      } else {
-        // Email zaten kayıtlı - users tablosundan bul
-        // Auth users'dan email ile ara
-        const {data:authCheck} = await sb.from('users')
-          .select('id').eq('phone','+7'+ph).maybeSingle();
-        if(authCheck) { userId = authCheck.id; }
-        else throw new Error('Пользователь с таким телефоном уже зарегистрирован в системе Auth, но не найден в users');
-      }
-      
-      // users tablosuna ekle (conflict olursa güncelle)
-      const {error:insertErr} = await sb.from('users').upsert({
-        id: userId,
-        phone: '+7'+ph,
-        full_name: name || ph,
-        role: role
-      }, {onConflict: 'id'});
-      
-      if(insertErr) throw insertErr;
+      if(suErr && !suErr.message.includes('already registered')) throw suErr;
+      const newId = su?.user?.id;
+      if(!newId) throw new Error('Auth ID alınamadı — bu telefon Auth\'ta kayıtlı olabilir');
+
+      // RPC'yi yeni id ile tekrar çağır
+      const {data:res2, error:rpcErr2} = await sb.rpc('add_staff_to_store',{
+        p_store: currentStore.id, p_phone: phone, p_name: name, p_role: role, p_user_id: newId
+      });
+      if(rpcErr2) throw rpcErr2;
     }
 
-    if(!userId) throw new Error('ID alınamadı');
-
-    // store_members'a ekle
-    const {error:memberErr} = await sb.from('store_members').upsert({
-      store_id: currentStore.id,
-      user_id: userId,
-      role: role
-    }, {onConflict: 'store_id,user_id'});
-    
-    if(memberErr) throw memberErr;
-
     showStaffOk(lang==='ru'
-      ? 'Сотрудник добавлен! Телефон: +7'+ph+', пароль: '+password
-      : 'Қызметкер қосылды! Телефон: +7'+ph+', құпия сөз: '+password);
+      ? 'Сотрудник добавлен! Телефон: '+phone+', пароль: '+password
+      : 'Қызметкер қосылды! Телефон: '+phone+', құпия сөз: '+password);
+
     
     // Form temizle
     document.getElementById('inp-staff-phone').value = '';
