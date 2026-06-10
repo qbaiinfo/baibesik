@@ -266,7 +266,10 @@ async function badgeLogout(){
     <div class="section-card">
       <div class="sc-head">
         <div class="sc-title" id="staff-title">СОТРУДНИКИ МАГАЗИНА</div>
-        <button class="btn-sm btn-orange" onclick="openAddStaff()" id="btn-add-staff">+ Добавить</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="raskroi_worker_setup.html" class="btn-sm" style="background:#3b82f6;color:#fff;text-decoration:none" id="btn-add-raskroi">✂️ Раскрой персонал</a>
+          <button class="btn-sm btn-orange" onclick="openAddStaff()" id="btn-add-staff">+ Добавить</button>
+        </div>
       </div>
       <div class="sc-body" id="staff-list">
         <div style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</div>

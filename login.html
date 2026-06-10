@@ -173,6 +173,8 @@ const ROUTES = {
   warehouse:'depo_panel.html',
   wholesale:'toptanci_dashboard.html',
   customer:'musteri_dashboard.html',
+  raskroi_manager:'raskroi_manager.html',
+  raskroi_worker:'raskroi_manager.html',
 };
 
 const T = {
@@ -290,7 +292,7 @@ async function doLogin(){
     const role=user?.role||'customer';
 
     // Rol kontrolü
-    const staffRoles=['super_admin','store_owner','manager','warehouse'];
+    const staffRoles=['super_admin','store_owner','manager','warehouse','raskroi_worker','raskroi_manager'];
     const customerRoles=['customer','wholesale'];
 
     if(mode==='staff' && customerRoles.includes(role)){
