@@ -836,7 +836,7 @@ async function placeOrder(){
         // 2. Sipariş kalemlerini kaydet
         const items=group.items.map(i=>({
           order_id: order.id,
-          product_id: null,
+          product_id: i.db_id || null,
           product_name: lang==='ru'?i.ru:i.kk,
           product_spec: i.spec,
           quantity: i.qty,

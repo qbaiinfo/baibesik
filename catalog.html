@@ -611,6 +611,7 @@ async function loadSupabaseProducts() {
     // Supabase ürünlerini PRODS formatına çevir
     const dbProds = products.map((p, i) => ({
       id: 9000 + i,
+      db_id: p.id, // gerçek Supabase UUID — siparişte product_id olarak kaydedilir
       cat: p.category_id || 0,
       code: p.code || '',
       icon: getCatIcon(p.category_id),
