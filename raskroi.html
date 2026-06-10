@@ -83,10 +83,8 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .band-section{border-top:1px dashed var(--border);padding-top:10px}
 .band-label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
 .band-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.pp{display:flex;justify-content:center;margin:4px 0 12px}
-.pp-rect{width:120px;height:74px;border-radius:6px;background:#fafafa;display:flex;align-items:center;justify-content:center;box-sizing:border-box;transition:.15s}
-.pp-dim{font-size:12px;font-weight:800;color:var(--gray)}
-.edge-ul{height:5px;border-radius:3px;margin-top:5px;transition:.15s}
+.edge-ul{display:flex;flex-direction:column;gap:3px;margin-top:6px;min-height:2px}
+.ul-line{height:2px;background:#f97316;border-radius:2px}
 .eb{padding:10px 4px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:11px;font-weight:700;color:var(--gray);text-align:center;transition:.15s;user-select:none}
 .eb.on{border-color:var(--orange);background:var(--orange);color:#fff}
 .pcard-flags{display:flex;gap:6px;margin-top:8px}
@@ -389,21 +387,16 @@ function renderTable(){
       <div class="dims">
         <div class="dim"><label>${L('Ширина X','Ені X')}</label>
           <input type="number" inputmode="numeric" value="${p.w}" data-id="${p.id}" data-f="w" onchange="upd(${p.id},'w',this.value)" onkeydown="navKey(event,${p.id},'w')">
-          <div class="edge-ul" style="background:${(p.e.t||p.e.b)?'#f97316':'transparent'}"></div></div>
+          <div class="edge-ul">${'<div class="ul-line"></div>'.repeat((p.e.t?1:0)+(p.e.b?1:0))}</div></div>
         <div class="dim"><label>${L('Высота Y','Биіктігі Y')}</label>
           <input type="number" inputmode="numeric" value="${p.h}" data-id="${p.id}" data-f="h" onchange="upd(${p.id},'h',this.value)" onkeydown="navKey(event,${p.id},'h')">
-          <div class="edge-ul" style="background:${(p.e.l||p.e.r)?'#f97316':'transparent'}"></div></div>
+          <div class="edge-ul">${'<div class="ul-line"></div>'.repeat((p.e.l?1:0)+(p.e.r?1:0))}</div></div>
         <div class="dim"><label>${L('Кол-во','Саны')}</label>
           <input type="number" inputmode="numeric" min="1" value="${p.qty}" data-id="${p.id}" data-f="qty" onchange="upd(${p.id},'qty',this.value)" onkeydown="navKey(event,${p.id},'qty')">
           <div class="edge-ul" style="background:transparent"></div></div>
       </div>
       <div class="band-section">
         <div class="band-label"><span>${L('Кромка (какие края клеить)','Жиек (қай жиекті жапсыру)')}</span></div>
-        <div class="pp">
-          <div class="pp-rect" style="border-top:${p.e.t?'5px solid #f97316':'2px solid #e2e8f0'};border-bottom:${p.e.b?'5px solid #f97316':'2px solid #e2e8f0'};border-left:${p.e.l?'5px solid #f97316':'2px solid #e2e8f0'};border-right:${p.e.r?'5px solid #f97316':'2px solid #e2e8f0'}">
-            <span class="pp-dim">${p.w}×${p.h}</span>
-          </div>
-        </div>
         <div class="band-btns">
           <div class="eb ${p.e.t?'on':''}" onclick="togE(${p.id},'t')">↑ ${L('Верх','Жоғ')}</div>
           <div class="eb ${p.e.b?'on':''}" onclick="togE(${p.id},'b')">↓ ${L('Низ','Төм')}</div>
@@ -628,11 +621,11 @@ window.scanImage=async function(input){
     if(!Array.isArray(items)||!items.length)throw new Error('no parts');
     let maxId=Math.max(0,...parts.map(p=>p.id));
     const np=items.map(it=>{
-      const ed=it.edges||{};
+      const ed=it.edges||{t:true,b:true,l:true,r:true}; // Kağıdta yazılmazsa tüm kenarlar bantlı varsay
       return {id:++maxId, name:it.name||('P'+maxId),
         w:parseInt(it.w||it.width)||0, h:parseInt(it.h||it.height)||0,
         qty:parseInt(it.qty||it.quantity)||1,
-        e:{t:!!(ed.t??it.top),r:!!(ed.r??it.right),b:!!(ed.b??it.bottom),l:!!(ed.l??it.left)},
+        e:{t:!!(ed.t??true),r:!!(ed.r??true),b:!!(ed.b??true),l:!!(ed.l??true)},
         lock:!!it.lock};
     });
     parts=np; renderTable();
