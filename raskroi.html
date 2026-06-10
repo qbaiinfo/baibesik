@@ -442,8 +442,8 @@ function nest(){
   const trim=parseFloat(document.getElementById('trim').value)||10;
   const grain=document.getElementById('grainDir').value;
   const usableW=SW-2*trim, usableH=SH-2*trim;
-  
-  // 1. Parçaları aç (qty × kopya)
+
+  // 1. Parcalari ac (qty x kopya)
   let items=[];
   parts.forEach(p=>{
     for(let i=0;i<p.qty;i++){
@@ -451,83 +451,91 @@ function nest(){
     }
   });
 
-  // 2. Doku yok ise döndür (en uzun kenarı w yap)
+  // 2. Yon: doku yoksa en uzun kenari yatay yap (serit verimi)
   items.forEach(it=>{
     if(!it.lock && grain==='none' && it.w<it.h) [it.w,it.h]=[it.h,it.w];
   });
 
-  // 3. STRIP GROUPING: yüksliğe göre grup + aynı isim birliktesi + w azalan
-  const heightGroups={};
+  // 3. Levhaya hic sigmayan parcalari ayir (kaybolmasin, uyari icin)
+  const oversize=[];
+  items=items.filter(it=>{
+    if(it.w<=usableW+0.01 && it.h<=usableH+0.01) return true;
+    if(!it.lock && grain==='none' && it.h<=usableW+0.01 && it.w<=usableH+0.01){
+      const t=it.w; it.w=it.h; it.h=t; return true;
+    }
+    oversize.push(it); return false;
+  });
+
+  // 4. Yukseklige gore grupla; grup icinde ayni isim birlikte + genis once
+  const gmap={};
   items.forEach(it=>{
-    const key=Math.round(it.h); // yuvarlama
-    if(!heightGroups[key]) heightGroups[key]=[];
-    heightGroups[key].push(it);
+    const key=Math.round(it.h);
+    (gmap[key]=gmap[key]||[]).push(it);
   });
-  
-  Object.keys(heightGroups).forEach(h=>{
-    const group=heightGroups[h];
+  const groups=Object.keys(gmap).map(h=>{
     const byName={};
-    group.forEach(it=>{
-      if(!byName[it.name]) byName[it.name]=[];
-      byName[it.name].push(it);
-    });
+    gmap[h].forEach(it=>{(byName[it.name]=byName[it.name]||[]).push(it);});
     let sorted=[];
-    Object.values(byName).forEach(grp=>{
-      grp.sort((a,b)=>b.w-a.w);
-      sorted.push(...grp);
-    });
-    heightGroups[h]=sorted;
-  });
+    Object.values(byName).forEach(g=>{g.sort((a,b)=>b.w-a.w);sorted.push(...g);});
+    return {h:parseFloat(h),items:sorted};
+  }).sort((a,b)=>b.h-a.h);
 
-  // Şeritleri h azalan sırada
-  const strips=Object.keys(heightGroups)
-    .map(h=>({h:parseFloat(h),items:heightGroups[h]}))
-    .sort((a,b)=>b.h-a.h);
-
-  // 4. Levhalara yerleştir: şeritleri dikey yığ
-  const sheets=[];
-  let currentSheet={parts:[],strips:[]};
-  let currentY=0;
-
-  for(const strip of strips){
-    const stripH=strip.h;
-    const stripItems=strip.items;
-    
-    // Şeridi levhaya sığdır mı?
-    if(currentY+stripH+kerf>usableH+0.01){
-      sheets.push(currentSheet);
-      currentSheet={parts:[],strips:[]};
-      currentY=0;
-    }
-    
-    // Şerit içinde yatay yerleştir
-    let stripParts=[];
-    let stripX=0;
-    
-    for(const it of stripItems){
-      if(stripX+it.w+kerf<=usableW+0.01){
-        stripParts.push({
-          ...it,
-          x:trim+stripX,
-          y:trim+currentY
-        });
-        stripX+=(it.w+kerf);
+  // 5. SERITLERI OLUSTUR: her grup icin gerektigi kadar satir (parca dusmez!)
+  const rows=[];
+  for(let gi=0;gi<groups.length;gi++){
+    const g=groups[gi];
+    while(g.items.length){
+      const row={h:g.h,parts:[],x:0};
+      // once kendi grubundan doldur
+      for(let i=0;i<g.items.length;){
+        const it=g.items[i];
+        if(row.x+it.w<=usableW+0.01){
+          row.parts.push(Object.assign({},it,{rx:row.x}));
+          row.x+=it.w+kerf;
+          g.items.splice(i,1);
+        } else i++;
       }
+      if(!row.parts.length) break; // guvenlik
+      // serit sonundaki boslugu KISA gruplardan doldur (verim artar)
+      for(let gj=gi+1;gj<groups.length && row.x<usableW-50;gj++){
+        const g2=groups[gj];
+        for(let i=0;i<g2.items.length;){
+          const it=g2.items[i];
+          if(row.x+it.w<=usableW+0.01){
+            row.parts.push(Object.assign({},it,{rx:row.x}));
+            row.x+=it.w+kerf;
+            g2.items.splice(i,1);
+          } else i++;
+        }
+      }
+      rows.push(row);
     }
-    
-    currentSheet.parts.push(...stripParts);
-    currentSheet.strips.push({y:currentY,h:stripH,count:stripParts.length});
-    currentY+=(stripH+kerf);
   }
 
-  if(currentSheet.parts.length>0) sheets.push(currentSheet);
+  // 6. SERITLERI LEVHALARA YIG: first-fit decreasing
+  rows.sort((a,b)=>b.h-a.h);
+  const sheets=[];
+  for(const row of rows){
+    let target=null;
+    for(const s of sheets){
+      if(s.y+row.h<=usableH+0.01){target=s;break;}
+    }
+    if(!target){target={parts:[],strips:[],y:0};sheets.push(target);}
+    row.parts.forEach(p=>target.parts.push(Object.assign({},p,{x:trim+p.rx,y:trim+target.y})));
+    target.strips.push({y:target.y,h:row.h,count:row.parts.length});
+    target.y+=row.h+kerf;
+  }
 
-  return {sheets,SW,SH,usableW,usableH,trim,kerf};
+  return {sheets,SW,SH,usableW,usableH,trim,kerf,oversize};
 }
 
 window.calculate=function(){
   if(!parts.length){alert('Добавьте детали');return;}
   const L=nest(); lastLayout=L;
+  if(L.oversize&&L.oversize.length){
+    const names=[...new Set(L.oversize.map(o=>o.name+' ('+o.w+'×'+o.h+')'))].join(', ');
+    alert((lang==='kk'?'Параққа сыймайтын бөлшектер: ':'Детали не помещаются на лист: ')+names);
+  }
   const sheetArea=L.SW*L.SH;
   let totalPartArea=0,totalParts=0,cutLen=0,pvcLen=0;
   parts.forEach(p=>{
