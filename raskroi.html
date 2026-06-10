@@ -434,58 +434,93 @@ window.selPVC=(t,el)=>{selectedPVC=t;document.querySelectorAll('.pvc-opt').forEa
 // ═══════════════════════════════════════════
 // NESTING ALGORITHM (Shelf/Guillotine + kerf + trim + rotation + grouping)
 // ═══════════════════════════════════════════
+// ════ STRIP BIN PACKING (KDT Makinalar İçin Optimize) ════
 function nest(){
   const SW=parseFloat(document.getElementById('sheetW').value)||2800;
   const SH=parseFloat(document.getElementById('sheetH').value)||2070;
-  const kerf=parseFloat(document.getElementById('kerf').value)||0;
-  const trim=parseFloat(document.getElementById('trim').value)||0;
+  const kerf=parseFloat(document.getElementById('kerf').value)||4;
+  const trim=parseFloat(document.getElementById('trim').value)||10;
   const grain=document.getElementById('grainDir').value;
   const usableW=SW-2*trim, usableH=SH-2*trim;
-
-  // Tüm parçaları aç (qty kadar) — gruplama: aynı boyut+isim ardışık gelir
+  
+  // 1. Parçaları aç (qty × kopya)
   let items=[];
   parts.forEach(p=>{
     for(let i=0;i<p.qty;i++){
-      items.push({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock,pid:p.id,idx:i+1});
+      items.push({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock,pid:p.id});
     }
   });
-  // Büyükten küçüğe sırala (alan), aynı parçalar yan yana kalsın diye name'e göre ikincil sıralama
-  items.sort((a,b)=> (b.w*b.h)-(a.w*a.h) || a.name.localeCompare(b.name));
 
-  const sheets=[]; 
-  function newSheet(){return {parts:[],shelves:[],usedArea:0};}
+  // 2. Doku yok ise döndür (en uzun kenarı w yap)
+  items.forEach(it=>{
+    if(!it.lock && grain==='none' && it.w<it.h) [it.w,it.h]=[it.h,it.w];
+  });
 
-  function tryPlace(sheet,it){
-    // rotasyon izni: lock=true ise asla, grain none ise serbest, grain varsa kısıtlı
-    let orients=[{w:it.w,h:it.h,rot:false}];
-    const canRotate = !it.lock && grain==='none';
-    if(canRotate && it.w!==it.h) orients.push({w:it.h,h:it.w,rot:true});
+  // 3. STRIP GROUPING: yüksliğe göre grup + aynı isim birliktesi + w azalan
+  const heightGroups={};
+  items.forEach(it=>{
+    const key=Math.round(it.h); // yuvarlama
+    if(!heightGroups[key]) heightGroups[key]=[];
+    heightGroups[key].push(it);
+  });
+  
+  Object.keys(heightGroups).forEach(h=>{
+    const group=heightGroups[h];
+    const byName={};
+    group.forEach(it=>{
+      if(!byName[it.name]) byName[it.name]=[];
+      byName[it.name].push(it);
+    });
+    let sorted=[];
+    Object.values(byName).forEach(grp=>{
+      grp.sort((a,b)=>b.w-a.w);
+      sorted.push(...grp);
+    });
+    heightGroups[h]=sorted;
+  });
 
-    for(const o of orients){
-      const pw=o.w+kerf, ph=o.h+kerf;
-      // mevcut raflara yerleştirmeyi dene
-      for(const sh of sheet.shelves){
-        if(o.h<=sh.h && sh.x+pw<=usableW+0.01){
-          const part={...it,x:trim+sh.x,y:trim+sh.y,w:o.w,h:o.h,rot:o.rot};
-          sh.x+=pw; sheet.parts.push(part); sheet.usedArea+=it.w*it.h; return true;
-        }
-      }
-      // yeni raf aç
-      const usedH = sheet.shelves.reduce((s,sh)=>Math.max(s,sh.y+sh.h),0);
-      if(usedH+ph<=usableH+0.01 && pw<=usableW+0.01){
-        const sh={y:usedH,x:0,h:ph};
-        const part={...it,x:trim+0,y:trim+usedH,w:o.w,h:o.h,rot:o.rot};
-        sh.x+=pw; sheet.shelves.push(sh); sheet.parts.push(part); sheet.usedArea+=it.w*it.h; return true;
+  // Şeritleri h azalan sırada
+  const strips=Object.keys(heightGroups)
+    .map(h=>({h:parseFloat(h),items:heightGroups[h]}))
+    .sort((a,b)=>b.h-a.h);
+
+  // 4. Levhalara yerleştir: şeritleri dikey yığ
+  const sheets=[];
+  let currentSheet={parts:[],strips:[]};
+  let currentY=0;
+
+  for(const strip of strips){
+    const stripH=strip.h;
+    const stripItems=strip.items;
+    
+    // Şeridi levhaya sığdır mı?
+    if(currentY+stripH+kerf>usableH+0.01){
+      sheets.push(currentSheet);
+      currentSheet={parts:[],strips:[]};
+      currentY=0;
+    }
+    
+    // Şerit içinde yatay yerleştir
+    let stripParts=[];
+    let stripX=0;
+    
+    for(const it of stripItems){
+      if(stripX+it.w+kerf<=usableW+0.01){
+        stripParts.push({
+          ...it,
+          x:trim+stripX,
+          y:trim+currentY
+        });
+        stripX+=(it.w+kerf);
       }
     }
-    return false;
+    
+    currentSheet.parts.push(...stripParts);
+    currentSheet.strips.push({y:currentY,h:stripH,count:stripParts.length});
+    currentY+=(stripH+kerf);
   }
 
-  items.forEach(it=>{
-    let placed=false;
-    for(const s of sheets){ if(tryPlace(s,it)){placed=true;break;} }
-    if(!placed){ const s=newSheet(); if(tryPlace(s,it)){sheets.push(s);} else {sheets.push(s);} }
-  });
+  if(currentSheet.parts.length>0) sheets.push(currentSheet);
 
   return {sheets,SW,SH,usableW,usableH,trim,kerf};
 }
