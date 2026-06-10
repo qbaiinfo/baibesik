@@ -489,7 +489,7 @@ function renderOrders() {
             <span class="spec-chip size">📏 ${it.size}</span>
           </div>
         </div>
-        <button class="pick-img-btn" onclick="event.stopPropagation();showItemImage('${(it.img||'').replace(/'/g,'')}','${(lang==='ru'?it.name_ru:it.name_kk).replace(/'/g,'')}')" title="${lang==='ru'?'Показать фото':'Фотоны көрсету'}">👁</button>
+        <button class="pick-img-btn" onclick="event.stopPropagation();showItemImg('${o.id}',${it.id})" title="${lang==='ru'?'Показать фото':'Фотоны көрсету'}">👁</button>
         <div class="pick-qty">
           <div class="qty-num">${it.qty}</div>
           <div class="qty-unit">${d_.pcs}</div>
@@ -926,11 +926,16 @@ window.markItemDone = markItemDone;
 
 
 // ─── RESİM GÖRÜNTÜLEME ───
+function showItemImg(orderId, itemId) {
+  const order = activeOrders.find(o => String(o.id) === String(orderId));
+  const it = order && (order.items||[]).find(i => i.id === itemId);
+  showItemImage(it ? it.img : '', it ? (lang==='ru'?it.name_ru:it.name_kk) : '');
+}
 function showItemImage(img, name) {
   const el = document.getElementById('img-modal-src');
   const fallback = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340"><rect width="340" height="340" fill="#f1f5f9"/><text x="50%" y="50%" font-size="60" text-anchor="middle" dy=".35em">📦</text></svg>');
+  el.onerror = function(){ this.onerror=null; this.src = fallback; };
   el.src = img && img.length > 4 ? img : fallback;
-  el.onerror = function(){ this.src = fallback; };
   document.getElementById('img-modal-name').textContent = name || '';
   document.getElementById('img-modal-hint').textContent = (lang==='ru'?'Фото для сборки — найдите этот товар на складе':'Жинауға арналған фото');
   document.getElementById('img-modal').classList.add('open');
