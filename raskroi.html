@@ -512,32 +512,32 @@ function nestOnce(items,usableW,usableH,trim,kerf,opt){
           }
         }
       }
-      // SUB-SHELF: ana parcalarin ustunde kalan boslukta kucuk parcalari ikinci kat olarak istifle
-      const usedH=row.parts.length?Math.max(...row.parts.map(p=>p.h)):0;
-      const remH=row.h-usedH;
-      if(remH>30){
-        for(let gj=0;gj<groups.length;gj++){
-          const g2=groups[gj];
-          for(let i=0;i<g2.items.length;){
-            const it=g2.items[i];
-            if(it.h<=remH+0.01){
-              let placed=false;
-              row.sub=row.sub||[];
-              for(const sub of row.sub){
-                if(sub.x+it.w<=usableW+0.01){
-                  sub.items.push(Object.assign({},it,{rx:sub.x}));
-                  sub.x+=it.w+kerf; placed=true; break;
-                }
+      // SUB-SHELF (parca bazli): her yerlesen parcanin ustunde kalan bosluga
+      // (row.h - parca.h) o parcanin genislik araliginda kucuk parcalari istifle
+      row.sub=row.sub||[];
+      for(const host of row.parts){
+        const remH=row.h-host.h-kerf;
+        if(remH<60) continue; // cok ince bosluk, atla (en kucuk pratik parca ~80mm)
+        const zone={x:host.rx,limit:host.rx+host.w,y:host.h+kerf,h:remH,cx:host.rx};
+        let zoneFull=false;
+        while(!zoneFull){
+          zoneFull=true;
+          for(let gj=0;gj<groups.length;gj++){
+            const g2=groups[gj];
+            for(let i=0;i<g2.items.length;i++){
+              const it=g2.items[i];
+              const remW=zone.limit-zone.cx;
+              if(it.h<=zone.h+0.01 && it.w<=remW+0.01){
+                row.sub.push(Object.assign({},it,{rx:zone.cx,ry:zone.y}));
+                zone.cx+=it.w+kerf; g2.items.splice(i,1); zoneFull=false; break;
+              } else if(!it.lock && it.w<=zone.h+0.01 && it.h<=remW+0.01){
+                row.sub.push(Object.assign({},it,{w:it.h,h:it.w,rx:zone.cx,ry:zone.y}));
+                zone.cx+=it.h+kerf; g2.items.splice(i,1); zoneFull=false; break;
               }
-              if(!placed && it.w<=usableW+0.01){
-                row.sub.push({x:it.w+kerf,h:remH,items:[Object.assign({},it,{rx:0})]});
-                placed=true;
-              }
-              if(placed){g2.items.splice(i,1);} else i++;
-            } else i++;
+            }
+            if(!zoneFull) break;
           }
         }
-        row.usedH=usedH;
       }
       rows.push(row);
     }
@@ -546,25 +546,28 @@ function nestOnce(items,usableW,usableH,trim,kerf,opt){
   rows.sort((a,b)=>b.h-a.h);
   const sheets=[];
   for(const row of rows){
-    let target=null;
+    // BEST-FIT: sigan levhalar icinde kalan yuksekligi en az olani sec (siki paketleme)
+    let target=null,bestRem=Infinity;
     for(const s of sheets){
-      if(s.y+row.h<=usableH+0.01){target=s;break;}
+      const rem=usableH-s.y-row.h;
+      if(rem>=-0.01 && rem<bestRem){bestRem=rem;target=s;}
     }
     if(!target){target={parts:[],strips:[],y:0};sheets.push(target);}
     row.parts.forEach(p=>target.parts.push(Object.assign({},p,{x:trim+p.rx,y:trim+target.y})));
-    if(row.sub) row.sub.forEach(sub=>{
-      sub.items.forEach(p=>target.parts.push(Object.assign({},p,{x:trim+p.rx,y:trim+target.y+(row.usedH||0)})));
-    });
+    if(row.sub) row.sub.forEach(p=>target.parts.push(Object.assign({},p,{x:trim+p.rx,y:trim+target.y+p.ry})));
     target.strips.push({y:target.y,h:row.h,count:row.parts.length});
     target.y+=row.h+kerf;
   }
 
-  let usedArea=0;
-  sheets.forEach(s=>s.parts.forEach(p=>usedArea+=p.w*p.h));
+  // SKOR: 1) levha sayisi  2) konsantrasyon (ilk levhalar dolu, son levha bos kalsin
+  // -> buyuk tek parca artik). Doluluk karelerinin toplami yuksekse skor duser.
   const sheetArea=usableW*usableH;
-  const totalArea=sheets.length*sheetArea;
-  const wasteRatio=totalArea?(totalArea-usedArea)/totalArea:1;
-  const score=sheets.length*1000+wasteRatio*100;
+  let sumSq=0;
+  sheets.forEach(s=>{
+    let a=0; s.parts.forEach(p=>a+=p.w*p.h);
+    const f=a/sheetArea; sumSq+=f*f;
+  });
+  const score=sheets.length*1000-sumSq*10;
 
   return {sheets,score};
 }
@@ -600,15 +603,28 @@ function nest(){
     oversize.push(it); return false;
   });
 
-  // 4. STRATEJI YARISI: farkli yukseklik-tolerans + sira modlariyla coklu deneme,
+  // 4. STRATEJI YARISI: tolerans x sira modu x (normal + transpoze) kombinasyonlari,
   //    en az levha + en az fire vereni sec.
   const tolerances=[0,5,10,20,30];
   const sortModes=['desc','asc'];
+  const canTranspose = grain==='none' && !items.some(it=>it.lock);
   let best=null;
   for(const tol of tolerances){
     for(const sm of sortModes){
       const res=nestOnce(items,usableW,usableH,trim,kerf,{heightTol:tol,sortMode:sm});
       if(!best||res.score<best.score) best=res;
+      if(canTranspose){
+        // levhayi 90 cevir: parcalar w<->h, levha W<->H; sonucu geri cevir
+        const titems=items.map(it=>Object.assign({},it,{w:it.h,h:it.w}));
+        const tres=nestOnce(titems,usableH,usableW,trim,kerf,{heightTol:tol,sortMode:sm});
+        if(tres.score<(best?best.score:Infinity)){
+          tres.sheets.forEach(s=>s.parts.forEach(p=>{
+            const nx=p.y, ny=p.x, nw=p.h, nh=p.w;
+            p.x=nx; p.y=ny; p.w=nw; p.h=nh;
+          }));
+          best=tres;
+        }
+      }
     }
   }
 
