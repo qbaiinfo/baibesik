@@ -468,6 +468,11 @@ function nestOnce(items,usableW,usableH,trim,kerf,opt){
           row.parts.push(Object.assign({},it,{rx:row.x}));
           row.x+=it.w+kerf;
           g.items.splice(i,1);
+        } else if(!it.lock && it.w<=row.h+0.01 && row.x+it.h<=usableW+0.01){
+          // kilitsiz parcayi 90 dondurup dene
+          row.parts.push(Object.assign({},it,{w:it.h,h:it.w,rx:row.x}));
+          row.x+=it.h+kerf;
+          g.items.splice(i,1);
         } else i++;
       }
       if(!row.parts.length) break;
@@ -588,7 +593,7 @@ function nest(){
     }
   });
 
-  // 2. Yon: doku yoksa en uzun kenari yatay yap (serit verimi)
+  // 2. Oversize kontrolu icin once yatay normalize (asil oryantasyon yarista belirlenir)
   items.forEach(it=>{
     if(!it.lock && grain==='none' && it.w<it.h) [it.w,it.h]=[it.h,it.w];
   });
@@ -603,26 +608,36 @@ function nest(){
     oversize.push(it); return false;
   });
 
-  // 4. STRATEJI YARISI: tolerans x sira modu x (normal + transpoze) kombinasyonlari,
-  //    en az levha + en az fire vereni sec.
+  // 4. STRATEJI YARISI: tolerans x sira x oryantasyon x (normal+transpoze)
+  //    Kilitsiz parcalar 'land' (yatay) veya 'port' (dikey) baslangicla denenir,
+  //    yerlestirme sirasinda da her iki yon ayrica test edilir (cevir-cevir).
   const tolerances=[0,5,10,20,30];
   const sortModes=['desc','asc'];
+  const orientModes = grain==='none' ? ['land','port'] : ['land'];
   const canTranspose = grain==='none' && !items.some(it=>it.lock);
   let best=null;
-  for(const tol of tolerances){
-    for(const sm of sortModes){
-      const res=nestOnce(items,usableW,usableH,trim,kerf,{heightTol:tol,sortMode:sm});
-      if(!best||res.score<best.score) best=res;
-      if(canTranspose){
-        // levhayi 90 cevir: parcalar w<->h, levha W<->H; sonucu geri cevir
-        const titems=items.map(it=>Object.assign({},it,{w:it.h,h:it.w}));
-        const tres=nestOnce(titems,usableH,usableW,trim,kerf,{heightTol:tol,sortMode:sm});
-        if(tres.score<(best?best.score:Infinity)){
-          tres.sheets.forEach(s=>s.parts.forEach(p=>{
-            const nx=p.y, ny=p.x, nw=p.h, nh=p.w;
-            p.x=nx; p.y=ny; p.w=nw; p.h=nh;
-          }));
-          best=tres;
+  for(const om of orientModes){
+    const oitems=items.map(it=>{
+      if(it.lock) return Object.assign({},it);
+      const c=Object.assign({},it);
+      if(om==='land' && c.w<c.h) [c.w,c.h]=[c.h,c.w];
+      if(om==='port' && c.w>c.h) [c.w,c.h]=[c.h,c.w];
+      return c;
+    });
+    for(const tol of tolerances){
+      for(const sm of sortModes){
+        const res=nestOnce(oitems,usableW,usableH,trim,kerf,{heightTol:tol,sortMode:sm});
+        if(!best||res.score<best.score) best=res;
+        if(canTranspose){
+          const titems=oitems.map(it=>Object.assign({},it,{w:it.h,h:it.w}));
+          const tres=nestOnce(titems,usableH,usableW,trim,kerf,{heightTol:tol,sortMode:sm});
+          if(tres.score<(best?best.score:Infinity)){
+            tres.sheets.forEach(s=>s.parts.forEach(p=>{
+              const nx=p.y, ny=p.x, nw=p.h, nh=p.w;
+              p.x=nx; p.y=ny; p.w=nw; p.h=nh;
+            }));
+            best=tres;
+          }
         }
       }
     }
