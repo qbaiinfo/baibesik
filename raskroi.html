@@ -471,16 +471,45 @@ function nestOnce(items,usableW,usableH,trim,kerf,opt){
         } else i++;
       }
       if(!row.parts.length) break;
+      // diger gruplardan doldur, gerekirse 90 derece dondurerek (lock=false ise)
       for(let gj=0;gj<groups.length && row.x<usableW-10;gj++){
         if(gj===gi) continue;
         const g2=groups[gj];
         for(let i=0;i<g2.items.length;){
           const it=g2.items[i];
+          let placed=false;
           if(it.h<=row.h+0.01 && row.x+it.w<=usableW+0.01){
             row.parts.push(Object.assign({},it,{rx:row.x}));
-            row.x+=it.w+kerf;
-            g2.items.splice(i,1);
-          } else i++;
+            row.x+=it.w+kerf; placed=true;
+          } else if(!it.lock && it.w<=row.h+0.01 && row.x+it.h<=usableW+0.01){
+            // 90 derece dondur: w<->h
+            row.parts.push(Object.assign({},it,{w:it.h,h:it.w,rx:row.x}));
+            row.x+=it.h+kerf; placed=true;
+          }
+          if(placed) g2.items.splice(i,1); else i++;
+        }
+      }
+      // SON TARAMA: satir sonunda kalan yatay bosluga (row.x..usableW) sigan
+      // herhangi bir parcayi (gruplar arasi, rotasyonlu) ara - dikey yer ustte sub'a duser
+      if(row.x<usableW-10){
+        let found=true;
+        while(found && row.x<usableW-10){
+          found=false;
+          for(let gj=0;gj<groups.length;gj++){
+            const g2=groups[gj];
+            for(let i=0;i<g2.items.length;i++){
+              const it=g2.items[i];
+              const remW=usableW-row.x;
+              if(it.h<=row.h+0.01 && it.w<=remW+0.01){
+                row.parts.push(Object.assign({},it,{rx:row.x}));
+                row.x+=it.w+kerf; g2.items.splice(i,1); found=true; break;
+              } else if(!it.lock && it.w<=row.h+0.01 && it.h<=remW+0.01){
+                row.parts.push(Object.assign({},it,{w:it.h,h:it.w,rx:row.x}));
+                row.x+=it.h+kerf; g2.items.splice(i,1); found=true; break;
+              }
+            }
+            if(found) break;
+          }
         }
       }
       // SUB-SHELF: ana parcalarin ustunde kalan boslukta kucuk parcalari ikinci kat olarak istifle
