@@ -248,6 +248,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <div class="empty-canvas" data-i18n="emptyPlan">Добавьте детали и нажмите «Рассчитать раскрой»</div>
         </div>
         <div class="legend" id="legend"></div>
+        <div id="ctrlTable" style="margin-top:14px"></div>
       </div>
 
       <div class="panel">
@@ -435,6 +436,110 @@ window.selPVC=(t,el)=>{selectedPVC=t;document.querySelectorAll('.pvc-opt').forEa
 // NESTING ALGORITHM (Shelf/Guillotine + kerf + trim + rotation + grouping)
 // ═══════════════════════════════════════════
 // ════ STRIP BIN PACKING (KDT Makinalar İçin Optimize) ════
+// Tek bir parametre setiyle strip-packing dener; sonuc + skor doner.
+function nestOnce(items,usableW,usableH,trim,kerf,opt){
+  const tol=opt.heightTol||0;
+
+  const sorted=items.slice().sort((a,b)=>b.h-a.h);
+  const groups=[];
+  sorted.forEach(it=>{
+    let g=groups.find(g=>Math.abs(g.h-it.h)<=tol);
+    if(!g){g={h:it.h,items:[]};groups.push(g);}
+    else if(it.h>g.h) g.h=it.h;
+    g.items.push(it);
+  });
+  groups.forEach(g=>{
+    const byName={};
+    g.items.forEach(it=>{(byName[it.name]=byName[it.name]||[]).push(it);});
+    let s=[];
+    Object.values(byName).forEach(grp=>{grp.sort((a,b)=>b.w-a.w);s.push(...grp);});
+    g.items=s;
+  });
+  groups.sort((a,b)=>opt.sortMode==='asc'?a.h-b.h:b.h-a.h);
+
+  const rows=[];
+  for(let gi=0;gi<groups.length;gi++){
+    const g=groups[gi];
+    while(g.items.length){
+      const row={h:g.h,parts:[],x:0};
+      for(let i=0;i<g.items.length;){
+        const it=g.items[i];
+        if(it.h<=row.h+0.01 && row.x+it.w<=usableW+0.01){
+          row.parts.push(Object.assign({},it,{rx:row.x}));
+          row.x+=it.w+kerf;
+          g.items.splice(i,1);
+        } else i++;
+      }
+      if(!row.parts.length) break;
+      for(let gj=0;gj<groups.length && row.x<usableW-10;gj++){
+        if(gj===gi) continue;
+        const g2=groups[gj];
+        for(let i=0;i<g2.items.length;){
+          const it=g2.items[i];
+          if(it.h<=row.h+0.01 && row.x+it.w<=usableW+0.01){
+            row.parts.push(Object.assign({},it,{rx:row.x}));
+            row.x+=it.w+kerf;
+            g2.items.splice(i,1);
+          } else i++;
+        }
+      }
+      // SUB-SHELF: ana parcalarin ustunde kalan boslukta kucuk parcalari ikinci kat olarak istifle
+      const usedH=row.parts.length?Math.max(...row.parts.map(p=>p.h)):0;
+      const remH=row.h-usedH;
+      if(remH>30){
+        for(let gj=0;gj<groups.length;gj++){
+          const g2=groups[gj];
+          for(let i=0;i<g2.items.length;){
+            const it=g2.items[i];
+            if(it.h<=remH+0.01){
+              let placed=false;
+              row.sub=row.sub||[];
+              for(const sub of row.sub){
+                if(sub.x+it.w<=usableW+0.01){
+                  sub.items.push(Object.assign({},it,{rx:sub.x}));
+                  sub.x+=it.w+kerf; placed=true; break;
+                }
+              }
+              if(!placed && it.w<=usableW+0.01){
+                row.sub.push({x:it.w+kerf,h:remH,items:[Object.assign({},it,{rx:0})]});
+                placed=true;
+              }
+              if(placed){g2.items.splice(i,1);} else i++;
+            } else i++;
+          }
+        }
+        row.usedH=usedH;
+      }
+      rows.push(row);
+    }
+  }
+
+  rows.sort((a,b)=>b.h-a.h);
+  const sheets=[];
+  for(const row of rows){
+    let target=null;
+    for(const s of sheets){
+      if(s.y+row.h<=usableH+0.01){target=s;break;}
+    }
+    if(!target){target={parts:[],strips:[],y:0};sheets.push(target);}
+    row.parts.forEach(p=>target.parts.push(Object.assign({},p,{x:trim+p.rx,y:trim+target.y})));
+    if(row.sub) row.sub.forEach(sub=>{
+      sub.items.forEach(p=>target.parts.push(Object.assign({},p,{x:trim+p.rx,y:trim+target.y+(row.usedH||0)})));
+    });
+    target.strips.push({y:target.y,h:row.h,count:row.parts.length});
+    target.y+=row.h+kerf;
+  }
+
+  let usedArea=0;
+  sheets.forEach(s=>s.parts.forEach(p=>usedArea+=p.w*p.h));
+  const sheetArea=usableW*usableH;
+  const totalArea=sheets.length*sheetArea;
+  const wasteRatio=totalArea?(totalArea-usedArea)/totalArea:1;
+  const score=sheets.length*1000+wasteRatio*100;
+
+  return {sheets,score};
+}
+
 function nest(){
   const SW=parseFloat(document.getElementById('sheetW').value)||2800;
   const SH=parseFloat(document.getElementById('sheetH').value)||2070;
@@ -466,67 +571,19 @@ function nest(){
     oversize.push(it); return false;
   });
 
-  // 4. Yukseklige gore grupla; grup icinde ayni isim birlikte + genis once
-  const gmap={};
-  items.forEach(it=>{
-    const key=Math.round(it.h);
-    (gmap[key]=gmap[key]||[]).push(it);
-  });
-  const groups=Object.keys(gmap).map(h=>{
-    const byName={};
-    gmap[h].forEach(it=>{(byName[it.name]=byName[it.name]||[]).push(it);});
-    let sorted=[];
-    Object.values(byName).forEach(g=>{g.sort((a,b)=>b.w-a.w);sorted.push(...g);});
-    return {h:parseFloat(h),items:sorted};
-  }).sort((a,b)=>b.h-a.h);
-
-  // 5. SERITLERI OLUSTUR: her grup icin gerektigi kadar satir (parca dusmez!)
-  const rows=[];
-  for(let gi=0;gi<groups.length;gi++){
-    const g=groups[gi];
-    while(g.items.length){
-      const row={h:g.h,parts:[],x:0};
-      // once kendi grubundan doldur
-      for(let i=0;i<g.items.length;){
-        const it=g.items[i];
-        if(row.x+it.w<=usableW+0.01){
-          row.parts.push(Object.assign({},it,{rx:row.x}));
-          row.x+=it.w+kerf;
-          g.items.splice(i,1);
-        } else i++;
-      }
-      if(!row.parts.length) break; // guvenlik
-      // serit sonundaki boslugu KISA gruplardan doldur (verim artar)
-      for(let gj=gi+1;gj<groups.length && row.x<usableW-50;gj++){
-        const g2=groups[gj];
-        for(let i=0;i<g2.items.length;){
-          const it=g2.items[i];
-          if(row.x+it.w<=usableW+0.01){
-            row.parts.push(Object.assign({},it,{rx:row.x}));
-            row.x+=it.w+kerf;
-            g2.items.splice(i,1);
-          } else i++;
-        }
-      }
-      rows.push(row);
+  // 4. STRATEJI YARISI: farkli yukseklik-tolerans + sira modlariyla coklu deneme,
+  //    en az levha + en az fire vereni sec.
+  const tolerances=[0,5,10,20,30];
+  const sortModes=['desc','asc'];
+  let best=null;
+  for(const tol of tolerances){
+    for(const sm of sortModes){
+      const res=nestOnce(items,usableW,usableH,trim,kerf,{heightTol:tol,sortMode:sm});
+      if(!best||res.score<best.score) best=res;
     }
   }
 
-  // 6. SERITLERI LEVHALARA YIG: first-fit decreasing
-  rows.sort((a,b)=>b.h-a.h);
-  const sheets=[];
-  for(const row of rows){
-    let target=null;
-    for(const s of sheets){
-      if(s.y+row.h<=usableH+0.01){target=s;break;}
-    }
-    if(!target){target={parts:[],strips:[],y:0};sheets.push(target);}
-    row.parts.forEach(p=>target.parts.push(Object.assign({},p,{x:trim+p.rx,y:trim+target.y})));
-    target.strips.push({y:target.y,h:row.h,count:row.parts.length});
-    target.y+=row.h+kerf;
-  }
-
-  return {sheets,SW,SH,usableW,usableH,trim,kerf,oversize};
+  return {sheets:best.sheets,SW,SH,usableW,usableH,trim,kerf,oversize};
 }
 
 window.calculate=function(){
@@ -584,7 +641,9 @@ function drawSheets(L){
   L.sheets.forEach((sheet,si)=>{
     const block=document.createElement('div'); block.className='sheet-block';
     const lbl=document.createElement('div'); lbl.className='sheet-label';
-    lbl.textContent=`${lang==='kk'?'Парақ':'Лист'} ${si+1} — ${L.SW}×${L.SH}mm`;
+    const sArea=sheet.parts.reduce((s,pt)=>s+pt.w*pt.h,0);
+    const sEff=(sArea/(L.SW*L.SH)*100).toFixed(1);
+    lbl.textContent=`${lang==='kk'?'Парақ':'Лист'} ${si+1}/${L.sheets.length} — ${L.SW}×${L.SH}mm · ${sheet.parts.length} ${lang==='kk'?'бөлшек':'дет.'} · ${sEff}%`;
     block.appendChild(lbl);
     const cv=document.createElement('canvas');
     const scale=Math.min(540/L.SW, 380/L.SH);
@@ -625,6 +684,44 @@ function drawSheets(L){
     it.innerHTML=`<div class="lg-box" style="background:${colorMap[name]}"></div><span>${name}</span>`;
     legend.appendChild(it);
   });
+
+  // ─── KONTROL TABLOSU: müşteri eksik parça var mı tek bakışta görür ───
+  const placed={}; // pid → adet + hangi levhalar
+  L.sheets.forEach((sheet,si)=>sheet.parts.forEach(pt=>{
+    if(!placed[pt.pid])placed[pt.pid]={n:0,sheets:new Set()};
+    placed[pt.pid].n++; placed[pt.pid].sheets.add(si+1);
+  }));
+  let allOk=true;
+  let rowsHtml=parts.map((p,idx)=>{
+    const pl=placed[p.id]||{n:0,sheets:new Set()};
+    const ok=pl.n>=p.qty;
+    if(!ok)allOk=false;
+    const sheetList=[...pl.sheets].join(',');
+    const edges=[p.e.t?'В':'',p.e.b?'Н':'',p.e.l?'Л':'',p.e.r?'П':''].filter(Boolean).join('')||'—';
+    return `<tr style="${ok?'':'background:#fef2f2'}">
+      <td>${idx+1}</td><td style="text-align:left">${p.name}</td>
+      <td>${p.w}×${p.h}</td><td>${edges}</td>
+      <td>${p.qty}</td><td>${pl.n}</td>
+      <td>${sheetList||'—'}</td>
+      <td style="font-size:15px">${ok?'✅':'⚠️'}</td></tr>`;
+  }).join('');
+  const T=(ru,kk)=>lang==='kk'?kk:ru;
+  document.getElementById('ctrlTable').innerHTML=`
+    <div style="font-weight:800;font-size:14px;margin-bottom:6px;color:#0f172a">
+      📋 ${T('Контроль деталей','Бөлшектерді тексеру')}
+      ${allOk?`<span style="color:#16a34a;font-size:12px;margin-left:8px">✅ ${T('Все детали размещены','Барлық бөлшектер орналастырылды')}</span>`
+             :`<span style="color:#dc2626;font-size:12px;margin-left:8px">⚠️ ${T('Есть неразмещённые детали!','Орналаспаған бөлшектер бар!')}</span>`}
+    </div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:12px;background:#fff;border-radius:8px;overflow:hidden">
+      <thead><tr style="background:#f1f5f9;font-weight:800;color:#475569">
+        <th style="padding:7px 6px">№</th><th style="padding:7px 6px;text-align:left">${T('Название','Атауы')}</th>
+        <th style="padding:7px 6px">${T('Размер','Өлшемі')}</th><th style="padding:7px 6px">${T('Кромка','Жиек')}</th>
+        <th style="padding:7px 6px">${T('Заказ','Тапсырыс')}</th><th style="padding:7px 6px">${T('Размещено','Орналасты')}</th>
+        <th style="padding:7px 6px">${T('Лист','Парақ')}</th><th style="padding:7px 6px">✓</th>
+      </tr></thead>
+      <tbody style="text-align:center;color:#0f172a">${rowsHtml}</tbody>
+    </table></div>`;
 }
 
 // ─── KAĞIT TARAMA (foto → parçalar, resim KAYDEDİLMEZ) ───
@@ -692,20 +789,41 @@ function orderSummary(){
   const edgeTxt=p=>{const a=[];if(p.e.t)a.push('В');if(p.e.b)a.push('Н');if(p.e.l)a.push('Л');if(p.e.r)a.push('П');return a.join('')||'—';};
   return {sw,sh,mat,nSheets,eff,edgeTxt};
 }
+// pid → yerleşen adet (kontrol için)
+function placedCounts(){
+  const placed={};
+  if(lastLayout)lastLayout.sheets.forEach((sh,si)=>sh.parts.forEach(pt=>{
+    if(!placed[pt.pid])placed[pt.pid]={n:0,sheets:new Set()};
+    placed[pt.pid].n++; placed[pt.pid].sheets.add(si+1);
+  }));
+  return placed;
+}
 window.exportPDF=function(){
   if(!lastLayout){alert(lang==='kk'?'Алдымен есептеңіз':'Сначала рассчитайте');return;}
   try{
     const { jsPDF } = window.jspdf; const doc=new jsPDF();
     const s=orderSummary();
+    const placed=placedCounts();
     doc.setFontSize(16); doc.text('Baibesik.kz — Raskroi / Раскрой',14,18);
     doc.setFontSize(10);
-    doc.text(`List/Лист: ${s.sw}x${s.sh}mm | ${s.mat} | ${s.nSheets} sht | KPD ${s.eff}`,14,27);
-    doc.setFontSize(11); doc.text('Detali / Бөлшектер:',14,38);
+    doc.text(`List: ${s.sw}x${s.sh}mm | ${s.mat} | ${s.nSheets} sht | KPD ${s.eff}`,14,27);
+    doc.setFontSize(11); doc.text('KONTROL — Detali (zakaz / razmesheno / list):',14,38);
     let y=46; doc.setFontSize(9);
-    doc.text('#   Name        X      Y     Qty   Kromka',14,y); y+=5;
+    doc.text('#   Name        X      Y     Zakaz  Razm  List   Kromka',14,y); y+=5;
     parts.forEach((p,i)=>{
-      doc.text(`${i+1}  ${(p.name||'').padEnd(10)}  ${p.w}   ${p.h}   ${p.qty}    ${s.edgeTxt(p)}`,14,y);
+      const pl=placed[p.id]||{n:0,sheets:new Set()};
+      const ok=pl.n>=p.qty?'':' !!! EKSIK';
+      doc.text(`${i+1}  ${(p.name||'').padEnd(10)}  ${p.w}   ${p.h}   ${p.qty}     ${pl.n}    ${[...pl.sheets].join(',')||'-'}   ${s.edgeTxt(p)}${ok}`,14,y);
       y+=5; if(y>270){doc.addPage();y=20;}
+    });
+    // ─── KESİM PLANI GÖRSELLERİ (her levha ayrı sayfa) ───
+    const canvases=document.querySelectorAll('#canvasWrap canvas');
+    canvases.forEach((cv,i)=>{
+      doc.addPage();
+      doc.setFontSize(12);
+      doc.text(`List/Лист ${i+1}/${canvases.length} — ${s.sw}x${s.sh}mm`,14,16);
+      const imgW=180; const imgH=imgW*(cv.height/cv.width);
+      doc.addImage(cv.toDataURL('image/png'),'PNG',14,22,imgW,Math.min(imgH,250));
     });
     doc.save((s.id||'raskroi')+'.pdf');
   }catch(e){alert('PDF: '+e.message);}
@@ -714,8 +832,12 @@ window.exportExcel=function(){
   if(!parts.length){alert(lang==='kk'?'Бөлшек жоқ':'Нет деталей');return;}
   try{
     const s=orderSummary();
-    const rows=[['Деталь','Ширина X','Высота Y','Кол-во','Кромка','Текстура']];
-    parts.forEach(p=>rows.push([p.name,p.w,p.h,p.qty,s.edgeTxt(p),p.lock?'🔒':'']));
+    const placed=placedCounts();
+    const rows=[['Деталь','Ширина X','Высота Y','Заказ','Размещено','Лист','Кромка','Текстура','Статус']];
+    parts.forEach(p=>{
+      const pl=placed[p.id]||{n:0,sheets:new Set()};
+      rows.push([p.name,p.w,p.h,p.qty,pl.n,[...pl.sheets].join(','),s.edgeTxt(p),p.lock?'🔒':'',pl.n>=p.qty?'OK':'НЕ ХВАТАЕТ!']);
+    });
     rows.push([]); rows.push(['Лист',`${s.sw}x${s.sh}`,'Материал',s.mat,'Листов',s.nSheets]);
     const ws=XLSX.utils.aoa_to_sheet(rows);
     const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Raskroi');
@@ -737,8 +859,13 @@ window.exportXML=function(){
 };
 window.shareWhatsApp=function(){
   const s=orderSummary();
-  let txt=`*Baibesik Раскрой*\n📐 Лист: ${s.sw}x${s.sh}mm (${s.mat})\n📦 Деталей: ${parts.reduce((a,p)=>a+p.qty,0)}\n📄 Листов: ${s.nSheets} | КПД ${s.eff}\n\n*Детали:*\n`;
-  parts.forEach((p,i)=>{txt+=`${i+1}. ${p.name} ${p.w}×${p.h} ×${p.qty} | кромка: ${s.edgeTxt(p)}\n`;});
+  const placed=placedCounts();
+  let txt=`*Baibesik Раскрой*\n📐 Лист: ${s.sw}x${s.sh}mm (${s.mat})\n📦 Деталей: ${parts.reduce((a,p)=>a+p.qty,0)}\n📄 Листов: ${s.nSheets} | КПД ${s.eff}\n\n*Детали (заказ→размещено):*\n`;
+  parts.forEach((p,i)=>{
+    const pl=placed[p.id]||{n:0};
+    const flag=pl.n>=p.qty?'✅':'⚠️';
+    txt+=`${i+1}. ${p.name} ${p.w}×${p.h} ×${p.qty}→${pl.n}${flag} | кромка: ${s.edgeTxt(p)}\n`;
+  });
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
 };
 // ─── Kesme cehlerini (has_cutting) yükle ───
