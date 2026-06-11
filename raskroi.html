@@ -435,7 +435,93 @@ window.selPVC=(t,el)=>{selectedPVC=t;document.querySelectorAll('.pvc-opt').forEa
 // ═══════════════════════════════════════════
 // NESTING ALGORITHM (Shelf/Guillotine + kerf + trim + rotation + grouping)
 // ═══════════════════════════════════════════
-// ════ STRIP BIN PACKING (KDT Makinalar İçin Optimize) ════
+// ════ RECURSIVE GUILLOTINE PACKER (Faz 3 — GibLab sinifi yaklasim) ════
+// Serbest dikdortgen listesi + split + merge. Her parca icin en uygun bosluk
+// secilir (BSSF/BAF), yerlesince bosluk ikiye bolunur (guillotine-gecerli),
+// komsu bosluklar birlestirilir. Ilk levhalar dolana kadar yeni levha acilmaz.
+function guilloOnce(items,usableW,usableH,trim,kerf,opt){
+  // opt.sortKey: 'area'|'maxside'|'w'|'h'  opt.fitRule:'bssf'|'baf'  opt.splitRule:'h'|'v'|'auto'
+  const its=items.map(i=>Object.assign({},i));
+  const keyFn={
+    area:(i)=>i.w*i.h, maxside:(i)=>Math.max(i.w,i.h), w:(i)=>i.w, h:(i)=>i.h
+  }[opt.sortKey];
+  its.sort((a,b)=>keyFn(b)-keyFn(a));
+
+  const sheets=[]; // {free:[{x,y,w,h}], parts:[]}
+  const newSheet=()=>{const s={free:[{x:0,y:0,w:usableW,h:usableH}],parts:[]};sheets.push(s);return s;};
+
+  function fitScore(rect,w,h){
+    if(w>rect.w+0.01||h>rect.h+0.01) return null;
+    if(opt.fitRule==='baf') return rect.w*rect.h-w*h; // kalan alan
+    return Math.min(rect.w-w,rect.h-h);              // bssf: kisa kenar farki
+  }
+
+  function placeIn(sheet,it){
+    let bi=-1,bs=Infinity,rot=false;
+    for(let i=0;i<sheet.free.length;i++){
+      const r=sheet.free[i];
+      const s1=fitScore(r,it.w,it.h);
+      if(s1!==null&&s1<bs){bs=s1;bi=i;rot=false;}
+      if(!it.lock){
+        const s2=fitScore(r,it.h,it.w);
+        if(s2!==null&&s2<bs){bs=s2;bi=i;rot=true;}
+      }
+    }
+    if(bi<0) return false;
+    const r=sheet.free[bi];
+    const w=rot?it.h:it.w, h=rot?it.w:it.h;
+    sheet.parts.push(Object.assign({},it,{w,h,px:r.x,py:r.y}));
+    sheet.free.splice(bi,1);
+    // split: kerf payli iki cocuk bosluk
+    const rw=r.w-w-kerf, rh=r.h-h-kerf;
+    let sp=opt.splitRule;
+    if(sp==='auto') sp=(rw*r.h>=r.w*rh)?'v':'h'; // buyuk cocugu koru
+    if(sp==='v'){ // sag tam boy, ust parca genisliginde
+      if(rw>1) sheet.free.push({x:r.x+w+kerf,y:r.y,w:rw,h:r.h});
+      if(rh>1) sheet.free.push({x:r.x,y:r.y+h+kerf,w:w,h:rh});
+    }else{ // ust tam boy, sag parca yuksekliginde
+      if(rh>1) sheet.free.push({x:r.x,y:r.y+h+kerf,w:r.w,h:rh});
+      if(rw>1) sheet.free.push({x:r.x+w+kerf,y:r.y,w:rw,h:h});
+    }
+    mergeFree(sheet.free);
+    return true;
+  }
+
+  function mergeFree(free){
+    let merged=true;
+    while(merged){
+      merged=false;
+      for(let i=0;i<free.length&&!merged;i++)for(let j=i+1;j<free.length&&!merged;j++){
+        const a=free[i],b=free[j];
+        if(Math.abs(a.x-b.x)<0.01&&Math.abs(a.w-b.w)<0.01){
+          if(Math.abs(a.y+a.h+kerf-b.y)<0.5){a.h+=kerf+b.h;free.splice(j,1);merged=true;}
+          else if(Math.abs(b.y+b.h+kerf-a.y)<0.5){b.h+=kerf+a.h;free.splice(i,1);merged=true;}
+        }else if(Math.abs(a.y-b.y)<0.01&&Math.abs(a.h-b.h)<0.01){
+          if(Math.abs(a.x+a.w+kerf-b.x)<0.5){a.w+=kerf+b.w;free.splice(j,1);merged=true;}
+          else if(Math.abs(b.x+b.w+kerf-a.x)<0.5){b.w+=kerf+a.w;free.splice(i,1);merged=true;}
+        }
+      }
+    }
+  }
+
+  for(const it of its){
+    let ok=false;
+    for(const s of sheets){ if(placeIn(s,it)){ok=true;break;} }
+    if(!ok){ if(!placeIn(newSheet(),it)) return null; } // teorik: oversize zaten elendi
+  }
+
+  // cikti formati: parts x/y trim ofsetli
+  const out=sheets.map(s=>({
+    parts:s.parts.map(p=>({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock,pid:p.pid,x:trim+p.px,y:trim+p.py})),
+    strips:[]
+  }));
+  const sheetArea=usableW*usableH;
+  let sumSq=0;
+  out.forEach(s=>{let a=0;s.parts.forEach(p=>a+=p.w*p.h);const f=a/sheetArea;sumSq+=f*f;});
+  return {sheets:out,score:out.length*1000-sumSq*10};
+}
+
+
 // Tek bir parametre setiyle strip-packing dener; sonuc + skor doner.
 function nestOnce(items,usableW,usableH,trim,kerf,opt){
   const tol=opt.heightTol||0;
@@ -638,6 +724,15 @@ function nest(){
             }));
             best=tres;
           }
+        }
+      }
+    }
+    // RECURSIVE GUILLOTINE varyantlari da yarisa girer
+    for(const sk of ['area','maxside','w','h']){
+      for(const fr of ['bssf','baf']){
+        for(const sp of ['h','v','auto']){
+          const gres=guilloOnce(oitems,usableW,usableH,trim,kerf,{sortKey:sk,fitRule:fr,splitRule:sp});
+          if(gres && (!best||gres.score<best.score)) best=gres;
         }
       }
     }
