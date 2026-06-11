@@ -76,10 +76,11 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .dims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
 .dim{display:flex;flex-direction:column;gap:3px;min-width:0}
 .dim label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dim input{width:100%;min-width:0;padding:11px 4px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;font-weight:700;text-align:center;outline:none}
-.dim input:focus{border-color:var(--orange);background:#fff9f0}
+.dim input,.dim select{width:100%;min-width:0;padding:11px 4px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;font-weight:700;text-align:center;outline:none}
+.dim input:focus,.dim select:focus{border-color:var(--orange);background:#fff9f0}
+.dim input:disabled,.dim select:disabled{background:#f1f5f9;color:#94a3b8;cursor:not-allowed}
 .dim input::-webkit-outer-spin-button,.dim input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.dim input[type=number]{-moz-appearance:textfield}
+.dim input[type=number],.dim select{-moz-appearance:textfield}
 .band-section{border-top:1px dashed var(--border);padding-top:10px}
 .band-label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
 .band-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -158,8 +159,16 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
       <div class="panel">
         <h3 class="panel-title" data-i18n="sheetParams">📐 Параметры листа</h3>
         <div class="params">
-          <div class="ig"><label data-i18n="width">Ширина X (mm)</label><input type="number" id="sheetW" value="2800" min="100"></div>
-          <div class="ig"><label data-i18n="height">Высота Y (mm)</label><input type="number" id="sheetH" value="2070" min="100"></div>
+          <div class="ig"><label data-i18n="material">Материал / Материал</label>
+            <select id="material" onchange="switchMaterial(this.value)">
+              <option value="mdf" selected>MDF 2750×1830</option>
+              <option value="lam">Ламинат 2750×1830</option>
+              <option value="hdf">HDF 2750×1830</option>
+              <option value="custom">🔧 Өз өлшемі / Пользовательский</option>
+            </select>
+          </div>
+          <div class="ig"><label data-i18n="width">Ширина X (mm)</label><input type="number" id="sheetW" value="2750" min="100"></div>
+          <div class="ig"><label data-i18n="height">Высота Y (mm)</label><input type="number" id="sheetH" value="1830" min="100"></div>
           <div class="ig"><label data-i18n="material">Материал</label>
             <select id="matType">
               <option value="ldsp16">ЛДСП 16мм</option>
@@ -302,6 +311,7 @@ async function init(){
     document.getElementById('authGuard').style.display='none';
     document.getElementById('header').style.display='flex';
     document.getElementById('content').style.display='block';
+    switchMaterial('mdf');
     document.getElementById('userName').textContent = currentUser.full_name||'User';
     document.getElementById('av').textContent = (currentUser.full_name||'A').charAt(0).toUpperCase();
     document.getElementById('langSel').addEventListener('change',e=>{lang=e.target.value;applyLang();});
@@ -432,7 +442,20 @@ window.toggleAllEdges=function(){
 };
 window.selPVC=(t,el)=>{selectedPVC=t;document.querySelectorAll('.pvc-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');};
 
-// ═══════════════════════════════════════════
+const MATERIALS={
+  mdf:{w:2750,h:1830},
+  lam:{w:2750,h:1830},
+  hdf:{w:2750,h:1830},
+  custom:{w:2750,h:1830}
+};
+
+window.switchMaterial=(mat)=>{
+  const m=MATERIALS[mat]||MATERIALS.mdf;
+  document.getElementById('sheetW').value=m.w;
+  document.getElementById('sheetH').value=m.h;
+  document.getElementById('sheetW').disabled=(mat!=='custom');
+  document.getElementById('sheetH').disabled=(mat!=='custom');
+};═══
 // NESTING ALGORITHM (Shelf/Guillotine + kerf + trim + rotation + grouping)
 // ═══════════════════════════════════════════
 // ════ RECURSIVE GUILLOTINE PACKER (Faz 3 — GibLab sinifi yaklasim) ════
