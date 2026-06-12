@@ -266,6 +266,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <button class="dl-btn" onclick="exportPDF()">📄 PDF</button>
           <button class="dl-btn" onclick="exportExcel()">📊 Excel</button>
           <button class="dl-btn" onclick="exportXML()">📐 XML</button>
+          <button class="dl-btn" onclick="exportKDT()" style="background:#ff6b35">🤖 KDT</button>
           <button class="dl-btn wa" onclick="shareWhatsApp()">📱 WhatsApp</button>
         </div>
       </div>
@@ -762,6 +763,64 @@ function nest(){
   }
 
   return {sheets:best.sheets,SW,SH,usableW,usableH,trim,kerf,oversize};
+}
+
+// ════ KDT-XML EXPORT (pil merkezine gonderim) ════
+window.exportKDT=function(){
+  const dim=nest();
+  if(!dim.sheets||!dim.sheets.length){alert('Önce raскrой hesapla');return;}
+  const material=document.getElementById('material').value;
+  const mat_names={mdf:'MDF',lam:'Laminate',hdf:'HDF',custom:'Custom'};
+  const mat_name=mat_names[material]||'Material';
+  
+  let xml='<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml+='<project date="'+new Date().toISOString()+'" material="'+mat_name+'" sheetWidth="'+dim.SW+'" sheetHeight="'+dim.SH+'" kerf="'+dim.kerf+'" trim="'+dim.trim+'" version="1.0">\n';
+  
+  let totalCuts=0,totalArea=0,usedArea=0;
+  
+  dim.sheets.forEach((sheet,si)=>{
+    let sheetArea=0;
+    xml+='  <sheet id="'+(si+1)+'" width="'+dim.SW+'" height="'+dim.SH+'" partCount="'+sheet.parts.length+'">\n';
+    
+    sheet.parts.forEach((part,pi)=>{
+      const x=Math.round(part.x*100)/100;
+      const y=Math.round(part.y*100)/100;
+      const w=Math.round(part.w*100)/100;
+      const h=Math.round(part.h*100)/100;
+      const area=w*h;
+      usedArea+=area;
+      sheetArea+=area;
+      totalCuts+=4; // 4 kesim per parça (4 kenar)
+      xml+='    <cut id="'+(pi+1)+'" name="'+part.name+'" x="'+x+'" y="'+y+'" w="'+w+'" h="'+h+'" area="'+Math.round(area)+'" kerf="'+dim.kerf+'"/>\n';
+    });
+    
+    totalArea+=dim.SW*dim.SH;
+    const eff=Math.round(sheetArea/(dim.SW*dim.SH)*1000)/10;
+    xml+='    <efficiency percent="'+eff+'"/>\n';
+    xml+='  </sheet>\n';
+  });
+  
+  const firePercent=Math.round((1-(usedArea/totalArea))*1000)/10;
+  xml+='  <summary>\n';
+  xml+='    <sheets count="'+dim.sheets.length+'"/>\n';
+  xml+='    <parts count="'+dim.sheets.reduce((s,sh)=>s+sh.parts.length,0)+'"/>\n';
+  xml+='    <cuts count="'+totalCuts+'"/>\n';
+  xml+='    <usedArea value="'+Math.round(usedArea)+'"/>\n';
+  xml+='    <totalArea value="'+Math.round(totalArea)+'"/>\n';
+  xml+='    <efficiency percent="'+Math.round(usedArea/totalArea*1000)/10+'"/>\n';
+  xml+='    <fire percent="'+firePercent+'"/>\n';
+  xml+='  </summary>\n';
+  xml+='</project>';
+  
+  const blob=new Blob([xml],{type:'application/xml'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='raskroi-'+(new Date().toISOString().split('T')[0])+'.xml';
+  a.click();
+  URL.revokeObjectURL(url);
+  alert('KDT-XML indirildi! ✓ '+dim.sheets.length+' levha, '+totalCuts+' kesim');
+};
 }
 
 window.calculate=function(){
