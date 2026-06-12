@@ -206,6 +206,7 @@ async function badgeLogout(){
     <button class="tab-btn" onclick="showTab('clients',this)" id="t-clients">🧑‍🤝‍🧑 Клиенты</button>
     <button class="tab-btn" onclick="showTab('products',this)" id="t-products">📦 Товары</button>
     <button class="tab-btn" onclick="showTab('orders',this)" id="t-orders">🛒 Заказы</button>
+    <button class="tab-btn" onclick="showTab('raskroi',this)" id="t-raskroi">✂️ Раскрой</button>
     <button class="tab-btn" onclick="showTab('analytics',this)" id="t-analytics">🤖 AI Аналитика</button>
     <button class="tab-btn" onclick="showTab('settings',this)" id="t-settings">⚙️ Настройки</button>
   </div>
@@ -374,6 +375,53 @@ async function badgeLogout(){
   </div>
 
   <!-- AI ANALYTICS -->
+  <!-- РАСКРОЙ DASHBOARD -->
+  <div class="tab-section" id="sec-raskroi">
+    <!-- İstatistik kartları -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px">
+      <div class="section-card" style="padding:14px;border-left:4px solid #3b82f6">
+        <div style="font-size:11px;color:var(--gray);font-weight:800">ВСЕГО ЗАКАЗОВ</div>
+        <div style="font-size:26px;font-weight:900" id="rk-total">—</div>
+      </div>
+      <div class="section-card" style="padding:14px;border-left:4px solid #f59e0b">
+        <div style="font-size:11px;color:var(--gray);font-weight:800">В РАБОТЕ</div>
+        <div style="font-size:26px;font-weight:900;color:#f59e0b" id="rk-active">—</div>
+      </div>
+      <div class="section-card" style="padding:14px;border-left:4px solid #16a34a">
+        <div style="font-size:11px;color:var(--gray);font-weight:800">ГОТОВО</div>
+        <div style="font-size:26px;font-weight:900;color:#16a34a" id="rk-done">—</div>
+      </div>
+      <div class="section-card" style="padding:14px;border-left:4px solid #f97316">
+        <div style="font-size:11px;color:var(--gray);font-weight:800">ВЫРУЧКА ₸</div>
+        <div style="font-size:26px;font-weight:900;color:#f97316" id="rk-revenue">—</div>
+      </div>
+    </div>
+    <!-- Siparişler -->
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title">✂️ ЗАКАЗЫ РАСКРОЯ</div>
+        <a href="raskroi_manager.html" class="btn-sm btn-orange" style="text-decoration:none">Открыть панель →</a>
+      </div>
+      <div class="sc-body" style="overflow-x:auto">
+        <table>
+          <thead><tr><th>№</th><th>Дата</th><th>Клиент</th><th>Телефон</th><th>Деталей</th><th>Цена ₸</th><th>Статус</th></tr></thead>
+          <tbody id="rk-orders"><tr><td colspan="7" style="text-align:center;color:var(--gray);padding:18px">⏳</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Çalışanlar -->
+    <div class="section-card" style="margin-top:14px">
+      <div class="sc-head">
+        <div class="sc-title">👥 ПЕРСОНАЛ РАСКРОЯ</div>
+        <a href="raskroi_worker_setup.html" class="btn-sm" style="background:#3b82f6;color:#fff;text-decoration:none">+ Назначить</a>
+      </div>
+      <div class="sc-body" id="rk-staff">
+        <div style="text-align:center;padding:14px;color:var(--gray)">⏳</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI -->
   <div class="tab-section" id="sec-analytics">
     <div class="ai-box">
       <div class="ai-title">🤖 <span id="ai-full-title">AI Аналитика и рекомендации</span></div>
@@ -525,6 +573,62 @@ function setLang(l){
   loadProducts();
 }
 
+// ─── RASKROI DASHBOARD ───
+async function loadRaskroiDash(){
+  if(!currentStore){return;}
+  try{
+    // Siparişler
+    const {data:rows,error}=await sb.from('raskroi_orders')
+      .select('id, order_number, status, parts, total_price, created_at, users!raskroi_orders_customer_id_fkey(full_name, phone)')
+      .eq('store_id', currentStore.id)
+      .order('created_at',{ascending:false})
+      .limit(100);
+    if(error) throw error;
+    const all=rows||[];
+    const active=all.filter(o=>['pending','processing'].includes(o.status)).length;
+    const done=all.filter(o=>['ready','done'].includes(o.status)).length;
+    const revenue=all.filter(o=>['ready','done'].includes(o.status)).reduce((s,o)=>s+(parseFloat(o.total_price)||0),0);
+    $('rk-total').textContent=all.length;
+    $('rk-active').textContent=active;
+    $('rk-done').textContent=done;
+    $('rk-revenue').textContent=revenue.toLocaleString('ru-RU');
+    const stMap={pending:['#3b82f6','Новый'],processing:['#f59e0b','В работе'],ready:['#16a34a','Готов'],done:['#16a34a','Выдан'],rejected:['#dc2626','Отклонён']};
+    $('rk-orders').innerHTML=all.length?all.slice(0,30).map(o=>{
+      const st=stMap[o.status]||stMap.pending;
+      const np=Array.isArray(o.parts)?o.parts.reduce((s,p)=>s+(parseInt(p.qty)||1),0):'—';
+      const u=o.users||{};
+      return `<tr>
+        <td style="font-weight:800">${o.order_number||o.id.substring(0,6)}</td>
+        <td>${new Date(o.created_at).toLocaleDateString('ru-RU')}</td>
+        <td>${u.full_name||'—'}</td>
+        <td>${u.phone||'—'}</td>
+        <td>${np}</td>
+        <td style="font-weight:800">${o.total_price?parseFloat(o.total_price).toLocaleString('ru-RU'):'—'}</td>
+        <td><span style="color:${st[0]};font-weight:800">● ${st[1]}</span></td>
+      </tr>`;
+    }).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:18px">Заказов раскроя пока нет</td></tr>';
+
+    // Personel
+    const {data:staff}=await sb.from('store_members')
+      .select('role, users(full_name, phone)')
+      .eq('store_id', currentStore.id)
+      .in('role',['raskroi_manager','raskroi_worker']);
+    const labels={raskroi_manager:'✂️ Менеджер раскроя',raskroi_worker:'🪚 Работник'};
+    $('rk-staff').innerHTML=(staff&&staff.length)?staff.map(s=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-weight:800">${s.users?.full_name||'—'}</div>
+          <div style="font-size:11px;color:var(--gray)">${s.users?.phone||'—'}</div>
+        </div>
+        <span style="font-size:11px;font-weight:800;color:#3b82f6">${labels[s.role]||s.role}</span>
+      </div>`).join('')
+      :'<div style="text-align:center;padding:14px;color:var(--gray)">Персонал раскроя не назначен — нажмите «+ Назначить»</div>';
+  }catch(e){
+    console.warn('raskroi dash:',e.message);
+    $('rk-orders').innerHTML='<tr><td colspan="7" style="text-align:center;color:#dc2626;padding:18px">Ошибка: '+e.message+'</td></tr>';
+  }
+}
+
 function showTab(id, btn){
   document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -534,6 +638,7 @@ function showTab(id, btn){
   if(id==='clients') searchClients('');
   if(id==='products') loadProducts();
   if(id==='orders') loadOrders();
+  if(id==='raskroi') loadRaskroiDash();
   if(id==='analytics') loadAI();
   if(id==='settings') loadSettings();
 }

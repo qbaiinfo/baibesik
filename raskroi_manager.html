@@ -95,7 +95,8 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 <div class="auth-guard" id="authGuard">
   <h2>🔐 Тек раскрой шебері кіре алады</h2>
   <p style="margin-top:8px;color:#94a3b8;font-size:13px">Доступ только для мастера раскроя (raskroi_worker / manager)</p>
-  <a href="login.html">Кіру / Войти</a>
+  <p id="guardReason" style="margin-top:6px;color:#fbbf24;font-size:12px;font-weight:700"></p>
+  <a href="login.html?staff=1">Кіру / Войти</a>
 </div>
 
 <header id="header" style="display:none">
@@ -221,6 +222,12 @@ async function init(){
     // raskroi_worker veya manager veya store_owner erişebilir
     const allowed=['raskroi_worker','raskroi_manager','manager','store_owner','super_admin','owner'];
     if(!currentUser || !allowed.includes(currentUser.role)){
+      const g=document.getElementById('guardReason');
+      if(!currentUser){
+        g.textContent='Причина: нет активной сессии — войдите заново (вкладка Сотрудник)';
+      }else{
+        g.textContent='Причина: ваша роль «'+(currentUser.role||'?')+'» — нет доступа. Владелец должен назначить роль раскроя.';
+      }
       document.getElementById('authGuard').classList.add('show');return;
     }
     // Sadece kesim çalışanı → fiyat alanları kilitli (fiyatı menajer belirler)
@@ -238,7 +245,12 @@ async function init(){
     // URL'den orderId
     const oid=new URLSearchParams(location.search).get('orderId');
     if(oid) setTimeout(()=>selectOrder(oid),200);
-  }catch(e){console.error(e);}
+  }catch(e){
+    console.error(e);
+    const g=document.getElementById('guardReason');
+    if(g)g.textContent='Ошибка: '+e.message;
+    document.getElementById('authGuard').classList.add('show');
+  }
 }
 
 async function loadOrders(){
