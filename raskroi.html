@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>✂️ Раскрой v8 — Baibesik.kz</title>
+<title>✂️ Раскрой — Baibesik.kz</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 :root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;}
@@ -17,7 +17,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .auth-guard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center}
 .auth-guard.show{display:flex}
 .auth-guard a{margin-top:1rem;padding:12px 24px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
-.content{max-width:1600px;margin:0 auto;padding:16px}
+.content{max-width:1600px;margin:0 auto;padding:16px;display:none}
 .import-bar{background:#fff;border-radius:12px;padding:14px 18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .import-bar textarea{flex:1;min-width:200px;min-height:42px;max-height:120px;padding:8px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:11px;resize:vertical;outline:none}
 .import-bar textarea:focus{border-color:var(--orange)}
@@ -76,11 +76,10 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .dims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
 .dim{display:flex;flex-direction:column;gap:3px;min-width:0}
 .dim label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dim input,.dim select{width:100%;min-width:0;padding:11px 4px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;font-weight:700;text-align:center;outline:none}
-.dim input:focus,.dim select:focus{border-color:var(--orange);background:#fff9f0}
-.dim input:disabled,.dim select:disabled{background:#f1f5f9;color:#94a3b8;cursor:not-allowed}
+.dim input{width:100%;min-width:0;padding:11px 4px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;font-weight:700;text-align:center;outline:none}
+.dim input:focus{border-color:var(--orange);background:#fff9f0}
 .dim input::-webkit-outer-spin-button,.dim input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.dim input[type=number],.dim select{-moz-appearance:textfield}
+.dim input[type=number]{-moz-appearance:textfield}
 .band-section{border-top:1px dashed var(--border);padding-top:10px}
 .band-label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
 .band-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -124,7 +123,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
   <a href="login.html">Кіру / Войти</a>
 </div>
 
-<header id="header">
+<header id="header" style="display:none">
   <a href="index.html" class="logo">BAIBESIK<span>.kz</span> ✂️ <span id="hdrTitle">Раскрой</span></a>
   <div class="nav-user">
     <a href="raskroi_my_orders.html" style="color:#94a3b8;text-decoration:none;font-size:12px;font-weight:700;padding:5px 10px;border:1px solid #334155;border-radius:6px">📋 <span id="myOrdersLink">Тапсырыстар</span></a>
@@ -137,7 +136,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
   </div>
 </header>
 
-<div class="content" id="content" style="display:block">
+<div class="content" id="content" style="display:none">
 
   <!-- IMPORT BAR -->
   <div class="import-bar">
@@ -159,16 +158,8 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
       <div class="panel">
         <h3 class="panel-title" data-i18n="sheetParams">📐 Параметры листа</h3>
         <div class="params">
-          <div class="ig"><label data-i18n="material">Материал / Материал</label>
-            <select id="material" onchange="switchMaterial(this.value)">
-              <option value="mdf" selected>MDF 2750×1830</option>
-              <option value="lam">Ламинат 2750×1830</option>
-              <option value="hdf">HDF 2750×1830</option>
-              <option value="custom">🔧 Өз өлшемі / Пользовательский</option>
-            </select>
-          </div>
-          <div class="ig"><label data-i18n="width">Ширина X (mm)</label><input type="number" id="sheetW" value="2750" min="100"></div>
-          <div class="ig"><label data-i18n="height">Высота Y (mm)</label><input type="number" id="sheetH" value="1830" min="100"></div>
+          <div class="ig"><label data-i18n="width">Ширина X (mm)</label><input type="number" id="sheetW" value="2800" min="100"></div>
+          <div class="ig"><label data-i18n="height">Высота Y (mm)</label><input type="number" id="sheetH" value="2070" min="100"></div>
           <div class="ig"><label data-i18n="material">Материал</label>
             <select id="matType">
               <option value="ldsp16">ЛДСП 16мм</option>
@@ -266,7 +257,6 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <button class="dl-btn" onclick="exportPDF()">📄 PDF</button>
           <button class="dl-btn" onclick="exportExcel()">📊 Excel</button>
           <button class="dl-btn" onclick="exportXML()">📐 XML</button>
-          <button class="dl-btn" onclick="exportKDT()" style="background:#ff6b35">🤖 KDT</button>
           <button class="dl-btn wa" onclick="shareWhatsApp()">📱 WhatsApp</button>
         </div>
       </div>
@@ -285,15 +275,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 
 <script src="supabase_client.js" type="module"></script>
 <script type="module">
-// Fallback: supabase_client.js yoksa, null döndür
-async function getCurrentUser(){
-  try{
-    const mod = await import('./supabase_client.js').catch(()=>null);
-    if(mod && mod.getCurrentUser) return await mod.getCurrentUser();
-  }catch(e){}
-  return null;
-}
-
+import { getCurrentUser } from './supabase_client.js';
 
 // ─── i18n ───
 const I18N = {
@@ -316,22 +298,13 @@ const COLORS=['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8F
 async function init(){
   try{
     currentUser = await getCurrentUser();
-  } catch(e){
-    console.warn('Supabase auth error (normal if offline):', e.message);
-    currentUser=null;
-  }
-  
-  if(!currentUser){ 
-    // Demo mode: sayfa zaten görünür, sadece kullanıcı bilgisini doldur
-    currentUser={full_name:'Demo User'};
-  }
-  try{ const ag=document.getElementById('authGuard'); if(ag) ag.style.display='none'; }catch(e){}
-  
-  try{
-    if(document.getElementById('userName')) document.getElementById('userName').textContent = currentUser.full_name||'User';
-    if(document.getElementById('av')) document.getElementById('av').textContent = (currentUser.full_name||'A').charAt(0).toUpperCase();
-    if(document.getElementById('langSel')) document.getElementById('langSel').addEventListener('change',e=>{lang=e.target.value;applyLang();});
-    if(document.getElementById('material')) switchMaterial('mdf');
+    if(!currentUser){ document.getElementById('authGuard').classList.add('show'); return; }
+    document.getElementById('authGuard').style.display='none';
+    document.getElementById('header').style.display='flex';
+    document.getElementById('content').style.display='block';
+    document.getElementById('userName').textContent = currentUser.full_name||'User';
+    document.getElementById('av').textContent = (currentUser.full_name||'A').charAt(0).toUpperCase();
+    document.getElementById('langSel').addEventListener('change',e=>{lang=e.target.value;applyLang();});
     parts=[{id:1,name:'P1',w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false}];
     // Tekrar gönder: önceki siparişi yükle
     const rs=new URLSearchParams(location.search).get('resend');
@@ -344,12 +317,10 @@ async function init(){
           if(o.material)document.getElementById('matType').value=o.material;
           if(o.grain)document.getElementById('grainDir').value=o.grain;
         }
-      }catch(e){console.warn('Resend load error:',e.message);}
+      }catch(e){}
     }
-    try{ renderTable(); } catch(e){ console.error('renderTable:', e.message); }
-    try{ applyLang(); } catch(e){ console.error('applyLang:', e.message); }
-    try{ loadShops(); } catch(e){ console.error('loadShops:', e.message); }
-  }catch(e){console.error('Init UI setup error:',e.message, e.stack);}
+    renderTable(); applyLang(); loadShops();
+  }catch(e){console.error(e);}
 }
 
 // ─── IMPORT (Excel/TXT) ───
@@ -461,251 +432,10 @@ window.toggleAllEdges=function(){
 };
 window.selPVC=(t,el)=>{selectedPVC=t;document.querySelectorAll('.pvc-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');};
 
-const MATERIALS={
-  mdf:{w:2750,h:1830},
-  lam:{w:2750,h:1830},
-  hdf:{w:2750,h:1830},
-  custom:{w:2750,h:1830}
-};
-
-window.switchMaterial=(mat)=>{
-  const m=MATERIALS[mat]||MATERIALS.mdf;
-  document.getElementById('sheetW').value=m.w;
-  document.getElementById('sheetH').value=m.h;
-  document.getElementById('sheetW').disabled=(mat!=='custom');
-  document.getElementById('sheetH').disabled=(mat!=='custom');
-};
 // ═══════════════════════════════════════════
 // NESTING ALGORITHM (Shelf/Guillotine + kerf + trim + rotation + grouping)
 // ═══════════════════════════════════════════
-// ════ RECURSIVE GUILLOTINE PACKER (Faz 3 — GibLab sinifi yaklasim) ════
-// Serbest dikdortgen listesi + split + merge. Her parca icin en uygun bosluk
-// secilir (BSSF/BAF), yerlesince bosluk ikiye bolunur (guillotine-gecerli),
-// komsu bosluklar birlestirilir. Ilk levhalar dolana kadar yeni levha acilmaz.
-function guilloOnce(items,usableW,usableH,trim,kerf,opt){
-  // opt.sortKey: 'area'|'maxside'|'w'|'h'  opt.fitRule:'bssf'|'baf'  opt.splitRule:'h'|'v'|'auto'
-  const its=items.map(i=>Object.assign({},i));
-  const keyFn={
-    area:(i)=>i.w*i.h, maxside:(i)=>Math.max(i.w,i.h), w:(i)=>i.w, h:(i)=>i.h
-  }[opt.sortKey];
-  its.sort((a,b)=>keyFn(b)-keyFn(a));
-
-  const sheets=[]; // {free:[{x,y,w,h}], parts:[]}
-  const newSheet=()=>{const s={free:[{x:0,y:0,w:usableW,h:usableH}],parts:[]};sheets.push(s);return s;};
-
-  function fitScore(rect,w,h){
-    if(w>rect.w+0.01||h>rect.h+0.01) return null;
-    if(opt.fitRule==='baf') return rect.w*rect.h-w*h; // kalan alan
-    return Math.min(rect.w-w,rect.h-h);              // bssf: kisa kenar farki
-  }
-
-  function placeIn(sheet,it){
-    let bi=-1,bs=Infinity,rot=false;
-    for(let i=0;i<sheet.free.length;i++){
-      const r=sheet.free[i];
-      const s1=fitScore(r,it.w,it.h);
-      if(s1!==null&&s1<bs){bs=s1;bi=i;rot=false;}
-      if(!it.lock){
-        const s2=fitScore(r,it.h,it.w);
-        if(s2!==null&&s2<bs){bs=s2;bi=i;rot=true;}
-      }
-    }
-    if(bi<0) return false;
-    const r=sheet.free[bi];
-    const w=rot?it.h:it.w, h=rot?it.w:it.h;
-    sheet.parts.push(Object.assign({},it,{w,h,px:r.x,py:r.y}));
-    sheet.free.splice(bi,1);
-    // split: kerf payli iki cocuk bosluk
-    const rw=r.w-w-kerf, rh=r.h-h-kerf;
-    let sp=opt.splitRule;
-    if(sp==='auto') sp=(rw*r.h>=r.w*rh)?'v':'h'; // buyuk cocugu koru
-    if(sp==='v'){ // sag tam boy, ust parca genisliginde
-      if(rw>1) sheet.free.push({x:r.x+w+kerf,y:r.y,w:rw,h:r.h});
-      if(rh>1) sheet.free.push({x:r.x,y:r.y+h+kerf,w:w,h:rh});
-    }else{ // ust tam boy, sag parca yuksekliginde
-      if(rh>1) sheet.free.push({x:r.x,y:r.y+h+kerf,w:r.w,h:rh});
-      if(rw>1) sheet.free.push({x:r.x+w+kerf,y:r.y,w:rw,h:h});
-    }
-    mergeFree(sheet.free);
-    return true;
-  }
-
-  function mergeFree(free){
-    let merged=true;
-    while(merged){
-      merged=false;
-      for(let i=0;i<free.length&&!merged;i++)for(let j=i+1;j<free.length&&!merged;j++){
-        const a=free[i],b=free[j];
-        if(Math.abs(a.x-b.x)<0.01&&Math.abs(a.w-b.w)<0.01){
-          if(Math.abs(a.y+a.h+kerf-b.y)<0.5){a.h+=kerf+b.h;free.splice(j,1);merged=true;}
-          else if(Math.abs(b.y+b.h+kerf-a.y)<0.5){b.h+=kerf+a.h;free.splice(i,1);merged=true;}
-        }else if(Math.abs(a.y-b.y)<0.01&&Math.abs(a.h-b.h)<0.01){
-          if(Math.abs(a.x+a.w+kerf-b.x)<0.5){a.w+=kerf+b.w;free.splice(j,1);merged=true;}
-          else if(Math.abs(b.x+b.w+kerf-a.x)<0.5){b.w+=kerf+a.w;free.splice(i,1);merged=true;}
-        }
-      }
-    }
-  }
-
-  for(const it of its){
-    let ok=false;
-    for(const s of sheets){ if(placeIn(s,it)){ok=true;break;} }
-    if(!ok){ if(!placeIn(newSheet(),it)) return null; } // teorik: oversize zaten elendi
-  }
-
-  // cikti formati: parts x/y trim ofsetli
-  const out=sheets.map(s=>({
-    parts:s.parts.map(p=>({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock,pid:p.pid,x:trim+p.px,y:trim+p.py})),
-    strips:[]
-  }));
-  const sheetArea=usableW*usableH;
-  let sumSq=0;
-  out.forEach(s=>{let a=0;s.parts.forEach(p=>a+=p.w*p.h);const f=a/sheetArea;sumSq+=f*f;});
-  return {sheets:out,score:out.length*1000-sumSq*10};
-}
-
-
-// Tek bir parametre setiyle strip-packing dener; sonuc + skor doner.
-function nestOnce(items,usableW,usableH,trim,kerf,opt){
-  const tol=opt.heightTol||0;
-
-  const sorted=items.slice().sort((a,b)=>b.h-a.h);
-  const groups=[];
-  sorted.forEach(it=>{
-    let g=groups.find(g=>Math.abs(g.h-it.h)<=tol);
-    if(!g){g={h:it.h,items:[]};groups.push(g);}
-    else if(it.h>g.h) g.h=it.h;
-    g.items.push(it);
-  });
-  groups.forEach(g=>{
-    const byName={};
-    g.items.forEach(it=>{(byName[it.name]=byName[it.name]||[]).push(it);});
-    let s=[];
-    Object.values(byName).forEach(grp=>{grp.sort((a,b)=>b.w-a.w);s.push(...grp);});
-    g.items=s;
-  });
-  groups.sort((a,b)=>opt.sortMode==='asc'?a.h-b.h:b.h-a.h);
-
-  const rows=[];
-  for(let gi=0;gi<groups.length;gi++){
-    const g=groups[gi];
-    while(g.items.length){
-      const row={h:g.h,parts:[],x:0};
-      for(let i=0;i<g.items.length;){
-        const it=g.items[i];
-        if(it.h<=row.h+0.01 && row.x+it.w<=usableW+0.01){
-          row.parts.push(Object.assign({},it,{rx:row.x}));
-          row.x+=it.w+kerf;
-          g.items.splice(i,1);
-        } else if(!it.lock && it.w<=row.h+0.01 && row.x+it.h<=usableW+0.01){
-          // kilitsiz parcayi 90 dondurup dene
-          row.parts.push(Object.assign({},it,{w:it.h,h:it.w,rx:row.x}));
-          row.x+=it.h+kerf;
-          g.items.splice(i,1);
-        } else i++;
-      }
-      if(!row.parts.length) break;
-      // diger gruplardan doldur, gerekirse 90 derece dondurerek (lock=false ise)
-      for(let gj=0;gj<groups.length && row.x<usableW-10;gj++){
-        if(gj===gi) continue;
-        const g2=groups[gj];
-        for(let i=0;i<g2.items.length;){
-          const it=g2.items[i];
-          let placed=false;
-          if(it.h<=row.h+0.01 && row.x+it.w<=usableW+0.01){
-            row.parts.push(Object.assign({},it,{rx:row.x}));
-            row.x+=it.w+kerf; placed=true;
-          } else if(!it.lock && it.w<=row.h+0.01 && row.x+it.h<=usableW+0.01){
-            // 90 derece dondur: w<->h
-            row.parts.push(Object.assign({},it,{w:it.h,h:it.w,rx:row.x}));
-            row.x+=it.h+kerf; placed=true;
-          }
-          if(placed) g2.items.splice(i,1); else i++;
-        }
-      }
-      // SON TARAMA: satir sonunda kalan yatay bosluga (row.x..usableW) sigan
-      // herhangi bir parcayi (gruplar arasi, rotasyonlu) ara - dikey yer ustte sub'a duser
-      if(row.x<usableW-10){
-        let found=true;
-        while(found && row.x<usableW-10){
-          found=false;
-          for(let gj=0;gj<groups.length;gj++){
-            const g2=groups[gj];
-            for(let i=0;i<g2.items.length;i++){
-              const it=g2.items[i];
-              const remW=usableW-row.x;
-              if(it.h<=row.h+0.01 && it.w<=remW+0.01){
-                row.parts.push(Object.assign({},it,{rx:row.x}));
-                row.x+=it.w+kerf; g2.items.splice(i,1); found=true; break;
-              } else if(!it.lock && it.w<=row.h+0.01 && it.h<=remW+0.01){
-                row.parts.push(Object.assign({},it,{w:it.h,h:it.w,rx:row.x}));
-                row.x+=it.h+kerf; g2.items.splice(i,1); found=true; break;
-              }
-            }
-            if(found) break;
-          }
-        }
-      }
-      // SUB-SHELF (parca bazli): her yerlesen parcanin ustunde kalan bosluga
-      // (row.h - parca.h) o parcanin genislik araliginda kucuk parcalari istifle
-      row.sub=row.sub||[];
-      for(const host of row.parts){
-        const remH=row.h-host.h-kerf;
-        if(remH<60) continue; // cok ince bosluk, atla (en kucuk pratik parca ~80mm)
-        const zone={x:host.rx,limit:host.rx+host.w,y:host.h+kerf,h:remH,cx:host.rx};
-        let zoneFull=false;
-        while(!zoneFull){
-          zoneFull=true;
-          for(let gj=0;gj<groups.length;gj++){
-            const g2=groups[gj];
-            for(let i=0;i<g2.items.length;i++){
-              const it=g2.items[i];
-              const remW=zone.limit-zone.cx;
-              if(it.h<=zone.h+0.01 && it.w<=remW+0.01){
-                row.sub.push(Object.assign({},it,{rx:zone.cx,ry:zone.y}));
-                zone.cx+=it.w+kerf; g2.items.splice(i,1); zoneFull=false; break;
-              } else if(!it.lock && it.w<=zone.h+0.01 && it.h<=remW+0.01){
-                row.sub.push(Object.assign({},it,{w:it.h,h:it.w,rx:zone.cx,ry:zone.y}));
-                zone.cx+=it.h+kerf; g2.items.splice(i,1); zoneFull=false; break;
-              }
-            }
-            if(!zoneFull) break;
-          }
-        }
-      }
-      rows.push(row);
-    }
-  }
-
-  rows.sort((a,b)=>b.h-a.h);
-  const sheets=[];
-  for(const row of rows){
-    // BEST-FIT: sigan levhalar icinde kalan yuksekligi en az olani sec (siki paketleme)
-    let target=null,bestRem=Infinity;
-    for(const s of sheets){
-      const rem=usableH-s.y-row.h;
-      if(rem>=-0.01 && rem<bestRem){bestRem=rem;target=s;}
-    }
-    if(!target){target={parts:[],strips:[],y:0};sheets.push(target);}
-    row.parts.forEach(p=>target.parts.push(Object.assign({},p,{x:trim+p.rx,y:trim+target.y})));
-    if(row.sub) row.sub.forEach(p=>target.parts.push(Object.assign({},p,{x:trim+p.rx,y:trim+target.y+p.ry})));
-    target.strips.push({y:target.y,h:row.h,count:row.parts.length});
-    target.y+=row.h+kerf;
-  }
-
-  // SKOR: 1) levha sayisi  2) konsantrasyon (ilk levhalar dolu, son levha bos kalsin
-  // -> buyuk tek parca artik). Doluluk karelerinin toplami yuksekse skor duser.
-  const sheetArea=usableW*usableH;
-  let sumSq=0;
-  sheets.forEach(s=>{
-    let a=0; s.parts.forEach(p=>a+=p.w*p.h);
-    const f=a/sheetArea; sumSq+=f*f;
-  });
-  const score=sheets.length*1000-sumSq*10;
-
-  return {sheets,score};
-}
-
+// ════ STRIP BIN PACKING (KDT Makinalar İçin Optimize) ════
 function nest(){
   const SW=parseFloat(document.getElementById('sheetW').value)||2800;
   const SH=parseFloat(document.getElementById('sheetH').value)||2070;
@@ -713,133 +443,166 @@ function nest(){
   const trim=parseFloat(document.getElementById('trim').value)||10;
   const grain=document.getElementById('grainDir').value;
   const usableW=SW-2*trim, usableH=SH-2*trim;
+  const MIN_REM=100;
 
-  // 1. Parcalari ac (qty x kopya)
-  let items=[];
+  // Parcalari ac
+  let baseItems=[];
   parts.forEach(p=>{
     for(let i=0;i<p.qty;i++){
-      items.push({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock,pid:p.id});
+      baseItems.push({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock,pid:p.id});
     }
   });
 
-  // 2. Oversize kontrolu icin once yatay normalize (asil oryantasyon yarista belirlenir)
-  items.forEach(it=>{
-    if(!it.lock && grain==='none' && it.w<it.h) [it.w,it.h]=[it.h,it.w];
-  });
-
-  // 3. Levhaya hic sigmayan parcalari ayir (kaybolmasin, uyari icin)
-  const oversize=[];
-  items=items.filter(it=>{
-    if(it.w<=usableW+0.01 && it.h<=usableH+0.01) return true;
-    if(!it.lock && grain==='none' && it.h<=usableW+0.01 && it.w<=usableH+0.01){
-      const t=it.w; it.w=it.h; it.h=t; return true;
-    }
-    oversize.push(it); return false;
-  });
-
-  // 4. STRATEJI YARISI: tolerans x sira x oryantasyon x (normal+transpoze)
-  //    Kilitsiz parcalar 'land' (yatay) veya 'port' (dikey) baslangicla denenir,
-  //    yerlestirme sirasinda da her iki yon ayrica test edilir (cevir-cevir).
-  const tolerances=[0,5,10,20,30];
-  const sortModes=['desc','asc'];
-  const orientModes = grain==='none' ? ['land','port'] : ['land'];
-  const canTranspose = grain==='none' && !items.some(it=>it.lock);
-  let best=null;
-  for(const om of orientModes){
-    const oitems=items.map(it=>{
-      if(it.lock) return Object.assign({},it);
-      const c=Object.assign({},it);
-      if(om==='land' && c.w<c.h) [c.w,c.h]=[c.h,c.w];
-      if(om==='port' && c.w>c.h) [c.w,c.h]=[c.h,c.w];
-      return c;
+  // ---- CEKIRDEK PAKETLEYICI (verilen UW x UH icine yatay seritler) ----
+  // donus: goreli koordinatli levhalar {parts:[{px,py,w,h,...}], remnants, strips, usedY}
+  function pack(itemsIn, UW, UH, canRotate){
+    let items=itemsIn.map(it=>Object.assign({},it));
+    // yon: en uzun kenari yatay (sadece izinliyse)
+    items.forEach(it=>{
+      if(canRotate(it) && it.w<it.h){const t=it.w;it.w=it.h;it.h=t;it.rot=!it.rot;}
     });
-    for(const tol of tolerances){
-      for(const sm of sortModes){
-        const res=nestOnce(oitems,usableW,usableH,trim,kerf,{heightTol:tol,sortMode:sm});
-        if(!best||res.score<best.score) best=res;
-        if(canTranspose){
-          const titems=oitems.map(it=>Object.assign({},it,{w:it.h,h:it.w}));
-          const tres=nestOnce(titems,usableH,usableW,trim,kerf,{heightTol:tol,sortMode:sm});
-          if(tres.score<(best?best.score:Infinity)){
-            tres.sheets.forEach(s=>s.parts.forEach(p=>{
-              const nx=p.y, ny=p.x, nw=p.h, nh=p.w;
-              p.x=nx; p.y=ny; p.w=nw; p.h=nh;
-            }));
-            best=tres;
+    const oversize=[];
+    items=items.filter(it=>{
+      if(it.w<=UW+0.01 && it.h<=UH+0.01) return true;
+      if(canRotate(it) && it.h<=UW+0.01 && it.w<=UH+0.01){const t=it.w;it.w=it.h;it.h=t;it.rot=!it.rot;return true;}
+      oversize.push(it); return false;
+    });
+    // yukseklik gruplari
+    const gmap={};
+    items.forEach(it=>{const k=Math.round(it.h);(gmap[k]=gmap[k]||[]).push(it);});
+    const groups=Object.keys(gmap).map(h=>{
+      const byName={};
+      gmap[h].forEach(it=>{(byName[it.name]=byName[it.name]||[]).push(it);});
+      let s=[];Object.values(byName).forEach(g=>{g.sort((a,b)=>b.w-a.w);s.push(...g);});
+      return {h:parseFloat(h),items:s};
+    }).sort((a,b)=>b.h-a.h);
+    // seritler + sub-strip istif
+    const rows=[];
+    for(let gi=0;gi<groups.length;gi++){
+      const g=groups[gi];
+      while(g.items.length){
+        const row={h:g.h,parts:[],x:0};
+        for(let i=0;i<g.items.length;){
+          const it=g.items[i];
+          if(row.x+it.w<=UW+0.01){
+            row.parts.push(Object.assign({},it,{rx:row.x,ry:0}));
+            row.x+=it.w+kerf; g.items.splice(i,1);
+          } else i++;
+        }
+        if(!row.parts.length) break;
+        let guard=0;
+        while(row.x<UW-MIN_REM && guard++<300){
+          let colW=0,colH=0,colParts=[];
+          for(let gj=gi+1;gj<groups.length;gj++){
+            const g2=groups[gj];
+            for(let i=0;i<g2.items.length;){
+              const it=g2.items[i];
+              const fitsH=colH+it.h<=row.h+0.01;
+              const fitsW=colParts.length===0?(row.x+it.w<=UW+0.01):(it.w<=colW+0.01);
+              if(fitsH&&fitsW){
+                colParts.push(Object.assign({},it,{rx:row.x,ry:colH}));
+                colW=Math.max(colW,it.w); colH+=it.h+kerf;
+                g2.items.splice(i,1);
+              } else i++;
+            }
           }
+          if(!colParts.length) break;
+          row.parts.push(...colParts); row.x+=colW+kerf;
         }
+        rows.push(row);
       }
     }
-    // RECURSIVE GUILLOTINE varyantlari da yarisa girer
-    for(const sk of ['area','maxside','w','h']){
-      for(const fr of ['bssf','baf']){
-        for(const sp of ['h','v','auto']){
-          const gres=guilloOnce(oitems,usableW,usableH,trim,kerf,{sortKey:sk,fitRule:fr,splitRule:sp});
-          if(gres && (!best||gres.score<best.score)) best=gres;
-        }
-      }
+    // levhalara yig + kalanlar
+    rows.sort((a,b)=>b.h-a.h);
+    const sheets=[];
+    for(const row of rows){
+      let t=null;
+      for(const s of sheets){if(s.usedY+row.h<=UH+0.01){t=s;break;}}
+      if(!t){t={parts:[],strips:[],remnants:[],usedY:0};sheets.push(t);}
+      row.parts.forEach(p=>t.parts.push(Object.assign({},p,{px:p.rx,py:t.usedY+(p.ry||0)})));
+      const remW=UW-row.x;
+      if(remW>=MIN_REM)t.remnants.push({px:row.x,py:t.usedY,w:remW,h:row.h});
+      t.strips.push({y:t.usedY,h:row.h,count:row.parts.length});
+      t.usedY+=row.h+kerf;
     }
+    sheets.forEach(s=>{
+      const remH=UH-s.usedY;
+      if(remH>=MIN_REM)s.remnants.push({px:0,py:s.usedY,w:UW,h:remH});
+    });
+    return {sheets,oversize};
   }
 
-  return {sheets:best.sheets,SW,SH,usableW,usableH,trim,kerf,oversize};
-}
+  const rotOK=it=>!it.lock&&grain==='none';
 
-// ════ KDT-XML EXPORT (pil merkezine gonderim) ════
-window.exportKDT=function(){
-  const dim=nest();
-  if(!dim.sheets||!dim.sheets.length){alert('Önce raскrой hesapla');return;}
-  const material=document.getElementById('material').value;
-  const mat_names={mdf:'MDF',lam:'Laminate',hdf:'HDF',custom:'Custom'};
-  const mat_name=mat_names[material]||'Material';
-  
-  let xml='<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml+='<project date="'+new Date().toISOString()+'" material="'+mat_name+'" sheetWidth="'+dim.SW+'" sheetHeight="'+dim.SH+'" kerf="'+dim.kerf+'" trim="'+dim.trim+'" version="1.0">\n';
-  
-  let totalCuts=0,totalArea=0,usedArea=0;
-  
-  dim.sheets.forEach((sheet,si)=>{
-    let sheetArea=0;
-    xml+='  <sheet id="'+(si+1)+'" width="'+dim.SW+'" height="'+dim.SH+'" partCount="'+sheet.parts.length+'">\n';
-    
-    sheet.parts.forEach((part,pi)=>{
-      const x=Math.round(part.x*100)/100;
-      const y=Math.round(part.y*100)/100;
-      const w=Math.round(part.w*100)/100;
-      const h=Math.round(part.h*100)/100;
-      const area=w*h;
-      usedArea+=area;
-      sheetArea+=area;
-      totalCuts+=4; // 4 kesim per parça (4 kenar)
-      xml+='    <cut id="'+(pi+1)+'" name="'+part.name+'" x="'+x+'" y="'+y+'" w="'+w+'" h="'+h+'" area="'+Math.round(area)+'" kerf="'+dim.kerf+'"/>\n';
+  // A: YATAY seritler (normal)
+  const A=pack(baseItems,usableW,usableH,rotOK);
+  // B: DIKEY seritler (transpoze alan; parca w/h takas, sonra geri map)
+  const Bt=pack(baseItems.map(it=>Object.assign({},it,{w:it.h,h:it.w})),usableH,usableW,rotOK);
+  const B={oversize:Bt.oversize,sheets:Bt.sheets.map(s=>({
+    usedY:s.usedY,
+    strips:s.strips,
+    parts:s.parts.map(p=>({name:p.name,e:p.e,lock:p.lock,pid:p.pid,rot:p.rot,
+      w:p.h,h:p.w,px:p.py,py:p.px})),
+    remnants:s.remnants.map(r=>({px:r.py,py:r.px,w:r.h,h:r.w}))
+  }))};
+
+  // SECIM: her iki yonu de tam isle (reinsertion dahil), iyisini sec
+  function finalize(R, vertical){
+    const sheets=R.sheets.map(s=>({
+      parts:s.parts.map(p=>Object.assign({},p,{x:trim+p.px,y:trim+p.py})),
+      remnants:s.remnants.map(r=>({x:trim+r.px,y:trim+r.py,w:r.w,h:r.h})),
+      strips:s.strips
+    }));
+    // kalanlara geri yerlestirme
+    for(let si=sheets.length-1; si>0; si--){
+      const src=sheets[si];
+      src.parts.sort((a,b)=>b.w*b.h-a.w*a.h);
+      for(let pi=0; pi<src.parts.length;){
+        const p=src.parts[pi];
+        let moved=false;
+        for(let ti=0; ti<si && !moved; ti++){
+          const t=sheets[ti];
+          for(let ri=0; ri<t.remnants.length; ri++){
+            const r=t.remnants[ri];
+            let pw=p.w, ph=p.h, rotd=false;
+            if(!(pw<=r.w+0.01 && ph<=r.h+0.01)){
+              if(rotOK(p) && p.h<=r.w+0.01 && p.w<=r.h+0.01){pw=p.h;ph=p.w;rotd=true;}
+              else continue;
+            }
+            t.parts.push(Object.assign({},p,{w:pw,h:ph,rot:rotd?!p.rot:p.rot,x:r.x,y:r.y}));
+            src.parts.splice(pi,1);
+            const right={x:r.x+pw+kerf, y:r.y, w:r.w-pw-kerf, h:ph};
+            const bottom={x:r.x, y:r.y+ph+kerf, w:r.w, h:r.h-ph-kerf};
+            t.remnants.splice(ri,1);
+            if(right.w>=MIN_REM && right.h>=MIN_REM) t.remnants.push(right);
+            if(bottom.w>=MIN_REM && bottom.h>=MIN_REM) t.remnants.push(bottom);
+            moved=true; break;
+          }
+        }
+        if(!moved) pi++;
+      }
+    }
+    for(let i=sheets.length-1;i>=0;i--) if(!sheets[i].parts.length) sheets.splice(i,1);
+    // kesim uzunlugu
+    let cl=0;
+    sheets.forEach(s=>{
+      s.strips.forEach(()=>{cl+=(vertical?usableH:usableW);});
+      s.parts.forEach(pt=>{cl+=(vertical?pt.w:pt.h);});
     });
-    
-    totalArea+=dim.SW*dim.SH;
-    const eff=Math.round(sheetArea/(dim.SW*dim.SH)*1000)/10;
-    xml+='    <efficiency percent="'+eff+'"/>\n';
-    xml+='  </sheet>\n';
-  });
-  
-  const firePercent=Math.round((1-(usedArea/totalArea))*1000)/10;
-  xml+='  <summary>\n';
-  xml+='    <sheets count="'+dim.sheets.length+'"/>\n';
-  xml+='    <parts count="'+dim.sheets.reduce((s,sh)=>s+sh.parts.length,0)+'"/>\n';
-  xml+='    <cuts count="'+totalCuts+'"/>\n';
-  xml+='    <usedArea value="'+Math.round(usedArea)+'"/>\n';
-  xml+='    <totalArea value="'+Math.round(totalArea)+'"/>\n';
-  xml+='    <efficiency percent="'+Math.round(usedArea/totalArea*1000)/10+'"/>\n';
-  xml+='    <fire percent="'+firePercent+'"/>\n';
-  xml+='  </summary>\n';
-  xml+='</project>';
-  
-  const blob=new Blob([xml],{type:'application/xml'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download='raskroi-'+(new Date().toISOString().split('T')[0])+'.xml';
-  a.click();
-  URL.revokeObjectURL(url);
-  alert('KDT-XML indirildi! ✓ '+dim.sheets.length+' levha, '+totalCuts+' kesim');
-};
+    return {sheets, cutLen:cl, oversize:R.oversize, vertical};
+  }
+
+  const FA=finalize(A,false), FB=finalize(B,true);
+  function score(F){
+    const n=F.sheets.length;
+    if(!n)return [0,0];
+    const last=F.sheets[n-1];
+    return [n, last.parts.reduce((s,p)=>s+p.w*p.h,0)];
+  }
+  const [na,la]=score(FA),[nb,lb]=score(FB);
+  const F = ((nb<na)||(nb===na&&lb<la)) ? FB : FA;
+  return {sheets:F.sheets,SW,SH,usableW,usableH,trim,kerf,oversize:F.oversize,cutLen:F.cutLen,dir:F.vertical?'V':'H'};
+}
 
 window.calculate=function(){
   if(!parts.length){alert('Добавьте детали');return;}
@@ -856,7 +619,7 @@ window.calculate=function(){
     pvcLen+=per*p.qty;
   });
   // kesim uzunluğu: her parça çevresi/2 yaklaşık (guillotine)
-  L.sheets.forEach(s=>s.parts.forEach(pt=>{cutLen+=(pt.w+pt.h);}));
+  cutLen=L.cutLen||0;
   const nSheets=L.sheets.length;
   const eff = nSheets? (totalPartArea/(sheetArea*nSheets)*100):0;
 
@@ -910,6 +673,24 @@ function drawSheets(L){
     ctx.strokeStyle='#cbd5e1'; ctx.setLineDash([4,3]);
     ctx.strokeRect(L.trim*scale,L.trim*scale,L.usableW*scale,L.usableH*scale);
     ctx.setLineDash([]);
+    // KALANLAR (остатки) — taralı + ölçü etiketi
+    (sheet.remnants||[]).forEach(r=>{
+      const x=r.x*scale,y=r.y*scale,w=r.w*scale,h=r.h*scale;
+      ctx.save();
+      ctx.fillStyle='#e2e8f0'; ctx.fillRect(x,y,w,h);
+      // çapraz tarama
+      ctx.strokeStyle='#94a3b8'; ctx.lineWidth=.6;
+      ctx.beginPath();
+      for(let d=-h;d<w;d+=8){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+      ctx.rect(x,y,w,h); ctx.clip(); ctx.stroke();
+      ctx.restore();
+      ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.strokeRect(x,y,w,h); ctx.setLineDash([]);
+      if(w>40&&h>14){
+        ctx.fillStyle='#64748b'; ctx.font='bold 9px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
+      }
+    });
     // parçalar
     sheet.parts.forEach(pt=>{
       const x=pt.x*scale,y=pt.y*scale,w=pt.w*scale,h=pt.h*scale;
@@ -976,7 +757,17 @@ function drawSheets(L){
         <th style="padding:7px 6px">${T('Лист','Парақ')}</th><th style="padding:7px 6px">✓</th>
       </tr></thead>
       <tbody style="text-align:center;color:#0f172a">${rowsHtml}</tbody>
-    </table></div>`;
+    </table></div>
+    ${(()=>{
+      const rems=[];
+      L.sheets.forEach((s,si)=>(s.remnants||[]).forEach(r=>rems.push({...r,sheet:si+1})));
+      if(!rems.length)return '';
+      const m2=rems.reduce((s,r)=>s+r.w*r.h,0)/1e6;
+      return `<div style="margin-top:12px;font-weight:800;font-size:14px;color:#0f172a">♻️ ${T('Остатки (можно сохранить)','Қалдықтар (сақтауға болады)')} — ${m2.toFixed(2)} м²</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+        ${rems.map(r=>`<span style="background:#f1f5f9;border:1px dashed #94a3b8;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;color:#475569">${Math.round(r.w)}×${Math.round(r.h)} <small style="color:#94a3b8">(${T('лист','парақ')} ${r.sheet})</small></span>`).join('')}
+      </div>`;
+    })()}`;
 }
 
 // ─── KAĞIT TARAMA (foto → parçalar, resim KAYDEDİLMEZ) ───
@@ -1177,12 +968,7 @@ window.sendToManager=async function(){
   window.location.href=`raskroi_manager.html?orderId=${order.id}`;
 };
 
-init().catch(e=>{
-  console.error('Init failed:', e.message);
-  // En azından content göster
-  const c = document.getElementById('content');
-  if(c) c.style.display='block';
-});
+init();
 </script>
 </body>
 </html>
