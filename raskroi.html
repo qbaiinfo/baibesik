@@ -476,7 +476,8 @@ window.switchMaterial=(mat)=>{
   document.getElementById('sheetH').value=m.h;
   document.getElementById('sheetW').disabled=(mat!=='custom');
   document.getElementById('sheetH').disabled=(mat!=='custom');
-};═══
+};
+// ═══════════════════════════════════════════
 // NESTING ALGORITHM (Shelf/Guillotine + kerf + trim + rotation + grouping)
 // ═══════════════════════════════════════════
 // ════ RECURSIVE GUILLOTINE PACKER (Faz 3 — GibLab sinifi yaklasim) ════
@@ -841,7 +842,6 @@ window.exportKDT=function(){
   URL.revokeObjectURL(url);
   alert('KDT-XML indirildi! ✓ '+dim.sheets.length+' levha, '+totalCuts+' kesim');
 };
-}
 
 window.calculate=function(){
   if(!parts.length){alert('Добавьте детали');return;}
