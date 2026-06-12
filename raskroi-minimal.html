@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Раскрой — Baibesik.kz</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { --orange: #ff6b35; --border: #ddd; --text: #333; --bg: #f9f9f9; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+    
+    .header { background: #fff; padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+    .header h1 { font-size: 24px; flex: 1; }
+    .header p { font-size: 12px; color: #999; }
+    .lang-sel { padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+    @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+    
+    .panel { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
+    .panel h2 { font-size: 16px; margin-bottom: 16px; border-bottom: 2px solid var(--orange); padding-bottom: 8px; }
+    
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; }
+    input:focus, select:focus { outline: none; border-color: var(--orange); background: #fffaf0; }
+    
+    .btn { width: 100%; padding: 12px; background: var(--orange); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-top: 12px; }
+    .btn:hover { background: #e55a2a; }
+    .btn.small { width: auto; padding: 8px 16px; margin: 4px 4px 0 0; }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: #f5f5f5; font-weight: 600; }
+    
+    .info { padding: 12px; background: #e8f5e9; border-left: 4px solid #4caf50; margin-top: 16px; font-size: 13px; }
+    .info.warn { background: #fff3e0; border-left-color: #ff9800; }
+    .info.error { background: #ffebee; border-left-color: #f44336; }
+    
+    .exports { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+    .exports .btn.small { width: 100%; margin: 0; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>✂️ Раскрой</h1>
+    <p>Оптимизация раскроя листового материала</p>
+  </div>
+  <select class="lang-sel" id="lang" onchange="switchLang(this.value)">
+    <option value="ru">РУ</option>
+    <option value="kk">ҚАЗ</option>
+  </select>
+</div>
+
+<div class="container">
+  <div class="panel">
+    <h2>⚙️ Параметры</h2>
+    
+    <div class="form-group">
+      <label>Материал</label>
+      <select id="material" onchange="setSheetSize(this.value)">
+        <option value="mdf">MDF 2750×1830</option>
+        <option value="lam">Ламинат 2750×1830</option>
+        <option value="hdf">HDF 2750×1830</option>
+        <option value="custom">Пользовательский</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Ширина X (mm)</label>
+      <input type="number" id="sheetW" value="2750" min="100">
+    </div>
+    
+    <div class="form-group">
+      <label>Высота Y (mm)</label>
+      <input type="number" id="sheetH" value="1830" min="100">
+    </div>
+    
+    <div class="form-group">
+      <label>Пропил (mm)</label>
+      <input type="number" id="kerf" value="4" min="0" step="0.5">
+    </div>
+    
+    <div class="form-group">
+      <label>Обрезка (mm)</label>
+      <input type="number" id="trim" value="10" min="0">
+    </div>
+    
+    <h2 style="margin-top: 24px;">📦 Детали</h2>
+    
+    <div class="form-group">
+      <label>Имя</label>
+      <input type="text" id="partName" placeholder="P1">
+    </div>
+    
+    <div class="form-group">
+      <label>Ширина (mm)</label>
+      <input type="number" id="partW" placeholder="600" min="10">
+    </div>
+    
+    <div class="form-group">
+      <label>Высота (mm)</label>
+      <input type="number" id="partH" placeholder="400" min="10">
+    </div>
+    
+    <div class="form-group">
+      <label>Кол-во</label>
+      <input type="number" id="partQty" value="1" min="1">
+    </div>
+    
+    <button class="btn" onclick="addPart()">+ Добавить</button>
+  </div>
+  
+  <div class="panel">
+    <h2>📋 Детали в заказе</h2>
+    <table id="partsTable">
+      <thead>
+        <tr>
+          <th>Имя</th>
+          <th>Ширина</th>
+          <th>Высота</th>
+          <th>Кол</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="partsList"></tbody>
+    </table>
+    
+    <button class="btn" onclick="calculate()">🧮 Рассчитать</button>
+    
+    <div id="result"></div>
+    
+    <div class="exports" id="exports" style="display:none;">
+      <button class="btn small" onclick="exportPDF()">📄 PDF</button>
+      <button class="btn small" onclick="exportKDT()">🤖 KDT</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// CUTTING OPTIMIZER - Minimal Version
+// ════════════════════════════════════════════════════════════════
+
+let parts = [];
+let lastLayout = null;
+let lang = 'ru';
+
+const MATERIALS = { mdf: {w:2750, h:1830}, lam: {w:2750, h:1830}, hdf: {w:2750, h:1830} };
+
+const LANG = {
+  ru: {
+    add: 'Добавить',
+    calc: 'Рассчитать',
+    sheets: 'Листов',
+    parts: 'Деталей',
+    eff: 'КПД',
+    fire: 'Брак',
+    noparts: 'Добавьте детали!'
+  },
+  kk: {
+    add: 'Қосу',
+    calc: 'Есептеу',
+    sheets: 'Парақтар',
+    parts: 'Бөлшектер',
+    eff: 'Өнімділік',
+    fire: 'Браковка',
+    noparts: 'Бөлшектерді қосыңыз!'
+  }
+};
+
+function setSheetSize(mat) {
+  if(MATERIALS[mat]) {
+    document.getElementById('sheetW').value = MATERIALS[mat].w;
+    document.getElementById('sheetH').value = MATERIALS[mat].h;
+    document.getElementById('sheetW').disabled = mat !== 'custom';
+    document.getElementById('sheetH').disabled = mat !== 'custom';
+  }
+}
+
+function switchLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+}
+
+function addPart() {
+  const name = document.getElementById('partName').value.trim();
+  const w = parseFloat(document.getElementById('partW').value);
+  const h = parseFloat(document.getElementById('partH').value);
+  const qty = parseInt(document.getElementById('partQty').value) || 1;
+  
+  if(!name || !w || !h) { alert('Заполните все поля'); return; }
+  
+  parts.push({ name, w, h, qty, id: Date.now() });
+  document.getElementById('partName').value = '';
+  document.getElementById('partW').value = '';
+  document.getElementById('partH').value = '';
+  document.getElementById('partQty').value = 1;
+  
+  renderPartsList();
+}
+
+function removePart(id) {
+  parts = parts.filter(p => p.id !== id);
+  renderPartsList();
+}
+
+function renderPartsList() {
+  const tbody = document.getElementById('partsList');
+  tbody.innerHTML = parts.map(p => `
+    <tr>
+      <td>${p.name}</td>
+      <td>${p.w}</td>
+      <td>${p.h}</td>
+      <td>${p.qty}</td>
+      <td><button class="btn small" onclick="removePart(${p.id})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+// ════ RECURSIVE GUILLOTINE PACKER ════
+function nestOnce(items, usableW, usableH, trim, kerf, opt) {
+  const tol = opt.heightTol || 0;
+  const sorted = items.slice().sort((a,b) => b.h-a.h);
+  const groups = [];
+  
+  sorted.forEach(it => {
+    let g = groups.find(g => Math.abs(g.h - it.h) <= tol);
+    if(!g) { g = {h: it.h, items: []}; groups.push(g); }
+    else if(it.h > g.h) g.h = it.h;
+    g.items.push(it);
+  });
+  
+  groups.forEach(g => {
+    const byName = {};
+    g.items.forEach(it => { (byName[it.name] = byName[it.name] || []).push(it); });
+    let s = [];
+    Object.values(byName).forEach(grp => { grp.sort((a,b) => b.w-a.w); s.push(...grp); });
+    g.items = s;
+  });
+  groups.sort((a,b) => opt.sortMode === 'asc' ? a.h-b.h : b.h-a.h);
+  
+  const rows = [];
+  for(let gi=0; gi<groups.length; gi++) {
+    const g = groups[gi];
+    while(g.items.length) {
+      const row = {h: g.h, parts: [], x: 0};
+      for(let i=0; i<g.items.length;) {
+        const it = g.items[i];
+        if(it.h <= row.h+0.01 && row.x+it.w <= usableW+0.01) {
+          row.parts.push(Object.assign({}, it, {rx: row.x}));
+          row.x += it.w + kerf;
+          g.items.splice(i,1);
+        } else i++;
+      }
+      if(!row.parts.length) break;
+      rows.push(row);
+    }
+  }
+  
+  rows.sort((a,b) => b.h-a.h);
+  const sheets = [];
+  for(const row of rows) {
+    let target = null;
+    for(const s of sheets) {
+      if(s.y + row.h <= usableH+0.01) { target = s; break; }
+    }
+    if(!target) { target = {parts: [], y: 0}; sheets.push(target); }
+    row.parts.forEach(p => target.parts.push(Object.assign({}, p, {x: trim+p.rx, y: trim+target.y})));
+    target.y += row.h + kerf;
+  }
+  
+  let usedArea = 0;
+  sheets.forEach(s => s.parts.forEach(p => usedArea += p.w*p.h));
+  const sheetArea = usableW * usableH;
+  const totalArea = sheets.length * sheetArea;
+  const wasteRatio = totalArea ? (totalArea - usedArea) / totalArea : 1;
+  const score = sheets.length * 1000 + wasteRatio * 100;
+  
+  return {sheets, score};
+}
+
+function calculate() {
+  if(!parts.length) { alert(LANG[lang].noparts); return; }
+  
+  const SW = parseFloat(document.getElementById('sheetW').value) || 2750;
+  const SH = parseFloat(document.getElementById('sheetH').value) || 1830;
+  const kerf = parseFloat(document.getElementById('kerf').value) || 4;
+  const trim = parseFloat(document.getElementById('trim').value) || 10;
+  const usableW = SW - 2*trim, usableH = SH - 2*trim;
+  
+  let items = [];
+  parts.forEach(p => {
+    for(let i=0; i<p.qty; i++) {
+      items.push({name: p.name, w: p.w, h: p.h, id: p.id});
+    }
+  });
+  
+  items.forEach(it => {
+    if(it.w < it.h) [it.w, it.h] = [it.h, it.w];
+  });
+  
+  let best = null;
+  for(const tol of [0, 5, 10, 20]) {
+    for(const sm of ['desc', 'asc']) {
+      const res = nestOnce(items, usableW, usableH, trim, kerf, {heightTol: tol, sortMode: sm});
+      if(!best || res.score < best.score) best = res;
+    }
+  }
+  
+  lastLayout = {sheets: best.sheets, SW, SH, usableW, usableH, trim, kerf};
+  
+  let totalArea = 0, usedArea = 0;
+  best.sheets.forEach(s => {
+    s.parts.forEach(p => usedArea += p.w * p.h);
+    totalArea += SW * SH;
+  });
+  
+  const eff = Math.round(usedArea / totalArea * 1000) / 10;
+  const fire = Math.round((1 - usedArea/totalArea) * 1000) / 10;
+  
+  document.getElementById('result').innerHTML = `
+    <div class="info">
+      ✓ ${LANG[lang].sheets}: ${best.sheets.length} | 
+      ${LANG[lang].parts}: ${items.length} |
+      ${LANG[lang].eff}: ${eff}% |
+      ${LANG[lang].fire}: ${fire}%
+    </div>
+  `;
+  document.getElementById('exports').style.display = 'grid';
+}
+
+function exportKDT() {
+  if(!lastLayout) { alert(LANG[lang].noparts); return; }
+  
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += `<project date="${new Date().toISOString()}" version="1.0">\n`;
+  
+  lastLayout.sheets.forEach((s, si) => {
+    xml += `  <sheet id="${si+1}" width="${lastLayout.SW}" height="${lastLayout.SH}">\n`;
+    s.parts.forEach((p, pi) => {
+      xml += `    <cut id="${pi+1}" name="${p.name}" x="${Math.round(p.x*100)/100}" y="${Math.round(p.y*100)/100}" w="${Math.round(p.w*100)/100}" h="${Math.round(p.h*100)/100}"/>\n`;
+    });
+    xml += `  </sheet>\n`;
+  });
+  xml += `</project>`;
+  
+  const blob = new Blob([xml], {type: 'application/xml'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `raskroi-${new Date().toISOString().split('T')[0]}.xml`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportPDF() {
+  alert('PDF export: имплементируется (используйте браузер: Ctrl+P -> Save as PDF)');
+}
+
+// Init
+setSheetSize('mdf');
+</script>
+
+</body>
+</html>
