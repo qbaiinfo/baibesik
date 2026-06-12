@@ -285,7 +285,15 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 
 <script src="supabase_client.js" type="module"></script>
 <script type="module">
-import { getCurrentUser } from './supabase_client.js';
+// Fallback: supabase_client.js yoksa, null döndür
+async function getCurrentUser(){
+  try{
+    const mod = await import('./supabase_client.js').catch(()=>null);
+    if(mod && mod.getCurrentUser) return await mod.getCurrentUser();
+  }catch(e){}
+  return null;
+}
+
 
 // ─── i18n ───
 const I18N = {
@@ -1171,7 +1179,12 @@ window.sendToManager=async function(){
   window.location.href=`raskroi_manager.html?orderId=${order.id}`;
 };
 
-init();
+init().catch(e=>{
+  console.error('Init failed:', e.message);
+  // En azından content göster
+  const c = document.getElementById('content');
+  if(c) c.style.display='block';
+});
 </script>
 </body>
 </html>
