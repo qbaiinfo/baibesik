@@ -322,10 +322,10 @@ async function init(){
   }
   
   try{
-    switchMaterial('mdf');
-    document.getElementById('userName').textContent = currentUser.full_name||'User';
-    document.getElementById('av').textContent = (currentUser.full_name||'A').charAt(0).toUpperCase();
-    document.getElementById('langSel').addEventListener('change',e=>{lang=e.target.value;applyLang();});
+    if(document.getElementById('userName')) document.getElementById('userName').textContent = currentUser.full_name||'User';
+    if(document.getElementById('av')) document.getElementById('av').textContent = (currentUser.full_name||'A').charAt(0).toUpperCase();
+    if(document.getElementById('langSel')) document.getElementById('langSel').addEventListener('change',e=>{lang=e.target.value;applyLang();});
+    if(document.getElementById('material')) switchMaterial('mdf');
     parts=[{id:1,name:'P1',w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false}];
     // Tekrar gönder: önceki siparişi yükle
     const rs=new URLSearchParams(location.search).get('resend');
@@ -338,10 +338,12 @@ async function init(){
           if(o.material)document.getElementById('matType').value=o.material;
           if(o.grain)document.getElementById('grainDir').value=o.grain;
         }
-      }catch(e){}
+      }catch(e){console.warn('Resend load error:',e.message);}
     }
-    renderTable(); applyLang(); loadShops();
-  }catch(e){console.error(e);}
+    try{ renderTable(); } catch(e){ console.error('renderTable:', e.message); }
+    try{ applyLang(); } catch(e){ console.error('applyLang:', e.message); }
+    try{ loadShops(); } catch(e){ console.error('loadShops:', e.message); }
+  }catch(e){console.error('Init UI setup error:',e.message, e.stack);}
 }
 
 // ─── IMPORT (Excel/TXT) ───
