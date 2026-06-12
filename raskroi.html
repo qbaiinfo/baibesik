@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>✂️ Раскрой — Baibesik.kz</title>
+<title>✂️ Раскрой v8 — Baibesik.kz</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 :root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;}
@@ -17,7 +17,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .auth-guard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center}
 .auth-guard.show{display:flex}
 .auth-guard a{margin-top:1rem;padding:12px 24px;background:var(--orange);color:#fff;text-decoration:none;border-radius:8px;font-weight:700}
-.content{max-width:1600px;margin:0 auto;padding:16px;display:none}
+.content{max-width:1600px;margin:0 auto;padding:16px}
 .import-bar{background:#fff;border-radius:12px;padding:14px 18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .import-bar textarea{flex:1;min-width:200px;min-height:42px;max-height:120px;padding:8px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:11px;resize:vertical;outline:none}
 .import-bar textarea:focus{border-color:var(--orange)}
@@ -124,7 +124,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
   <a href="login.html">Кіру / Войти</a>
 </div>
 
-<header id="header" style="display:none">
+<header id="header">
   <a href="index.html" class="logo">BAIBESIK<span>.kz</span> ✂️ <span id="hdrTitle">Раскрой</span></a>
   <div class="nav-user">
     <a href="raskroi_my_orders.html" style="color:#94a3b8;text-decoration:none;font-size:12px;font-weight:700;padding:5px 10px;border:1px solid #334155;border-radius:6px">📋 <span id="myOrdersLink">Тапсырыстар</span></a>
@@ -137,7 +137,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
   </div>
 </header>
 
-<div class="content" id="content" style="display:none">
+<div class="content" id="content" style="display:block">
 
   <!-- IMPORT BAR -->
   <div class="import-bar">
@@ -322,12 +322,10 @@ async function init(){
   }
   
   if(!currentUser){ 
-    // Demo mode: Supabase olmadan açılabilsin
-    document.getElementById('authGuard').style.display='none';
-    document.getElementById('header').style.display='flex';
-    document.getElementById('content').style.display='block';
+    // Demo mode: sayfa zaten görünür, sadece kullanıcı bilgisini doldur
     currentUser={full_name:'Demo User'};
   }
+  try{ const ag=document.getElementById('authGuard'); if(ag) ag.style.display='none'; }catch(e){}
   
   try{
     if(document.getElementById('userName')) document.getElementById('userName').textContent = currentUser.full_name||'User';
