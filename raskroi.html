@@ -68,7 +68,17 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .btn-sm{padding:5px 9px;font-size:10px;border-radius:5px}
 .trows{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;max-height:none;overflow:visible;padding:2px}
 /* PARÇA KARTI (mobil-dostu) */
-.pcard{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden;max-width:100%}
+.pcard{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden;max-width:100%;transition:border-color .15s,box-shadow .15s}
+.pcard.sel{border-color:var(--orange);box-shadow:0 0 0 2px rgba(249,115,22,.18)}
+.batch-bar{position:sticky;top:0;z-index:30;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;transition:.15s}
+.batch-bar.active{border-color:var(--orange);background:#fff7ed}
+.batch-left{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:var(--dark);white-space:nowrap}
+.batch-left input[type=checkbox]{width:18px;height:18px;accent-color:var(--orange)}
+.batch-count{color:var(--orange)}
+.batch-actions{display:flex;gap:5px;flex-wrap:wrap;flex:1}
+.batch-actions .eb,.batch-actions .flag-btn{padding:6px 9px;font-size:11px}
+.batch-actions button:disabled,.batch-actions .eb.dis,.batch-actions .flag-btn.dis{opacity:.35;pointer-events:none}
+.pcard-check{width:20px;height:20px;accent-color:var(--orange);margin-right:6px;flex-shrink:0}
 .pcard-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .pcard-name{flex:1;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-weight:700;outline:none}
 .pcard-name:focus{border-color:var(--orange);background:#fff9f0}
@@ -205,6 +215,23 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <input type="checkbox" id="allEdgeAll" onchange="toggleAllEdges()" style="width:16px;height:16px;accent-color:var(--orange)">
           <span data-i18n="bandAll">Кромковать ВСЕ края всех деталей (□ квадрат)</span>
         </div>
+        <div class="batch-bar" id="batchBar">
+          <label class="batch-left">
+            <input type="checkbox" id="selAllChk" onchange="toggleSelectAll(this.checked)">
+            <span id="batchCountLbl"><span data-i18n="selectAll">Выбрать всё</span></span>
+          </label>
+          <div class="batch-actions" id="batchActions">
+            <div class="eb" onclick="batchEdge('t')">↑ <span data-i18n="topE">Верх</span></div>
+            <div class="eb" onclick="batchEdge('b')">↓ <span data-i18n="botE">Низ</span></div>
+            <div class="eb" onclick="batchEdge('l')">← <span data-i18n="leftE">Лево</span></div>
+            <div class="eb" onclick="batchEdge('r')">→ <span data-i18n="rightE">Право</span></div>
+            <div class="flag-btn" onclick="batchAllEdges()">□ <span data-i18n="allE">Все</span></div>
+            <div class="flag-btn" onclick="batchGrain('auto')">⚪ <span data-i18n="gAuto">Авто</span></div>
+            <div class="flag-btn" onclick="batchGrain('lock')">🔒</div>
+            <div class="flag-btn" onclick="batchGrain('free')">🔓</div>
+            <div class="flag-btn" style="border-color:var(--red);color:var(--red)" onclick="batchDelete()">🗑 <span data-i18n="delSel">Удалить</span></div>
+          </div>
+        </div>
         <div class="trows" id="partsTable"></div>
         <div class="toolbar">
           <button class="btn btn-primary btn-sm" onclick="addPart()">➕ <span data-i18n="addPart">Деталь</span></button>
@@ -283,8 +310,8 @@ import { getCurrentUser } from './supabase_client.js';
 
 // ─── i18n ───
 const I18N = {
-  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',addPart:'Деталь',merge:'Объединить',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали',downloadTitle:'Скачать / Поделиться',chooseShop:'Отправить в кесме-цех',loadingShops:'Загрузка цехов...',scanTitle:'Сфотографируй свой листок с деталями',scanSub:'Камера прочитает размеры и заполнит детали автоматически. Фото НЕ сохраняется.',scanCam:'Камера',scanUpload:'Загрузить фото'},
-  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',addPart:'Бөлшек',merge:'Біріктіру',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту',downloadTitle:'Жүктеу / Бөлісу',chooseShop:'Кесу цехына жіберу',loadingShops:'Цехтар жүктелуде...',scanTitle:'Бөлшектер жазылған қағазды суретке түсір',scanSub:'Камера өлшемдерді оқып, бөлшектерді автоматты толтырады. Сурет САҚТАЛМАЙДЫ.',scanCam:'Камера',scanUpload:'Сурет жүктеу'}
+  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',topE:'Верх',botE:'Низ',leftE:'Лево',rightE:'Право',allE:'Все',gAuto:'Авто',delSel:'Удалить',selectAll:'Выбрать всё',addPart:'Деталь',merge:'Объединить',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали',downloadTitle:'Скачать / Поделиться',chooseShop:'Отправить в кесме-цех',loadingShops:'Загрузка цехов...',scanTitle:'Сфотографируй свой листок с деталями',scanSub:'Камера прочитает размеры и заполнит детали автоматически. Фото НЕ сохраняется.',scanCam:'Камера',scanUpload:'Загрузить фото'},
+  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',topE:'Жоғ',botE:'Төм',leftE:'Сол',rightE:'Оң',allE:'Барлығы',gAuto:'Авто',delSel:'Жою',selectAll:'Барлығын таңдау',addPart:'Бөлшек',merge:'Біріктіру',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту',downloadTitle:'Жүктеу / Бөлісу',chooseShop:'Кесу цехына жіберу',loadingShops:'Цехтар жүктелуде...',scanTitle:'Бөлшектер жазылған қағазды суретке түсір',scanSub:'Камера өлшемдерді оқып, бөлшектерді автоматты толтырады. Сурет САҚТАЛМАЙДЫ.',scanCam:'Камера',scanUpload:'Сурет жүктеу'}
 };
 let lang = 'ru';
 function applyLang(){
@@ -297,6 +324,7 @@ function applyLang(){
 
 // ─── STATE ───
 let currentUser=null, parts=[], selectedPVC='1', lastLayout=null;
+let selectedIds=new Set();
 // ─── UNDO/REDO ───
 let histStack=[], histIdx=-1; const HIST_MAX=20;
 function pushHistory(){
@@ -437,9 +465,10 @@ function renderTable(){
   updateUndoBtns();
   const L=(ru,kk)=>lang==='kk'?kk:ru;
   parts.forEach(p=>{
-    const card=document.createElement('div'); card.className='pcard';
+    const card=document.createElement('div'); card.className='pcard'+(selectedIds.has(p.id)?' sel':'');
     card.innerHTML=`
       <div class="pcard-top">
+        <input type="checkbox" class="pcard-check" ${selectedIds.has(p.id)?'checked':''} onchange="toggleSelect(${p.id},this.checked)">
         <input class="pcard-name" type="text" value="${p.name}" onchange="upd(${p.id},'name',this.value)">
         <button class="pcard-del" onclick="delPart(${p.id})">✕</button>
       </div>
@@ -469,7 +498,70 @@ function renderTable(){
       </div>`;
     tb.appendChild(card);
   });
+  updateBatchBar();
+  document.querySelectorAll('#batchBar [data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    if(I18N[lang][k])el.textContent=I18N[lang][k];
+  });
 }
+
+// ─── TOPLU DÜZENLEME (Batch Edit) ───
+function updateBatchBar(){
+  // var olmayan id'leri temizle
+  const validIds=new Set(parts.map(p=>p.id));
+  selectedIds.forEach(id=>{if(!validIds.has(id))selectedIds.delete(id);});
+  const n=selectedIds.size;
+  const bar=document.getElementById('batchBar');
+  const lbl=document.getElementById('batchCountLbl');
+  const chk=document.getElementById('selAllChk');
+  if(!bar)return;
+  bar.classList.toggle('active',n>0);
+  chk.checked = parts.length>0 && n===parts.length;
+  chk.indeterminate = n>0 && n<parts.length;
+  const L=(ru,kk)=>lang==='kk'?kk:ru;
+  lbl.innerHTML = n>0
+    ? `<span class="batch-count">${n} ${L('выбрано','таңдалды')}</span>`
+    : `${L('Выбрать всё','Барлығын таңдау')} (${parts.length})`;
+  document.querySelectorAll('#batchActions .eb,#batchActions .flag-btn').forEach(el=>el.classList.toggle('dis',n===0));
+}
+window.toggleSelect=(id,checked)=>{
+  if(checked)selectedIds.add(id); else selectedIds.delete(id);
+  renderTable();
+};
+window.toggleSelectAll=(checked)=>{
+  selectedIds=checked?new Set(parts.map(p=>p.id)):new Set();
+  renderTable();
+};
+function selectedParts(){return parts.filter(p=>selectedIds.has(p.id));}
+window.batchEdge=(edge)=>{
+  if(!selectedIds.size)return;
+  const sel=selectedParts();
+  const allOn=sel.every(p=>p.e[edge]);
+  const newVal=!allOn; // hepsinde açıksa kapat, değilse hepsini aç
+  sel.forEach(p=>p.e[edge]=newVal);
+  pushHistory(); renderTable();
+};
+window.batchAllEdges=()=>{
+  if(!selectedIds.size)return;
+  const sel=selectedParts();
+  const allOn=sel.every(p=>p.e.t&&p.e.r&&p.e.b&&p.e.l);
+  const on=!allOn;
+  sel.forEach(p=>{p.e={t:on,r:on,b:on,l:on};});
+  pushHistory(); renderTable();
+};
+window.batchGrain=(mode)=>{
+  if(!selectedIds.size)return;
+  selectedParts().forEach(p=>{p.grainMode=mode;p.lock=(mode==='lock');});
+  pushHistory(); renderTable();
+};
+window.batchDelete=()=>{
+  if(!selectedIds.size)return;
+  const n=selectedIds.size;
+  if(!confirm((lang==='kk'?`${n} бөлшекті өшіру?`:`Удалить ${n} деталей?`)))return;
+  parts=parts.filter(p=>!selectedIds.has(p.id));
+  selectedIds.clear();
+  pushHistory(); renderTable();
+};
 window.togE=(id,e)=>{const p=parts.find(x=>x.id===id);if(p){p.e[e]=!p.e[e];pushHistory();renderTable();}};
 window.togAll=(id)=>{const p=parts.find(x=>x.id===id);if(p){const on=!(p.e.t&&p.e.r&&p.e.b&&p.e.l);p.e={t:on,r:on,b:on,l:on};pushHistory();renderTable();}};
 window.togLock=(id)=>{const p=parts.find(x=>x.id===id);if(p){p.lock=!p.lock;p.grainMode=p.lock?'lock':'auto';pushHistory();renderTable();}};
