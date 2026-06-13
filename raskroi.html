@@ -91,6 +91,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .flag-btn{flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:11px;font-weight:700;color:var(--gray);transition:.15s}
 .flag-btn.on{border-color:var(--orange);background:#fff9f0;color:var(--orange-dark)}
 .flag-btn.lock-on{border-color:var(--red);background:#fef2f2;color:var(--red)}
+.flag-btn.free-on{border-color:#16a34a;background:#f0fdf4;color:#16a34a}
 .btn-del{background:var(--red);color:#fff;border:none;padding:4px;border-radius:4px;cursor:pointer;font-size:9px;width:24px}
 .toolbar{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
 .alledge-row{display:flex;align-items:center;gap:8px;padding:8px;background:var(--light);border-radius:6px;margin-bottom:8px;font-size:11px;font-weight:600}
@@ -207,6 +208,9 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
         <div class="trows" id="partsTable"></div>
         <div class="toolbar">
           <button class="btn btn-primary btn-sm" onclick="addPart()">➕ <span data-i18n="addPart">Деталь</span></button>
+          <button class="btn btn-sm" style="background:var(--light);color:var(--dark);border:1px solid var(--border)" onclick="undoParts()" id="undoBtn" disabled title="Ctrl+Z">↩️</button>
+          <button class="btn btn-sm" style="background:var(--light);color:var(--dark);border:1px solid var(--border)" onclick="redoParts()" id="redoBtn" disabled>↪️</button>
+          <button class="btn btn-sm" style="background:var(--light);color:var(--dark);border:1px solid var(--border)" onclick="mergeDuplicates()" title="${lang==='kk'?'Бірдей өлшемдерді біріктіру':'Объединить одинаковые'}">🔗 <span data-i18n="merge">Объединить</span></button>
           <button class="btn btn-sm" style="background:var(--light);color:var(--dark);border:1px solid var(--border)" onclick="clearParts()">🗑 <span data-i18n="clear">Очистить</span></button>
         </div>
         <div class="hint" data-i18n="bandHint">Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)</div>
@@ -279,8 +283,8 @@ import { getCurrentUser } from './supabase_client.js';
 
 // ─── i18n ───
 const I18N = {
-  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',addPart:'Деталь',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали',downloadTitle:'Скачать / Поделиться',chooseShop:'Отправить в кесме-цех',loadingShops:'Загрузка цехов...',scanTitle:'Сфотографируй свой листок с деталями',scanSub:'Камера прочитает размеры и заполнит детали автоматически. Фото НЕ сохраняется.',scanCam:'Камера',scanUpload:'Загрузить фото'},
-  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',addPart:'Бөлшек',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту',downloadTitle:'Жүктеу / Бөлісу',chooseShop:'Кесу цехына жіберу',loadingShops:'Цехтар жүктелуде...',scanTitle:'Бөлшектер жазылған қағазды суретке түсір',scanSub:'Камера өлшемдерді оқып, бөлшектерді автоматты толтырады. Сурет САҚТАЛМАЙДЫ.',scanCam:'Камера',scanUpload:'Сурет жүктеу'}
+  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',addPart:'Деталь',merge:'Объединить',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали',downloadTitle:'Скачать / Поделиться',chooseShop:'Отправить в кесме-цех',loadingShops:'Загрузка цехов...',scanTitle:'Сфотографируй свой листок с деталями',scanSub:'Камера прочитает размеры и заполнит детали автоматически. Фото НЕ сохраняется.',scanCam:'Камера',scanUpload:'Загрузить фото'},
+  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',addPart:'Бөлшек',merge:'Біріктіру',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту',downloadTitle:'Жүктеу / Бөлісу',chooseShop:'Кесу цехына жіберу',loadingShops:'Цехтар жүктелуде...',scanTitle:'Бөлшектер жазылған қағазды суретке түсір',scanSub:'Камера өлшемдерді оқып, бөлшектерді автоматты толтырады. Сурет САҚТАЛМАЙДЫ.',scanCam:'Камера',scanUpload:'Сурет жүктеу'}
 };
 let lang = 'ru';
 function applyLang(){
@@ -293,6 +297,57 @@ function applyLang(){
 
 // ─── STATE ───
 let currentUser=null, parts=[], selectedPVC='1', lastLayout=null;
+// ─── UNDO/REDO ───
+let histStack=[], histIdx=-1; const HIST_MAX=20;
+function pushHistory(){
+  histStack=histStack.slice(0,histIdx+1);
+  histStack.push(JSON.parse(JSON.stringify(parts)));
+  if(histStack.length>HIST_MAX)histStack.shift();
+  histIdx=histStack.length-1;
+  updateUndoBtns();
+}
+function updateUndoBtns(){
+  const u=document.getElementById('undoBtn'), r=document.getElementById('redoBtn');
+  if(u)u.disabled=histIdx<=0;
+  if(r)r.disabled=histIdx>=histStack.length-1;
+}
+window.undoParts=function(){
+  if(histIdx<=0)return;
+  histIdx--; parts=JSON.parse(JSON.stringify(histStack[histIdx]));
+  renderTable(false); updateUndoBtns();
+};
+window.redoParts=function(){
+  if(histIdx>=histStack.length-1)return;
+  histIdx++; parts=JSON.parse(JSON.stringify(histStack[histIdx]));
+  renderTable(false); updateUndoBtns();
+};
+// ─── AYNI ÖLÇÜ+KENAR PARÇALARI BİRLEŞTİR ───
+window.mergeDuplicates=function(){
+  const groups={};
+  let order=[];
+  parts.forEach(p=>{
+    const gm=p.grainMode||(p.lock?'lock':'auto');
+    const key=[p.w,p.h,p.e.t?1:0,p.e.r?1:0,p.e.b?1:0,p.e.l?1:0,gm].join('|');
+    if(!groups[key]){groups[key]={...p,qty:0,names:[]};order.push(key);}
+    groups[key].qty+=p.qty;
+    if(!groups[key].names.includes(p.name))groups[key].names.push(p.name);
+  });
+  const before=parts.length;
+  parts=order.map(k=>{const g=groups[k];return {...g,name:g.names[0]};});
+  parts.forEach((p,i)=>p.id=i+1);
+  const merged=before-parts.length;
+  pushHistory(); renderTable();
+  if(merged>0){
+    alert(lang==='kk'?`${merged} қайталама бөлшек біріктірілді → ${parts.length} жол қалды`:`Объединено ${merged} дублей → осталось ${parts.length} строк`);
+  }else{
+    alert(lang==='kk'?'Қайталанатын бөлшек табылмады':'Дубликатов не найдено');
+  }
+};
+// Ctrl+Z / Ctrl+Y klavye kısayolu
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();window.undoParts();}
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();window.redoParts();}
+});
 const COLORS=['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2','#F8A5B8','#A8E6CF','#FDCB6E','#74B9FF','#E17055','#00B894','#6C5CE7'];
 
 async function init(){
@@ -305,7 +360,7 @@ async function init(){
     document.getElementById('userName').textContent = currentUser.full_name||'User';
     document.getElementById('av').textContent = (currentUser.full_name||'A').charAt(0).toUpperCase();
     document.getElementById('langSel').addEventListener('change',e=>{lang=e.target.value;applyLang();});
-    parts=[{id:1,name:'P1',w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false}];
+    parts=[{id:1,name:'P1',w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false,grainMode:'auto'}];
     // Tekrar gönder: önceki siparişi yükle
     const rs=new URLSearchParams(location.search).get('resend');
     if(rs){
@@ -320,6 +375,7 @@ async function init(){
       }catch(e){}
     }
     renderTable(); applyLang(); loadShops();
+    pushHistory();
   }catch(e){console.error(e);}
 }
 
@@ -342,10 +398,10 @@ window.importData=function(){
     }
     let lock=false;
     if(c[5]){const s=c[5].toLowerCase();lock=['no','н','жоқ','lock','0','false'].includes(s);}
-    parts.push({id,name:c[0]||('P'+id),w,h,qty,e,lock});id++;
+    parts.push({id,name:c[0]||('P'+id),w,h,qty,e,lock,grainMode:lock?'lock':'auto'});id++;
   });
   if(!parts.length){alert('Формат: Имя X Y Кол Кромка Поворот');return;}
-  renderTable(); document.getElementById('pasteData').value='';
+  pushHistory(); renderTable(); document.getElementById('pasteData').value='';
 };
 
 // ─── AI BANDING SUGGESTION ───
@@ -369,14 +425,16 @@ window.aiSuggestBanding=function(){
 
 window.addPart=function(){
   const id=Math.max(0,...parts.map(p=>p.id))+1;
-  parts.push({id,name:'P'+id,w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false});
+  parts.push({id,name:'P'+id,w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false,grainMode:'auto'});
+  pushHistory();
   renderTable();
   setTimeout(()=>document.querySelector(`input[data-id="${id}"][data-f="w"]`)?.focus(),40);
 };
-window.clearParts=function(){if(confirm('Очистить все детали?')){parts=[];renderTable();}};
+window.clearParts=function(){if(confirm('Очистить все детали?')){parts=[];pushHistory();renderTable();}};
 
 function renderTable(){
   const tb=document.getElementById('partsTable'); tb.innerHTML='';
+  updateUndoBtns();
   const L=(ru,kk)=>lang==='kk'?kk:ru;
   parts.forEach(p=>{
     const card=document.createElement('div'); card.className='pcard';
@@ -406,18 +464,26 @@ function renderTable(){
         </div>
         <div class="pcard-flags">
           <div class="flag-btn ${(p.e.t&&p.e.r&&p.e.b&&p.e.l)?'on':''}" onclick="togAll(${p.id})">□ ${L('Все края','Барлығы')}</div>
-          <div class="flag-btn ${p.lock?'lock-on':''}" onclick="togLock(${p.id})">${p.lock?'🔒':'🔓'} ${L('Текстура','Текстура')}</div>
+          <div class="flag-btn ${p.grainMode==='lock'?'lock-on':p.grainMode==='free'?'free-on':''}" onclick="cycleGrain(${p.id})" title="${L('Авто = следует общей текстуре листа','Авто = жалпы парақ текстурасына сәйкес')}">${p.grainMode==='lock'?'🔒':p.grainMode==='free'?'🔓':'⚪'} ${p.grainMode==='lock'?L('Не вращать','Бұрмау'):p.grainMode==='free'?L('Свободно','Еркін'):L('Авто','Авто')}</div>
         </div>
       </div>`;
     tb.appendChild(card);
   });
 }
-window.togE=(id,e)=>{const p=parts.find(x=>x.id===id);if(p){p.e[e]=!p.e[e];renderTable();}};
-window.togAll=(id)=>{const p=parts.find(x=>x.id===id);if(p){const on=!(p.e.t&&p.e.r&&p.e.b&&p.e.l);p.e={t:on,r:on,b:on,l:on};renderTable();}};
-window.togLock=(id)=>{const p=parts.find(x=>x.id===id);if(p){p.lock=!p.lock;renderTable();}};
-window.upd=(id,f,v)=>{const p=parts.find(x=>x.id===id);if(!p)return;if(f==='qty')p.qty=Math.max(1,parseInt(v)||1);else if(f==='lock')p.lock=v;else if(f==='name')p.name=v;else p[f]=parseFloat(v)||0;};
-window.updE=(id,e,v)=>{const p=parts.find(x=>x.id===id);if(p)p.e[e]=v;};
-window.delPart=(id)=>{parts=parts.filter(p=>p.id!==id);renderTable();};
+window.togE=(id,e)=>{const p=parts.find(x=>x.id===id);if(p){p.e[e]=!p.e[e];pushHistory();renderTable();}};
+window.togAll=(id)=>{const p=parts.find(x=>x.id===id);if(p){const on=!(p.e.t&&p.e.r&&p.e.b&&p.e.l);p.e={t:on,r:on,b:on,l:on};pushHistory();renderTable();}};
+window.togLock=(id)=>{const p=parts.find(x=>x.id===id);if(p){p.lock=!p.lock;p.grainMode=p.lock?'lock':'auto';pushHistory();renderTable();}};
+window.cycleGrain=(id)=>{
+  const p=parts.find(x=>x.id===id); if(!p)return;
+  const order=['auto','lock','free'];
+  const cur=p.grainMode||(p.lock?'lock':'auto');
+  p.grainMode=order[(order.indexOf(cur)+1)%order.length];
+  p.lock=(p.grainMode==='lock'); // geriye uyumluluk (export/DB)
+  pushHistory(); renderTable();
+};
+window.upd=(id,f,v)=>{const p=parts.find(x=>x.id===id);if(!p)return;if(f==='qty')p.qty=Math.max(1,parseInt(v)||1);else if(f==='lock')p.lock=v;else if(f==='name')p.name=v;else p[f]=parseFloat(v)||0;pushHistory();};
+window.updE=(id,e,v)=>{const p=parts.find(x=>x.id===id);if(p){p.e[e]=v;pushHistory();}};
+window.delPart=(id)=>{parts=parts.filter(p=>p.id!==id);pushHistory();renderTable();};
 window.navKey=(ev,id,f)=>{
   if(ev.key==='Enter'){ev.preventDefault();
     const order=['w','h','qty'];const i=order.indexOf(f);
@@ -444,13 +510,19 @@ function nest(){
   const grain=document.getElementById('grainDir').value;
   const usableW=SW-2*trim, usableH=SH-2*trim;
   const MIN_REM=100;
-  const rotOK=it=>!it.lock&&grain==='none';
+  // grainMode: 'auto' (levha doku ayarına uy) | 'lock' (asla döndürme) | 'free' (her zaman döndürülebilir)
+  const rotOK=it=>{
+    const gm=it.grainMode||(it.lock?'lock':'auto');
+    if(gm==='free')return true;
+    if(gm==='lock')return false;
+    return grain==='none';
+  };
 
   // Parcalari ac
   let baseItems=[];
   parts.forEach(p=>{
     for(let i=0;i<p.qty;i++){
-      baseItems.push({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock,pid:p.id,rot:false});
+      baseItems.push({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock,grainMode:p.grainMode,pid:p.id,rot:false});
     }
   });
   // Hic sigmayanlari ayir (dondurmeyle bile)
@@ -632,7 +704,7 @@ function nest(){
   {
     const tr=packStrips(baseItems.map(it=>Object.assign({},it,{w:it.h,h:it.w})),usableH,usableW);
     const back=tr.map(s=>({
-      parts:s.parts.map(p=>({name:p.name,e:p.e,lock:p.lock,pid:p.pid,rot:p.rot,w:p.h,h:p.w,px:p.py,py:p.px})),
+      parts:s.parts.map(p=>({name:p.name,e:p.e,lock:p.lock,grainMode:p.grainMode,pid:p.pid,rot:p.rot,w:p.h,h:p.w,px:p.py,py:p.px})),
       remnants:s.remnants.map(r=>({px:r.py,py:r.px,w:r.h,h:r.w}))
     }));
     candidates.push({tag:'stripsV',sheets:finalize(back)});
@@ -896,9 +968,9 @@ window.scanImage=async function(input){
         w:parseInt(it.w||it.width)||0, h:parseInt(it.h||it.height)||0,
         qty:parseInt(it.qty||it.quantity)||1,
         e:{t:!!(ed.t??true),r:!!(ed.r??true),b:!!(ed.b??true),l:!!(ed.l??true)},
-        lock:!!it.lock};
+        lock:!!it.lock, grainMode:it.lock?'lock':'auto'};
     });
-    parts=np; renderTable();
+    parts=np; pushHistory(); renderTable();
     status.className='scan-status ok';
     status.textContent='✓ '+np.length+(lang==='kk'?' бөлшек танылды! Дұрыстығын тексеріңіз.':' деталей распознано! Проверьте правильность.');
   }catch(e){
@@ -965,7 +1037,7 @@ window.exportExcel=function(){
     const rows=[['Деталь','Ширина X','Высота Y','Заказ','Размещено','Лист','Кромка','Текстура','Статус']];
     parts.forEach(p=>{
       const pl=placed[p.id]||{n:0,sheets:new Set()};
-      rows.push([p.name,p.w,p.h,p.qty,pl.n,[...pl.sheets].join(','),s.edgeTxt(p),p.lock?'🔒':'',pl.n>=p.qty?'OK':'НЕ ХВАТАЕТ!']);
+      rows.push([p.name,p.w,p.h,p.qty,pl.n,[...pl.sheets].join(','),s.edgeTxt(p),p.grainMode==='lock'?'🔒':p.grainMode==='free'?'🔓':'',pl.n>=p.qty?'OK':'НЕ ХВАТАЕТ!']);
     });
     rows.push([]); rows.push(['Лист',`${s.sw}x${s.sh}`,'Материал',s.mat,'Листов',s.nSheets]);
     const ws=XLSX.utils.aoa_to_sheet(rows);
