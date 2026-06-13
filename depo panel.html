@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Склад / Қойма</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #f97316;
+  --orange-dark: #c2410c;
+  --dark: #0f172a;
+  --dark2: #1e293b;
+  --gray: #64748b;
+  --border: #e2e8f0;
+  --light: #f8fafc;
+  --green: #10b981;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --yellow: #f59e0b;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans', sans-serif; background: var(--light); color: var(--dark); overflow-x: hidden; }
+
+/* ── HEADER ── */
+header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
+.header-inner { max-width: 960px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--orange); letter-spacing: 2px; text-decoration: none; flex-shrink: 0; }
+.logo span { color: white; }
+.header-mid { flex: 1; min-width: 0; overflow: hidden; }
+.worker-label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+.worker-name { font-size: 13px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-right { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.lang-btn { background: rgba(255,255,255,0.08); color: #94a3b8; border: 1px solid rgba(255,255,255,0.12); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; font-family: 'Noto Sans', sans-serif; }
+.lang-btn.active { background: var(--orange); color: white; border-color: var(--orange); }
+.pulse-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── TABS ── */
+.tabs-bar { background: white; border-bottom: 2px solid var(--border); }
+.tabs-inner { max-width: 960px; margin: 0 auto; padding: 0 16px; display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.tabs-inner::-webkit-scrollbar { display: none; }
+.tab-btn { padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--gray); cursor: pointer; border-bottom: 3px solid transparent; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Noto Sans', sans-serif; transition: all 0.2s; position: relative; white-space: nowrap; }
+.tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+.tab-badge { position: absolute; top: 8px; right: 2px; background: var(--red); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+
+/* ── CONTENT ── */
+.content { max-width: 960px; margin: 0 auto; padding: 16px; }
+.tab-sec { display: none; }
+.tab-sec.active { display: block; }
+
+/* ── STATS ── */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+.sc { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; border-left: 4px solid var(--border); }
+.sc.orange { border-left-color: var(--orange); }
+.sc.yellow { border-left-color: var(--yellow); }
+.sc.green  { border-left-color: var(--green); }
+.sc.blue   { border-left-color: var(--blue); }
+.sc-icon { font-size: 18px; margin-bottom: 4px; }
+.sc-label { font-size: 10px; font-weight: 800; color: var(--gray); text-transform: uppercase; }
+.sc-val { font-family: 'Bebas Neue', sans-serif; font-size: 28px; margin-top: 2px; }
+.sc-val.orange { color: var(--orange-dark); }
+.sc-val.yellow { color: var(--yellow); }
+.sc-val.green  { color: var(--green); }
+.sc-val.blue   { color: var(--blue); }
+
+/* ── ORDER CARD ── */
+.order-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
+.order-card.status-new      { border-left: 5px solid var(--orange); }
+.order-card.status-picking  { border-left: 5px solid var(--yellow); }
+.order-card.status-ready    { border-left: 5px solid var(--green); }
+
+.order-head { padding: 13px 16px; background: var(--dark); display: flex; align-items: center; gap: 10px; }
+.order-id { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--orange); letter-spacing: 1px; }
+.order-info { flex: 1; }
+.order-client { font-size: 13px; font-weight: 700; color: white; }
+.order-meta { font-size: 11px; color: #64748b; margin-top: 1px; }
+.order-amount { font-size: 15px; font-weight: 900; color: var(--green); }
+
+/* ── PICKING ITEMS ── */
+.picking-list { padding: 0; }
+.pick-item { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; user-select: none; }
+.pick-item:last-child { border-bottom: none; }
+.pick-item:hover { background: var(--light); }
+.pick-item.checked { background: rgba(16,185,129,0.05); }
+.pick-item.checked .pick-name { text-decoration: line-through; color: var(--gray); }
+
+/* Büyük checkbox - dokunma dostu */
+.pick-check { width: 28px; height: 28px; border: 2.5px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; font-size: 16px; }
+.pick-item.checked .pick-check { background: var(--green); border-color: var(--green); color: white; }
+
+/* Raf kodu - en belirgin element */
+.raf-code { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--red); font-weight: 900; min-width: 56px; letter-spacing: 1px; flex-shrink: 0; }
+
+.pick-details { flex: 1; }
+.pick-name { font-size: 14px; font-weight: 700; color: var(--dark); }
+.pick-spec { font-size: 11px; color: var(--gray); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
+.spec-chip { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 700; }
+.spec-chip.color { border-color: #ddd6fe; background: #f5f3ff; color: #5b21b6; }
+.spec-chip.size  { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+
+/* Büyük miktar göstergesi */
+.pick-qty { text-align: center; flex-shrink: 0; min-width: 52px; }
+.qty-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--dark); line-height: 1; }
+.qty-unit { font-size: 10px; color: var(--gray); font-weight: 700; text-transform: uppercase; }
+
+/* ── ORDER FOOTER ── */
+.order-footer { padding: 12px 16px; background: var(--light); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.progress-bar-wrap { flex: 1; min-width: 120px; }
+.progress-label { font-size: 11px; font-weight: 700; color: var(--gray); margin-bottom: 4px; display: flex; justify-content: space-between; }
+.progress-bar { background: var(--border); border-radius: 10px; height: 7px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--green); border-radius: 10px; transition: width 0.4s ease; }
+
+/* ── BUTTONS ── */
+.btn { border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-orange { background: var(--orange); color: white; }
+.btn-orange:hover { background: var(--orange-dark); }
+.btn-green  { background: var(--green); color: white; }
+.btn-green:hover { background: #059669; }
+.btn-dark   { background: var(--dark); color: var(--orange); }
+.btn-dark:hover { background: var(--dark2); }
+.btn-ghost  { background: white; color: var(--gray); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--orange); color: var(--orange); }
+.btn-print  { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.btn-print:hover { background: #1d4ed8; color: white; }
+.btn-lg { padding: 13px 24px; font-size: 14px; }
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+
+/* ── BADGE ── */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.badge-new      { background: rgba(249,115,22,0.1); color: var(--orange); }
+.badge-picking  { background: rgba(245,158,11,0.1); color: var(--yellow); }
+.badge-ready    { background: rgba(16,185,129,0.1); color: var(--green); }
+.badge-kaspi    { background: rgba(239,68,68,0.1); color: var(--red); }
+.badge-halyk    { background: rgba(16,185,129,0.1); color: var(--green); }
+.badge-cash     { background: rgba(245,158,11,0.1); color: var(--yellow); }
+.badge-courier  { background: rgba(59,130,246,0.1); color: var(--blue); }
+.badge-pickup   { background: rgba(100,116,139,0.1); color: var(--gray); }
+
+/* ── PRINT MODAL OVERLAY ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 500; align-items: center; justify-content: center; padding: 16px; }
+.overlay.open { display: flex; }
+.modal { background: white; border-radius: 16px; width: 100%; max-width: 560px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: slideUp 0.2s ease; }
+@keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-head { background: var(--dark); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--orange); letter-spacing: 1px; }
+.modal-close { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
+.modal-body { padding: 18px 20px; }
+
+/* ── PRINT SHEET ── */
+.print-sheet { font-family: 'Courier New', monospace; }
+.print-header { text-align: center; border-bottom: 2px dashed var(--dark); padding-bottom: 12px; margin-bottom: 12px; }
+.print-title { font-size: 16px; font-weight: 900; letter-spacing: 1px; }
+.print-meta { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-top: 8px; }
+.print-item-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px dashed #ddd; }
+.print-raf { font-size: 18px; font-weight: 900; color: var(--red); min-width: 50px; font-family: 'Bebas Neue', sans-serif; }
+.print-item-info { flex: 1; }
+.print-item-name { font-size: 13px; font-weight: 900; }
+.print-item-spec { font-size: 11px; color: var(--gray); margin-top: 2px; }
+.print-qty-box { background: var(--dark); color: white; font-family: 'Bebas Neue', sans-serif; font-size: 20px; padding: 2px 10px; border-radius: 4px; min-width: 44px; text-align: center; }
+.print-footer { margin-top: 14px; border-top: 2px dashed var(--dark); padding-top: 12px; font-size: 12px; font-weight: 700; display: flex; justify-content: space-between; }
+
+/* ── DONE SECTION ── */
+.empty-box { text-align: center; padding: 48px; color: var(--gray); }
+.empty-icon { font-size: 48px; margin-bottom: 10px; }
+.empty-text { font-size: 15px; font-weight: 600; }
+
+/* ── NOTIFY TOAST ── */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--dark); color: var(--orange); padding: 12px 22px; border-radius: 10px; font-size: 13px; font-weight: 700; z-index: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.toast.show { opacity: 1; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .pick-item { gap: 8px; }
+  .raf-code { font-size: 18px; min-width: 44px; }
+  .qty-num { font-size: 22px; }
+  .header-inner { gap: 8px; padding: 10px 12px; }
+  .lang-btn { display: none; }
+}
+
+@media print {
+  header, .tabs-bar, .stats-row, .order-footer, .overlay { display: none !important; }
+  body { background: white; }
+  .order-card { break-inside: avoid; border: 1px solid #ddd !important; margin-bottom: 20px; }
+}
+
+/* Resim görüntüleme butonu */
+.pick-img-btn { background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; width:36px; height:36px; font-size:16px; cursor:pointer; margin-right:8px; transition:all .15s; flex-shrink:0; }
+.pick-img-btn:hover { background:#fff7ed; border-color:var(--orange); }
+/* Resim modal */
+.img-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:2000; align-items:center; justify-content:center; padding:20px; }
+.img-modal-overlay.open { display:flex; }
+.img-modal { background:white; border-radius:20px; padding:24px; max-width:420px; width:100%; text-align:center; }
+.img-modal img { width:100%; max-width:340px; border-radius:14px; background:#f8fafc; }
+.img-modal h3 { font-size:16px; font-weight:800; margin:14px 0 4px; color:#1e293b; }
+.img-modal .close-x { float:right; font-size:20px; cursor:pointer; color:#94a3b8; border:none; background:none; }
+/* Yardım logosu */
+.help-fab { position:fixed; bottom:24px; left:24px; width:56px; height:56px; border-radius:50%; background:var(--orange); color:white; border:none; font-size:26px; cursor:pointer; box-shadow:0 4px 20px rgba(249,115,22,.4); z-index:1500; transition:transform .15s; }
+.help-fab:hover { transform:scale(1.08); }
+/* Tebrik modal */
+.congrats-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:2100; align-items:center; justify-content:center; }
+.congrats-overlay.open { display:flex; }
+.congrats-box { background:white; border-radius:24px; padding:36px 32px; text-align:center; max-width:380px; animation:pop .4s ease; }
+@keyframes pop { 0%{transform:scale(.7);opacity:0} 100%{transform:scale(1);opacity:1} }
+.congrats-emoji { font-size:64px; margin-bottom:12px; }
+.congrats-box h2 { font-size:22px; font-weight:900; color:#16a34a; margin-bottom:8px; }
+.congrats-box p { color:#64748b; font-size:14px; margin-bottom:20px; }
+
+</style>
+<script src="cart.js"></script>
+</head>
+<body>
+<script>
+const SUPABASE_URL_BADGE='https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY_BADGE='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+// ── KULLANICI ROZETİ (kim giriş yaptı) ──
+function showUserBadge(name, role){
+  const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'Менеджер',warehouse:'Склад',wholesale:'Оптовик',customer:'Клиент'};
+  const roleColors = {super_admin:'#7c3aed',store_owner:'#f97316',manager:'#3b82f6',warehouse:'#10b981',wholesale:'#0891b2',customer:'#64748b'};
+  const rl = roleLabels[role]||role||'';
+  const rc = roleColors[role]||'#64748b';
+  let b = document.getElementById('user-badge');
+  if(!b){
+    b = document.createElement('div');
+    b.id = 'user-badge';
+    b.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e2e8f0;border-radius:30px;padding:5px 6px 5px 12px;box-shadow:0 4px 14px rgba(0,0,0,.12);font-family:system-ui,sans-serif;max-width:90vw';
+    document.body.appendChild(b);
+  }
+  b.innerHTML = '<div style="width:30px;height:30px;border-radius:50%;background:'+rc+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0">'+(name?name.charAt(0).toUpperCase():'?')+'</div>'+
+    '<div style="display:flex;flex-direction:column;line-height:1.1;overflow:hidden"><span style="font-size:13px;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">'+(name||'—')+'</span><span style="font-size:10px;font-weight:700;color:'+rc+'">'+rl+'</span></div>'+
+    '<button onclick="badgeLogout()" title="Выйти" style="width:30px;height:30px;border:none;border-radius:50%;background:#fef2f2;color:#ef4444;cursor:pointer;font-size:15px;flex-shrink:0">🚪</button>';
+}
+async function badgeLogout(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL_BADGE, SUPABASE_KEY_BADGE);
+    await sb.auth.signOut();
+  } catch(e){}
+  window.location.href = 'login.html';
+}
+</script>
+<script>
+/* BAIBESIK_AUTH_GUARD — giriş yapmayan ve yetkisiz erişimi engeller */
+(function(){
+  // İçeriği gizle (yetki onaylanana kadar)
+  document.documentElement.style.visibility = 'hidden';
+})();
+(async function(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) { window.location.replace('login.html?staff=1'); return; }
+    const {data:user} = await sb.from('users').select('role,full_name').eq('id', session.user.id).single();
+    const allowed = ['warehouse','manager','store_owner','super_admin'];
+    if(!user || !allowed.includes(user.role)) {
+      const routes = {super_admin:'admin.html',store_owner:'store_owner.html',manager:'vendor.html',warehouse:'depo_panel.html',wholesale:'toptanci_dashboard.html',customer:'musteri_dashboard.html'};
+      window.location.replace(routes[user?.role] || 'login.html');
+      return;
+    }
+    // Yetki tamam — içeriği göster
+    document.documentElement.style.visibility = 'visible';
+    { const hn=document.getElementById('h-name'); if(hn && user.full_name) hn.textContent=user.full_name; }
+  } catch(e) {
+    window.location.replace('login.html?staff=1');
+  }
+})();
+</script>
+
+<script>
+// Auth koruma - giriş yapılmamışsa login'e yönlendir
+(async()=>{
+  try{
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='login.html?next='+encodeURIComponent(window.location.pathname.split('/').pop());}
+  }catch(e){console.log('Auth check:',e.message);}
+})();
+</script>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="header-mid">
+      <div class="worker-label" id="h-label">Qoima işçisi paneli</div>
+      <div class="worker-name" id="h-name">Байбесік — Қойма</div>
+    </div>
+    <div class="header-right">
+      <div class="pulse-dot"></div>
+      <button class="lang-btn active" onclick="setLang('kk')" data-lang="kk">RU</button>
+      <button class="lang-btn" onclick="setLang('ru')" data-lang="ru">KK</button>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <div class="tabs-inner">
+    <button class="tab-btn active" onclick="showTab('active',this)">
+      📦 <span id="tl-active">Активные</span>
+      <span class="tab-badge" id="active-badge">4</span>
+    </button>
+    <button class="tab-btn" onclick="showTab('done',this)">✅ <span id="tl-done">Выполненные</span></button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="sc orange">
+      <div class="sc-icon">🔔</div>
+      <div class="sc-label" id="s1">Новых заказов</div>
+      <div class="sc-val orange" id="sv1">2</div>
+    </div>
+    <div class="sc yellow">
+      <div class="sc-icon">⏳</div>
+      <div class="sc-label" id="s2">В сборке</div>
+      <div class="sc-val yellow" id="sv2">2</div>
+    </div>
+    <div class="sc green">
+      <div class="sc-icon">✅</div>
+      <div class="sc-label" id="s3">Готово сегодня</div>
+      <div class="sc-val green" id="sv3">3</div>
+    </div>
+    <div class="sc blue">
+      <div class="sc-icon">📦</div>
+      <div class="sc-label" id="s4">Позиций собрано</div>
+      <div class="sc-val blue" id="sv4">18</div>
+    </div>
+  </div>
+
+  <!-- ACTIVE TAB -->
+  <div class="tab-sec active" id="sec-active">
+    <div id="orders-container"></div>
+  </div>
+
+  <!-- DONE TAB -->
+  <div class="tab-sec" id="sec-done">
+    <div id="done-container"></div>
+  </div>
+
+</div>
+
+<!-- PRINT MODAL -->
+<div class="overlay" id="print-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="print-modal-title">🖨️ Лист сборки</div>
+      <button class="modal-close" onclick="closePrint()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="print-sheet" id="print-content"></div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-print btn-lg" style="flex:1" onclick="doPrint()" id="btn-do-print">🖨️ Распечатать</button>
+        <button class="btn btn-ghost" onclick="closePrint()" id="btn-close-print">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────────────────
+// Заказы загружаются из Supabase
+const orders = [];      // Активные заказы (new, preparing)
+const activeOrders = orders; // alias — тот же массив
+const doneOrders = [];  // Собранные заказы
+let doneOrders_ = [];   // Завершённые заказы из БД
+
+// ─── STATE ────────────────────────────────────────────────────────────────
+let lang = 'ru';
+let printOrderId = null;
+
+// ─── TRANSLATIONS ─────────────────────────────────────────────────────────
+const T = {
+  ru: {
+    'h-label':'Панель складского работника', 
+    'tl-active':'Активные', 'tl-done':'Выполненные',
+    's1':'Новых заказов', 's2':'В сборке', 's3':'Готово сегодня', 's4':'Позиций собрано',
+    'print-modal-title':'🖨️ Лист сборки',
+    'btn-do-print':'🖨️ Распечатать', 'btn-close-print':'Закрыть',
+    status_new:'Новый', status_picking:'В сборке', status_ready:'Готово',
+    pay_kaspi:'📱 Kaspi', pay_halyk:'📱 Halyk', pay_cash:'💵 Наличные',
+    del_courier:'🛵 Курьер', del_pickup:'🏃 Самовывоз',
+    btn_start:'▶ Начать сборку',
+    btn_print:'🖨️ Лист сборки',
+    btn_ready:'✅ Всё готово — уведомить менеджера',
+    btn_ready_partial:'⏳ Собрать всё для завершения',
+    progress_lbl:'Собрано:',
+    done_title:'✅ Сегодня выполнено',
+    done_empty:'Нет выполненных заказов',
+    toast_started:'Сборка начата! Следуйте по кодам полок.',
+    toast_notify:'Менеджер уведомлён! Заказ передан на доставку.',
+    toast_check:'Позиция отмечена ✓',
+    toast_uncheck:'Позиция снята',
+    pcs:'шт',
+    from_shelf:'Полка:',
+    print_store:'Магазин: Байбесик',
+    print_worker:'Работник: _______________',
+    print_check:'✓ Проверил:',
+  },
+  kk: {
+    'h-label':'Қойма жұмысшысы панелі', 
+    'tl-active':'Белсенді', 'tl-done':'Орындалған',
+    's1':'Жаңа тапсырыстар', 's2':'Жинауда', 's3':'Бүгін дайын', 's4':'Позиция жиналды',
+    'print-modal-title':'🖨️ Жинау парағы',
+    'btn-do-print':'🖨️ Басып шығару', 'btn-close-print':'Жабу',
+    status_new:'Жаңа', status_picking:'Жинауда', status_ready:'Дайын',
+    pay_kaspi:'📱 Kaspi', pay_halyk:'📱 Halyk', pay_cash:'💵 Қолма-қол',
+    del_courier:'🛵 Курьер', del_pickup:'🏃 Өзі алады',
+    btn_start:'▶ Жинауды бастау',
+    btn_print:'🖨️ Жинау парағы',
+    btn_ready:'✅ Бәрі дайын — менеджерге хабарлау',
+    btn_ready_partial:'⏳ Аяқтау үшін барлығын жиыңыз',
+    progress_lbl:'Жиналды:',
+    done_title:'✅ Бүгін орындалды',
+    done_empty:'Орындалған тапсырыс жоқ',
+    toast_started:'Жинау басталды! Сөре кодтарын орындаңыз.',
+    toast_notify:'Менеджер хабардар! Тапсырыс жеткізуге берілді.',
+    toast_check:'Позиция белгіленді ✓',
+    toast_uncheck:'Позиция алынды',
+    pcs:'дана',
+    from_shelf:'Сөре:',
+    print_store:'Дүкен: Байбесік',
+    print_worker:'Жұмысшы: _______________',
+    print_check:'✓ Тексерді:',
+  }
+};
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────
+function d() { return T[lang]; }
+
+function checkedCount(o) { return o.items.filter(i=>i.checked).length; }
+function allChecked(o)   { return checkedCount(o) === o.items.length; }
+
+function toast(msg, dur=2200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function statusBadge(s) {
+  const map = { new:'badge-new', picking:'badge-picking', ready:'badge-ready' };
+  const d_ = d();
+  const labels = { new:d_.status_new, picking:d_.status_picking, ready:d_.status_ready };
+  return `<span class="badge ${map[s]||'badge-new'}">● ${labels[s]||s}</span>`;
+}
+function payBadge(p) {
+  const d_ = d();
+  const map = { kaspi:`<span class="badge badge-kaspi">${d_.pay_kaspi}</span>`, halyk:`<span class="badge badge-halyk">${d_.pay_halyk}</span>`, cash:`<span class="badge badge-cash">${d_.pay_cash}</span>` };
+  return map[p] || p;
+}
+function delBadge(t) {
+  const d_ = d();
+  return t==='courier' ? `<span class="badge badge-courier">${d_.del_courier}</span>` : `<span class="badge badge-pickup">${d_.del_pickup}</span>`;
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────
+function renderOrders() {
+  const d_ = d();
+  const active = orders.filter(o=>o.status!=='ready_sent');
+  const container = document.getElementById('orders-container');
+
+  if(active.length === 0) {
+    container.innerHTML = `<div class="empty-box"><div class="empty-icon">🎉</div><div class="empty-text">${lang==='ru'?'Все заказы обработаны!':'Барлық тапсырыстар орындалды!'}</div></div>`;
+    return;
+  }
+
+  container.innerHTML = active.map(o => {
+    const cnt = checkedCount(o);
+    const total = o.items.length;
+    const pct = Math.round(cnt / total * 100);
+    const ready = allChecked(o);
+
+    const items = o.items.map(it => `
+      <div class="pick-item ${it.checked?'checked':''}" onclick="toggleItem('${o.id}',${it.id})">
+        <div class="pick-check">${it.checked?'✓':''}</div>
+        <div class="raf-code">${it.raf}</div>
+        <div class="pick-details">
+          <div class="pick-name">${lang==='ru'?it.name_ru:it.name_kk}</div>
+          <div class="pick-spec">
+            <span class="spec-chip color">🎨 ${it.color}</span>
+            <span class="spec-chip size">📏 ${it.size}</span>
+          </div>
+        </div>
+        <button class="pick-img-btn" onclick="event.stopPropagation();showItemImg('${o.id}',${it.id})" title="${lang==='ru'?'Показать фото':'Фотоны көрсету'}">👁</button>
+        <div class="pick-qty">
+          <div class="qty-num">${it.qty}</div>
+          <div class="qty-unit">${d_.pcs}</div>
+        </div>
+      </div>`).join('');
+
+    const startBtn   = o.status==='new'     ? `<button class="btn btn-dark"   onclick="startPicking('${o.id}')">${d_.btn_start}</button>` : '';
+    const printBtn   = o.status!=='new'     ? `<button class="btn btn-print"  onclick="openPrint('${o.id}')">${d_.btn_print}</button>` : '';
+    const readyBtn   = o.status==='picking' && ready
+      ? `<button class="btn btn-green btn-lg" onclick="markReady('${o.id}')">${d_.btn_ready}</button>`
+      : o.status==='picking' && !ready
+      ? `<button class="btn btn-ghost" disabled>${d_.btn_ready_partial} (${cnt}/${total})</button>`
+      : '';
+
+    return `
+      <div class="order-card status-${o.status}" id="card-${o.id}">
+        <div class="order-head">
+          <div class="order-id">#${o.id}</div>
+          <div class="order-info">
+            <div class="order-client">${o.client}</div>
+            <div class="order-meta">${o.phone}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            ${statusBadge(o.status)}
+            <div style="display:flex;gap:4px">${payBadge(o.pay)}${delBadge(o.delivery)}</div>
+          </div>
+        </div>
+        <div class="picking-list">${items}</div>
+        <div class="order-footer">
+          <div class="progress-bar-wrap">
+            <div class="progress-label">
+              <span>${d_.progress_lbl} ${cnt}/${total}</span>
+              <span>${pct}%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${startBtn}${printBtn}${readyBtn}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  updateStats();
+}
+
+function renderDone() {
+  const d_ = d();
+  const container = document.getElementById('done-container');
+  if(doneOrders.length===0) {
+    container.innerHTML = `<div class="empty-box"><div class="empty-icon">📭</div><div class="empty-text">${d_.done_empty}</div></div>`;
+    return;
+  }
+  const title = `<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--dark);letter-spacing:1px;margin-bottom:14px">${d_.done_title}</div>`;
+  const rows = doneOrders.map(o => `
+    <div class="order-card status-ready" style="margin-bottom:10px">
+      <div class="order-head">
+        <div class="order-id">#${o.id}</div>
+        <div class="order-info">
+          <div class="order-client">${o.client}</div>
+          <div class="order-meta">${o.items} ${lang==='ru'?'позиций':'позиция'} &nbsp;·&nbsp; ${o.time}</div>
+        </div>
+        <span class="badge badge-ready">✓ ${d_.status_ready}</span>
+      </div>
+    </div>`).join('');
+  container.innerHTML = title + rows;
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────────────────
+function toggleItem(orderId, itemId) {
+  const o = orders.find(x=>x.id===orderId);
+  if(!o || o.status==='new') return;
+  const it = o.items.find(i=>i.id===itemId);
+  if(!it) return;
+  it.checked = !it.checked;
+  toast(it.checked ? d().toast_check : d().toast_uncheck, 1500);
+  renderOrders();
+}
+
+async function startPicking(orderId) {
+  const o = orders.find(x=>x.id===orderId);
+  if(!o) return;
+  o.status = 'picking';
+  toast(d().toast_started);
+  renderOrders();
+  // Supabase: статус → preparing, уведомить клиента
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    await sb.from('orders').update({status:'preparing'}).eq('order_number', orderId);
+    // Найти клиента и магазин для уведомления
+    const {data:ord} = await sb.from('orders')
+      .select('customer_id, id, store_id').eq('order_number', orderId).single();
+    if(ord) {
+      await sb.from('notifications').insert({
+        user_id: ord.customer_id, type:'order', order_id: ord.id,
+        title_ru: `Заказ ${orderId}: склад начал сборку`,
+        title_kk: `${orderId}: қойма жинауды бастады`,
+        body_ru: 'Ваш заказ собирается на складе.',
+        body_kk: 'Тапсырысыңыз қоймада жиналуда.',
+      });
+      // Лог в admin_logs
+      if(session) {
+        await sb.from('admin_logs').insert({
+          user_id: session.user.id, store_id: ord.store_id,
+          action_type: 'order_picking',
+          description: (lang==='ru'?'Склад начал сборку заказа ':'Қойма жинай бастады ') + orderId,
+          meta: JSON.stringify({order_number: orderId})
+        });
+      }
+    }
+  } catch(e) { console.log('startPicking:', e.message); }
+}
+
+async function markReady(orderId) {
+  const o = orders.find(x=>x.id===orderId);
+  if(!o || !allChecked(o)) return;
+  o.status = 'ready_sent';
+  doneOrders.unshift({ id:o.id, client:o.client, items:o.items.length, time: new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}) });
+  showCongrats(orderId);
+  renderOrders();
+  renderDone();
+  // Supabase: статус → ready, уведомить клиента и менеджера
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    await sb.from('orders').update({status:'ready'}).eq('order_number', orderId);
+    const {data:ord} = await sb.from('orders')
+      .select('customer_id, id, store_id').eq('order_number', orderId).single();
+    if(ord) {
+      // Уведомление КЛИЕНТУ — "заказ собран"
+      await sb.from('notifications').insert({
+        user_id: ord.customer_id, type:'order', order_id: ord.id,
+        title_ru: `Заказ ${orderId} собран! ✅`,
+        title_kk: `${orderId} тапсырысы жиналды! ✅`,
+        body_ru: 'Ваш заказ собран и готов к отправке.',
+        body_kk: 'Тапсырысыңыз жиналды, жөнелтуге дайын.',
+      });
+      // Уведомление МЕНЕДЖЕРАМ магазина — "вызвать курьера"
+      const {data:managers} = await sb.from('store_members')
+        .select('user_id').eq('store_id', ord.store_id).in('role',['manager','owner']);
+      if(managers && managers.length) {
+        await sb.from('notifications').insert(managers.map(m=>({
+          user_id: m.user_id, type:'order', order_id: ord.id,
+          title_ru: `Заказ ${orderId} собран — вызовите курьера`,
+          title_kk: `${orderId} жиналды — курьер шақырыңыз`,
+        })));
+      }
+      // Лог
+      if(session) {
+        await sb.from('admin_logs').insert({
+          user_id: session.user.id, store_id: ord.store_id,
+          action_type: 'order_ready',
+          description: (lang==='ru'?'Заказ собран: ':'Тапсырыс жиналды: ') + orderId,
+          meta: JSON.stringify({order_number: orderId, items: o.items.length})
+        });
+      }
+    }
+  } catch(e) { console.log('markReady:', e.message); }
+}
+
+// ─── PRINT ────────────────────────────────────────────────────────────────
+function openPrint(orderId) {
+  const o = orders.find(x=>x.id===orderId);
+  if(!o) return;
+  printOrderId = orderId;
+  const d_ = d();
+  const now = new Date().toLocaleDateString('ru');
+  const items = o.items.map(it => `
+    <div class="print-item-row">
+      <div class="print-raf">${it.raf}</div>
+      <div class="print-item-info">
+        <div class="print-item-name">${lang==='ru'?it.name_ru:it.name_kk}</div>
+        <div class="print-item-spec">🎨 ${it.color} &nbsp; 📏 ${it.size}</div>
+      </div>
+      <div class="print-qty-box">${it.qty}</div>
+    </div>`).join('');
+
+  document.getElementById('print-content').innerHTML = `
+    <div class="print-header">
+      <div class="print-title">BAIBESIK.KZ — ${lang==='ru'?'ЛИСТ СБОРКИ':'ЖИНАУ ПАРАҒЫ'}</div>
+      <div class="print-meta">
+        <span>${d_.print_store}</span>
+        <span>${now} — #${o.id}</span>
+      </div>
+      <div class="print-meta" style="margin-top:4px">
+        <span>${lang==='ru'?'Клиент':'Клиент'}: ${o.client}</span>
+        <span>${payBadge(o.pay)} ${delBadge(o.delivery)}</span>
+      </div>
+    </div>
+    ${items}
+    <div class="print-footer">
+      <span>${d_.print_worker}</span>
+      <span>${d_.print_check} _______________</span>
+    </div>`;
+
+  document.getElementById('print-overlay').classList.add('open');
+}
+
+function closePrint() {
+  document.getElementById('print-overlay').classList.remove('open');
+}
+
+function doPrint() {
+  window.print();
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('sv1').textContent = orders.filter(o=>o.status==='new').length;
+  document.getElementById('sv2').textContent = orders.filter(o=>o.status==='picking').length;
+  document.getElementById('sv3').textContent = doneOrders.length;
+  document.getElementById('active-badge').textContent = orders.filter(o=>o.status!=='ready_sent').length;
+  const totalPicked = orders.reduce((sum,o)=>sum+o.items.filter(i=>i.checked).length,0) + doneOrders.reduce((sum,o)=>sum+o.items,0);
+  document.getElementById('sv4').textContent = totalPicked;
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────
+function showTab(id, el) {
+  document.querySelectorAll('.tab-sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  if(id==='done') renderDone();
+}
+
+// ─── LANG ─────────────────────────────────────────────────────────────────
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active', b.getAttribute('data-lang')===l));
+  const keys = ['h-label','tl-active','tl-done','s1','s2','s3','s4','print-modal-title','btn-do-print','btn-close-print'];
+  keys.forEach(k=>{ const el=document.getElementById(k); if(el) el.textContent=T[l][k]||''; });
+  renderOrders();
+  renderDone();
+}
+
+// ─── CLOSE OVERLAY ────────────────────────────────────────────────────────
+document.getElementById('print-overlay').addEventListener('click', function(e){
+  if(e.target===this) closePrint();
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+renderOrders();
+
+// ─── SUPABASE — GERÇEK KULLANICI ─────────────────────────────────────────────
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+async function loadDepoUser() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) { window.location.href = 'login.html?staff=1'; return; }
+
+    const {data:user} = await sb.from('users').select('*').eq('id', session.user.id).single();
+    if(!user) return;
+
+    if(!['warehouse','manager','store_owner','super_admin'].includes(user.role)) {
+      window.location.href = 'musteri_dashboard.html';
+      return;
+    }
+
+    const name = user.full_name || 'Сотрудник';
+    // Store adını REST API ile çek
+    let storeName = lang==='ru' ? 'Байбесик' : 'Байбесік';
+    let storeId = null;
+    try {
+      const r1 = await fetch(
+        SUPABASE_URL+'/rest/v1/store_members?user_id=eq.'+session.user.id+'&select=store_id&limit=1',
+        {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}}
+      );
+      const m1 = await r1.json();
+      if(m1 && m1.length && m1[0].store_id) {
+        storeId = m1[0].store_id;
+        const r2 = await fetch(
+          SUPABASE_URL+'/rest/v1/stores?id=eq.'+storeId+'&select=name&limit=1',
+          {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}}
+        );
+        const m2 = await r2.json();
+        if(m2 && m2.length && m2[0].name) storeName = m2[0].name;
+      }
+    } catch(e2) { console.log('Store fetch:', e2.message); }
+
+    // Header güncelle
+    function updateDepoHeader() {
+      const hname = document.getElementById('h-name');
+      if(hname) hname.textContent = storeName + ' — ' + (lang==='ru'?'Склад':'Қойма');
+    }
+    updateDepoHeader();
+    setTimeout(updateDepoHeader, 500);
+    setTimeout(updateDepoHeader, 1500);
+
+    // Logout
+    const hr = document.querySelector('.header-right');
+    if(hr && !document.getElementById('logout-btn')) {
+      const btn = document.createElement('button');
+      btn.id = 'logout-btn';
+      btn.textContent = '🚪';
+      btn.style.cssText = 'background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:14px';
+      btn.onclick = async () => { await sb.auth.signOut(); window.location.href = 'login.html?staff=1'; };
+      hr.appendChild(btn);
+    }
+  } catch(e) { console.log('Demo mod:', e.message); }
+}
+loadDepoUser();
+
+// ─── GERÇEK SİPARİŞLERİ YÜKLE ────────────────────────────────────────────────
+async function loadRealDepoOrders() {
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) return;
+
+    // Store ID al
+    const {data:members} = await sb.from('store_members')
+      .select('store_id').eq('user_id', session.user.id);
+    if(!members || !members.length) return;
+    const storeId = members[0].store_id;
+
+    // Hazırlanacak siparişleri çek (new veya preparing)
+    const {data:dbOrders} = await sb.from('orders')
+      .select('*, order_items(*, products(image_url, shelf_code, name_ru, name_kk)), users(full_name, phone)')
+      .eq('store_id', storeId)
+      .in('status', ['new', 'preparing'])
+      .order('created_at', {ascending: true});
+
+    if(!dbOrders || !dbOrders.length) return;
+
+    // activeOrders dizisini güncelle
+    activeOrders.length = 0;
+    dbOrders.forEach(o => {
+      activeOrders.push({
+        id: o.order_number,
+        db_id: o.id,
+        client: o.users?.full_name || o.recipient_name || (lang==='ru'?'Клиент':'Клиент'),
+        phone: o.users?.phone || o.recipient_phone || '',
+        address: o.delivery_address || '',
+        status: o.status === 'preparing' ? 'picking' : o.status,
+        pay: o.payment_method || 'kaspi',
+        delivery: o.delivery_type || 'courier',
+        items: (o.order_items||[]).map((i,idx)=>({
+          id: idx + 1,
+          name_ru: i.product_name || i.products?.name_ru,
+          name_kk: i.product_name || i.products?.name_kk,
+          raf: i.products?.shelf_code || i.shelf_code || i.raf || '—',
+          color: i.color || (lang==='ru'?'—':'—'),
+          size: i.size || '—',
+          qty: i.quantity,
+          img: i.products?.image_url || i.image_url || '',
+          checked: false,
+        }))
+      });
+    });
+
+    // Tamamlanan siparişleri çek
+    const {data:doneOrders} = await sb.from('orders')
+      .select('*, users(full_name)')
+      .eq('store_id', storeId)
+      .in('status', ['ready','delivery','done'])
+      .order('created_at', {ascending: false})
+      .limit(10);
+
+    if(doneOrders && doneOrders.length) {
+      doneOrders_ = doneOrders.map(o=>({
+        id: o.order_number,
+        client: o.users?.full_name || o.recipient_name || (lang==='ru'?'Клиент':'Клиент'),
+        date: new Date(o.created_at).toLocaleDateString('ru-RU'),
+        items: 1,
+      }));
+    }
+
+    renderOrders();
+    renderDone();
+
+    // Stat güncelle
+    const s1=document.getElementById('s1');
+    const s2=document.getElementById('s2');
+    if(s1) s1.textContent=activeOrders.filter(o=>o.status==='new').length;
+    if(s2) s2.textContent=activeOrders.filter(o=>o.status==='preparing').length;
+
+    console.log('✅ Depo: '+activeOrders.length+' sipariş yüklendi');
+  } catch(e) {
+    console.log('Demo mod:', e.message);
+  }
+}
+
+// Sipariş hazır işaretle
+async function markItemDone(orderId, itemIdx) {
+  const order = activeOrders.find(o=>o.id===orderId);
+  if(!order) return;
+  order.items[itemIdx].done = !order.items[itemIdx].done;
+  const allDone = order.items.every(i=>i.done);
+  
+  if(allDone) {
+    // Tüm kalemler hazır → durumu "ready" yap
+    try {
+      const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+      const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+      await sb.from('orders').update({status:'ready'}).eq('order_number', orderId);
+      // Müdüre bildirim
+      await sb.from('notifications').insert({
+        user_id: order.manager_id || null,
+        type: 'order',
+        title_ru: `Заказ ${orderId} готов к выдаче!`,
+        title_kk: `${orderId} тапсырысы дайын!`,
+      });
+      // Müşteriye "siparişiniz hazır" bildirimi
+      try {
+        const {data:ordRow} = await sb.from('orders')
+          .select('customer_id, id').eq('order_number', orderId).single();
+        if(ordRow && ordRow.customer_id){
+          await sb.from('notifications').insert({
+            user_id: ordRow.customer_id, type:'done',
+            title_ru: `Заказ ${orderId} собран и готов! ✅`,
+            title_kk: `${orderId} тапсырыс жиналды, дайын! ✅`,
+            body_ru: 'Ваш заказ собран. Скоро отправим курьером или можно забрать.',
+            body_kk: 'Тапсырысыңыз жиналды. Жақында жібереміз.',
+            order_id: ordRow.id,
+          });
+        }
+      } catch(e2){ console.log('müşteri bildirim:', e2.message); }
+    } catch(e) { console.log(e.message); }
+    order.status = 'ready';
+  }
+  renderOrders();
+}
+
+window.markItemDone = markItemDone;
+
+
+// ─── RESİM GÖRÜNTÜLEME ───
+function showItemImg(orderId, itemId) {
+  const order = activeOrders.find(o => String(o.id) === String(orderId));
+  const it = order && (order.items||[]).find(i => i.id === itemId);
+  showItemImage(it ? it.img : '', it ? (lang==='ru'?it.name_ru:it.name_kk) : '');
+}
+function showItemImage(img, name) {
+  const el = document.getElementById('img-modal-src');
+  const fallback = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340"><rect width="340" height="340" fill="#f1f5f9"/><text x="50%" y="50%" font-size="60" text-anchor="middle" dy=".35em">📦</text></svg>');
+  el.onerror = function(){ this.onerror=null; this.src = fallback; };
+  el.src = img && img.length > 4 ? img : fallback;
+  document.getElementById('img-modal-name').textContent = name || '';
+  document.getElementById('img-modal-hint').textContent = (lang==='ru'?'Фото для сборки — найдите этот товар на складе':'Жинауға арналған фото');
+  document.getElementById('img-modal').classList.add('open');
+}
+function closeItemImage(){ document.getElementById('img-modal').classList.remove('open'); }
+
+// ─── YARDIM ───
+function openHelp() {
+  const isRu = lang === 'ru';
+  document.getElementById('help-title').textContent = isRu ? '🆘 Помощь складу' : '🆘 Қоймаға көмек';
+  document.getElementById('help-content').innerHTML = isRu ? `
+    <p><b>1. Новый заказ 🔔</b><br>Когда менеджер одобряет заказ, он появляется здесь. Нажмите «Начать сборку».</p>
+    <p><b>2. Сборка 📦</b><br>Отмечайте каждый товар галочкой по мере сбора. Кнопка 👁 показывает фото товара.</p>
+    <p><b>3. Готово ✅</b><br>Когда все товары отмечены, нажмите «Всё готово» — менеджер получит уведомление вызвать курьера.</p>
+    <p><b>4. Полка</b><br>Код полки (напр. A-01) показывает где лежит товар на складе.</p>
+  ` : `
+    <p><b>1. Жаңа тапсырыс 🔔</b><br>Менеджер мақұлдағанда осында пайда болады. «Жинауды бастау» басыңыз.</p>
+    <p><b>2. Жинау 📦</b><br>Әр тауарды жинаған сайын белгілеңіз. 👁 батырмасы фотоны көрсетеді.</p>
+    <p><b>3. Дайын ✅</b><br>Барлығы белгіленгенде «Бәрі дайын» басыңыз — менеджерге хабарлама барады.</p>
+    <p><b>4. Сөре</b><br>Сөре коды (мыс. A-01) тауардың қоймада қай жерде екенін көрсетеді.</p>
+  `;
+  document.getElementById('help-modal').classList.add('open');
+}
+function closeHelp(){ document.getElementById('help-modal').classList.remove('open'); }
+
+// ─── TEBRİK ───
+function showCongrats(orderId) {
+  const isRu = lang === 'ru';
+  document.getElementById('congrats-title').textContent = isRu ? 'Отличная работа! 🎉' : 'Жарайсың! 🎉';
+  document.getElementById('congrats-text').textContent = isRu
+    ? 'Заказ ' + orderId + ' собран. Менеджер уведомлён вызвать курьера.'
+    : orderId + ' тапсырысы жиналды. Менеджерге хабарланды.';
+  document.getElementById('congrats-btn').textContent = isRu ? 'Продолжить' : 'Жалғастыру';
+  document.getElementById('congrats-modal').classList.add('open');
+}
+function closeCongrats(){ document.getElementById('congrats-modal').classList.remove('open'); }
+
+
+loadRealDepoOrders();
+// Авто-обновление каждые 20 сек — новые заказы от менеджера появятся автоматически
+setInterval(loadRealDepoOrders, 20000);
+</script>
+
+<!-- Resim görüntüleme modalı -->
+<div class="img-modal-overlay" id="img-modal" onclick="if(event.target===this)closeItemImage()">
+  <div class="img-modal">
+    <button class="close-x" onclick="closeItemImage()">✕</button>
+    <img id="img-modal-src" src="" alt="">
+    <h3 id="img-modal-name"></h3>
+    <p style="color:#94a3b8;font-size:12px" id="img-modal-hint"></p>
+  </div>
+</div>
+
+<!-- Yardım modalı -->
+<div class="img-modal-overlay" id="help-modal" onclick="if(event.target===this)closeHelp()">
+  <div class="img-modal" style="max-width:480px;text-align:left">
+    <button class="close-x" onclick="closeHelp()">✕</button>
+    <h3 id="help-title" style="text-align:center">🆘 Помощь складу</h3>
+    <div id="help-content" style="font-size:14px;line-height:1.7;color:#475569;margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- Tebrik modalı -->
+<div class="congrats-overlay" id="congrats-modal" onclick="if(event.target===this)closeCongrats()">
+  <div class="congrats-box">
+    <div class="congrats-emoji">🎉</div>
+    <h2 id="congrats-title">Отлично!</h2>
+    <p id="congrats-text">Заказ собран и менеджер уведомлён.</p>
+    <button class="btn btn-green btn-lg" onclick="closeCongrats()" id="congrats-btn">Продолжить</button>
+  </div>
+</div>
+
+<!-- Yardım logosu -->
+<button class="help-fab" onclick="openHelp()" title="Помощь">🆘</button>
+
+</body>
+</html>

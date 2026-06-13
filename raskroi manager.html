@@ -8,15 +8,15 @@
 <style>
 :root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;--blue:#3b82f6;}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark)}
+body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark);overflow-x:hidden}
 header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.hdr-user{display:flex;align-items:center;gap:10px}
+.hdr-user{display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:1}
 .hdr-avatar{width:34px;height:34px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
-.hdr-info{line-height:1.25}
-.hdr-name{font-weight:800;color:#fff;font-size:13px}
-.hdr-role{font-size:11px;color:#94a3b8;font-weight:700}
-.hdr-phone{font-size:11px;color:#94a3b8}
-.hdr-logout{background:transparent;border:1px solid rgba(255,255,255,.15);color:#94a3b8;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none}
+.hdr-info{line-height:1.25;min-width:0;overflow:hidden}
+.hdr-name{font-weight:800;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-role{font-size:11px;color:#94a3b8;font-weight:700;white-space:nowrap}
+.hdr-phone{font-size:11px;color:#94a3b8;white-space:nowrap}
+.hdr-logout{background:transparent;border:1px solid rgba(255,255,255,.15);color:#94a3b8;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;flex-shrink:0}
 .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);letter-spacing:2px;text-decoration:none}
 .logo span{color:#fff}
 .badge{background:var(--orange);color:#fff;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:800}

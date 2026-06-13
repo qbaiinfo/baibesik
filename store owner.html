@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Панель владельца</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="cart.js"></script>
+<style>
+:root{--orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--border:#e2e8f0;--light:#f8fafc;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark);overflow-x:hidden}
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hi{max-width:1200px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;text-decoration:none}
+.logo span{color:#fff}
+.htitle{flex:1;min-width:0;overflow:hidden}
+.store-name{font-size:11px;color:#94a3b8;font-weight:600}
+.owner-name{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbtns{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Noto Sans',sans-serif}
+.lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.btn-sm{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:'Noto Sans',sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-red{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+
+/* TABS */
+.tabs{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:57px;z-index:99}
+.tabs-inner{max-width:1200px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+.tab-btn{padding:14px 16px;font-size:13px;font-weight:700;color:var(--gray);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;font-family:'Noto Sans',sans-serif;white-space:nowrap;transition:all .2s}
+.tab-btn.active{color:var(--orange);border-bottom-color:var(--orange)}
+.tab-btn:hover{color:var(--orange)}
+
+/* CONTENT */
+.content{max-width:1200px;margin:0 auto;padding:20px 16px}
+.tab-section{display:none}
+.tab-section.active{display:block}
+
+/* CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;border-top:3px solid var(--border)}
+.stat-card.orange{border-top-color:var(--orange)}
+.stat-card.green{border-top-color:var(--green)}
+.stat-card.blue{border-top-color:var(--blue)}
+.stat-card.red{border-top-color:var(--red)}
+.stat-lbl{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--dark);letter-spacing:1px}
+.stat-sub{font-size:11px;color:var(--gray);margin-top:4px}
+
+.section-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.sc-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sc-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--dark);letter-spacing:1px}
+.sc-body{padding:18px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;border-bottom:2px solid var(--border);text-align:left}
+td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--light)}
+
+/* STAFF */
+.staff-card{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.staff-card:last-child{border-bottom:none}
+.staff-av{width:38px;height:38px;border-radius:50%;background:var(--orange);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.staff-info{flex:1}
+.staff-name{font-size:13px;font-weight:700;color:var(--dark)}
+.staff-role{font-size:11px;color:var(--gray)}
+.badge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;border:1px solid}
+.b-manager{background:rgba(59,130,246,.1);color:var(--blue);border-color:rgba(59,130,246,.2)}
+.b-warehouse{background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.2)}
+.b-owner{background:rgba(249,115,22,.1);color:var(--orange);border-color:rgba(249,115,22,.2)}
+.b-raskroi{background:rgba(168,85,247,.1);color:#a855f7;border-color:rgba(168,85,247,.2)}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-head{background:var(--dark);padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange);letter-spacing:1px}
+.modal-close{background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer}
+.modal-body{padding:20px}
+.fg{margin-bottom:14px}
+.fg-lbl{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.fg-inp{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none}
+.fg-inp:focus{border-color:var(--orange)}
+.fg-sel{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none;cursor:pointer;background:#fff}
+.btn-main{width:100%;background:var(--orange);color:#fff;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Noto Sans',sans-serif;margin-top:4px}
+.btn-main:hover{background:var(--orange-dark)}
+
+/* AI WIDGET */
+.ai-box{background:linear-gradient(135deg,var(--dark) 0%,#1e293b 100%);border-radius:12px;padding:20px;margin-bottom:16px}
+.ai-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange);letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ai-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.ai-item:last-child{border-bottom:none}
+.ai-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.ai-text{font-size:13px;color:#cbd5e1;line-height:1.5;flex:1}
+.ai-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.ai-warn{background:rgba(245,158,11,.2);color:#fbbf24}
+.ai-good{background:rgba(16,185,129,.2);color:#34d399}
+.ai-info{background:rgba(59,130,246,.2);color:#60a5fa}
+
+/* ALERT */
+.alert{border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;display:none;align-items:center;gap:8px;margin-bottom:14px}
+.alert.show{display:flex}
+.alert-success{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--green)}
+.alert-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red)}
+
+.loading-ring{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:768px){.stat-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.stat-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script>
+const SUPABASE_URL_BADGE='https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY_BADGE='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+// ── KULLANICI ROZETİ (kim giriş yaptı) ──
+function showUserBadge(name, role){
+  const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'Менеджер',warehouse:'Склад',wholesale:'Оптовик',customer:'Клиент',raskroi_manager:'✂️ Раскрой менеджер',raskroi_worker:'🪚 Раскрой работник'};
+  const roleColors = {super_admin:'#7c3aed',store_owner:'#f97316',manager:'#3b82f6',warehouse:'#10b981',wholesale:'#0891b2',customer:'#64748b'};
+  const rl = roleLabels[role]||role||'';
+  const rc = roleColors[role]||'#64748b';
+  let b = document.getElementById('user-badge');
+  if(!b){
+    b = document.createElement('div');
+    b.id = 'user-badge';
+    b.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e2e8f0;border-radius:30px;padding:5px 6px 5px 12px;box-shadow:0 4px 14px rgba(0,0,0,.12);font-family:system-ui,sans-serif;max-width:90vw';
+    document.body.appendChild(b);
+  }
+  b.innerHTML = '<div style="width:30px;height:30px;border-radius:50%;background:'+rc+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0">'+(name?name.charAt(0).toUpperCase():'?')+'</div>'+
+    '<div style="display:flex;flex-direction:column;line-height:1.1;overflow:hidden"><span style="font-size:13px;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">'+(name||'—')+'</span><span style="font-size:10px;font-weight:700;color:'+rc+'">'+rl+'</span></div>'+
+    '<button onclick="badgeLogout()" title="Выйти" style="width:30px;height:30px;border:none;border-radius:50%;background:#fef2f2;color:#ef4444;cursor:pointer;font-size:15px;flex-shrink:0">🚪</button>';
+}
+async function badgeLogout(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL_BADGE, SUPABASE_KEY_BADGE);
+    await sb.auth.signOut();
+  } catch(e){}
+  window.location.href = 'login.html';
+}
+</script>
+<script>
+/* BAIBESIK_AUTH_GUARD — giriş yapmayan ve yetkisiz erişimi engeller */
+(function(){
+  // İçeriği gizle (yetki onaylanana kadar)
+  document.documentElement.style.visibility = 'hidden';
+})();
+(async function(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) { window.location.replace('login.html?staff=1'); return; }
+    const {data:user} = await sb.from('users').select('role,full_name').eq('id', session.user.id).single();
+    const allowed = ['store_owner','super_admin'];
+    if(!user || !allowed.includes(user.role)) {
+      const routes = {super_admin:'admin.html',store_owner:'store_owner.html',manager:'vendor.html',warehouse:'depo_panel.html',wholesale:'toptanci_dashboard.html',customer:'musteri_dashboard.html'};
+      window.location.replace(routes[user?.role] || 'login.html');
+      return;
+    }
+    // Yetki tamam — içeriği göster
+    document.documentElement.style.visibility = 'visible';
+    { const hn=document.getElementById('h-name'); if(hn && user.full_name) hn.textContent=user.full_name; }
+  } catch(e) {
+    window.location.replace('login.html?staff=1');
+  }
+})();
+</script>
+
+
+<script>
+(async()=>{
+  try{
+    const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient('https://fciofuexujtxxjlamxno.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80');
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='login.html?next=store_owner.html';}
+  }catch(e){}
+})();
+</script>
+
+<header>
+  <div class="hi">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="htitle">
+      <div class="store-name" id="store-name-label">ДҮКЕН ИЕСІнің ПАНЕЛІ</div>
+      <div class="owner-name" id="h-name">Байбесік</div>
+    </div>
+    <div class="hbtns">
+      <button class="lang-btn active" data-lang="ru" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+      <button class="btn-sm btn-red" onclick="doSignOut()" id="btn-logout">🚪</button>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tabs-inner">
+    <button class="tab-btn active" onclick="showTab('overview',this)" id="t-overview">📊 Обзор</button>
+    <button class="tab-btn" onclick="showTab('staff',this)" id="t-staff">👥 Сотрудники</button>
+    <button class="tab-btn" onclick="showTab('clients',this)" id="t-clients">🧑‍🤝‍🧑 Клиенты</button>
+    <button class="tab-btn" onclick="showTab('products',this)" id="t-products">📦 Товары</button>
+    <button class="tab-btn" onclick="showTab('orders',this)" id="t-orders">🛒 Заказы</button>
+    <button class="tab-btn" onclick="showTab('raskroi',this)" id="t-raskroi">✂️ Раскрой</button>
+    <button class="tab-btn" onclick="showTab('analytics',this)" id="t-analytics">🤖 AI Аналитика</button>
+    <button class="tab-btn" onclick="showTab('settings',this)" id="t-settings">⚙️ Настройки</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ОБЗОР -->
+  <div class="tab-section active" id="sec-overview">
+    <div class="stat-grid">
+      <div class="stat-card orange">
+        <div class="stat-lbl" id="lbl-orders">Новых заказов</div>
+        <div class="stat-val" id="stat-orders">0</div>
+        <div class="stat-sub" id="sub-orders">Ожидают обработки</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-lbl" id="lbl-revenue">Выручка сегодня</div>
+        <div class="stat-val" id="stat-revenue">0 ₸</div>
+        <div class="stat-sub" id="sub-revenue">За сегодня</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-lbl" id="lbl-products">Активных товаров</div>
+        <div class="stat-val" id="stat-products">0</div>
+        <div class="stat-sub" id="sub-products">В каталоге</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-lbl" id="lbl-low-stock">Мало на складе</div>
+        <div class="stat-val" id="stat-low-stock">0</div>
+        <div class="stat-sub" id="sub-low-stock">Требует пополнения</div>
+      </div>
+    </div>
+
+    <!-- AI Uyarıları -->
+    <div class="ai-box">
+      <div class="ai-title">🤖 <span id="ai-title">AI Аналитика</span></div>
+      <div id="ai-items">
+        <div class="ai-item">
+          <div class="ai-icon">⏳</div>
+          <div class="ai-text" id="ai-loading">Загрузка данных...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Son siparişler -->
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title" id="recent-title">ПОСЛЕДНИЕ ЗАКАЗЫ</div>
+        <button class="btn-sm btn-orange" onclick="showTab('orders', document.getElementById('t-orders'))" id="btn-all-orders">Все заказы →</button>
+      </div>
+      <div class="sc-body" id="recent-orders-body">
+        <div style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- СОТРУДНИКИ -->
+  <div class="tab-section" id="sec-staff">
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title" id="staff-title">СОТРУДНИКИ МАГАЗИНА</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="raskroi_worker_setup.html" class="btn-sm" style="background:#3b82f6;color:#fff;text-decoration:none" id="btn-add-raskroi">✂️ Раскрой персонал</a>
+          <button class="btn-sm btn-orange" onclick="openAddStaff()" id="btn-add-staff">+ Добавить</button>
+        </div>
+      </div>
+      <div class="sc-body" id="staff-list">
+        <div style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- КЛИЕНТЫ -->
+  <div class="tab-section" id="sec-clients">
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title">КЛИЕНТЫ МАГАЗИНА</div>
+      </div>
+      <div class="sc-body">
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <input id="cl-search" placeholder="🔍 Поиск по имени или телефону..." oninput="searchClients(this.value)"
+            style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit">
+        </div>
+        <div id="clients-list"><div style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Müşteri indirim modalı -->
+  <div id="cl-modal" onclick="if(event.target===this)closeClModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#fff;border-radius:16px;max-width:400px;width:100%;padding:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0;font-size:17px;font-weight:900" id="cl-modal-name">—</h3>
+        <button onclick="closeClModal()" style="border:none;background:none;font-size:22px;cursor:pointer;color:#94a3b8">✕</button>
+      </div>
+      <div style="font-size:13px;color:var(--gray);margin-bottom:4px" id="cl-modal-phone">—</div>
+      <!-- Müşteri istatistiği -->
+      <div style="display:flex;gap:8px;margin:14px 0">
+        <div style="flex:1;background:var(--bg,#f8fafc);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:900;color:var(--orange)" id="cl-orders">—</div>
+          <div style="font-size:10px;color:var(--gray)">Заказов</div>
+        </div>
+        <div style="flex:1;background:var(--bg,#f8fafc);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:900;color:#10b981" id="cl-spent">—</div>
+          <div style="font-size:10px;color:var(--gray)">Потрачено ₸</div>
+        </div>
+      </div>
+      <label style="font-size:12px;font-weight:800;color:var(--gray);text-transform:uppercase;display:block;margin-bottom:6px">Персональная скидка (%)</label>
+      <input id="cl-discount" type="number" min="0" max="50" value="0"
+        style="width:100%;padding:11px;border:1px solid var(--border);border-radius:10px;font-size:16px;font-weight:800;text-align:center;margin-bottom:6px">
+      <div style="font-size:11px;color:var(--gray);margin-bottom:14px">💡 Скидка действует только в вашем магазине</div>
+      <button onclick="saveClientDiscount()" style="width:100%;padding:12px;border:none;background:var(--orange);color:#fff;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit">💾 Сохранить скидку</button>
+    </div>
+  </div>
+
+  <!-- ТОВАРЫ -->
+  <div class="tab-section" id="sec-products">
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title" id="prod-title">МОИ ТОВАРЫ</div>
+        <a href="urun_ekle.html?role=owner&from=store_owner.html" class="btn-sm btn-orange" id="btn-add-prod">+ Добавить товар</a>
+      </div>
+      <div class="sc-body">
+        <table>
+          <thead>
+            <tr>
+              <th id="th-name">Название</th>
+              <th id="th-price">Цена</th>
+              <th id="th-disc">Скидка</th>
+              <th id="th-stock">Остаток</th>
+              <th id="th-shelf">Полка</th>
+              <th id="th-status">Статус</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="products-body">
+            <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ЗАКАЗЫ -->
+  <div class="tab-section" id="sec-orders">
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title" id="orders-title">ВСЕ ЗАКАЗЫ</div>
+      </div>
+      <div class="sc-body">
+        <table>
+          <thead>
+            <tr>
+              <th id="th-order">Заказ</th>
+              <th id="th-client">Клиент</th>
+              <th id="th-amount">Сумма</th>
+              <th id="th-status2">Статус</th>
+              <th id="th-date">Дата</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body">
+            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--gray)">⏳ Загрузка...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI ANALYTICS -->
+  <!-- РАСКРОЙ DASHBOARD -->
+  <div class="tab-section" id="sec-raskroi">
+    <!-- İstatistik kartları -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px">
+      <div class="section-card" style="padding:14px;border-left:4px solid #3b82f6">
+        <div style="font-size:11px;color:var(--gray);font-weight:800">ВСЕГО ЗАКАЗОВ</div>
+        <div style="font-size:26px;font-weight:900" id="rk-total">—</div>
+      </div>
+      <div class="section-card" style="padding:14px;border-left:4px solid #f59e0b">
+        <div style="font-size:11px;color:var(--gray);font-weight:800">В РАБОТЕ</div>
+        <div style="font-size:26px;font-weight:900;color:#f59e0b" id="rk-active">—</div>
+      </div>
+      <div class="section-card" style="padding:14px;border-left:4px solid #16a34a">
+        <div style="font-size:11px;color:var(--gray);font-weight:800">ГОТОВО</div>
+        <div style="font-size:26px;font-weight:900;color:#16a34a" id="rk-done">—</div>
+      </div>
+      <div class="section-card" style="padding:14px;border-left:4px solid #f97316">
+        <div style="font-size:11px;color:var(--gray);font-weight:800">ВЫРУЧКА ₸</div>
+        <div style="font-size:26px;font-weight:900;color:#f97316" id="rk-revenue">—</div>
+      </div>
+    </div>
+    <!-- Siparişler -->
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title">✂️ ЗАКАЗЫ РАСКРОЯ</div>
+        <a href="raskroi_manager.html" class="btn-sm btn-orange" style="text-decoration:none">Открыть панель →</a>
+      </div>
+      <div class="sc-body" style="overflow-x:auto">
+        <table>
+          <thead><tr><th>№</th><th>Дата</th><th>Клиент</th><th>Телефон</th><th>Деталей</th><th>Цена ₸</th><th>Статус</th></tr></thead>
+          <tbody id="rk-orders"><tr><td colspan="7" style="text-align:center;color:var(--gray);padding:18px">⏳</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Çalışanlar -->
+    <div class="section-card" style="margin-top:14px">
+      <div class="sc-head">
+        <div class="sc-title">👥 ПЕРСОНАЛ РАСКРОЯ</div>
+        <a href="raskroi_worker_setup.html" class="btn-sm" style="background:#3b82f6;color:#fff;text-decoration:none">+ Назначить</a>
+      </div>
+      <div class="sc-body" id="rk-staff">
+        <div style="text-align:center;padding:14px;color:var(--gray)">⏳</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI -->
+  <div class="tab-section" id="sec-analytics">
+    <div class="ai-box">
+      <div class="ai-title">🤖 <span id="ai-full-title">AI Аналитика и рекомендации</span></div>
+      <div id="ai-full-items">
+        <div class="ai-item">
+          <div class="ai-icon">⏳</div>
+          <div class="ai-text">Анализируем данные вашего магазина...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- НАСТРОЙКИ -->
+  <div class="tab-section" id="sec-settings">
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title" id="settings-title">НАСТРОЙКИ МАГАЗИНА</div>
+      </div>
+      <div class="sc-body">
+        <div class="fg"><label class="fg-lbl" id="lbl-sname">Название магазина</label><input class="fg-inp" id="inp-sname" placeholder="Мой магазин"></div>
+        <div class="fg"><label class="fg-lbl" id="lbl-sphone">Телефон</label><input class="fg-inp" id="inp-sphone" placeholder="+7 727 XXX XX XX"></div>
+        <div class="fg"><label class="fg-lbl" id="lbl-saddr">Адрес</label><input class="fg-inp" id="inp-saddr" placeholder="мкр. Байбесик..."></div>
+        <button class="btn-main" id="btn-save-settings" onclick="saveSettings()" style="max-width:200px">💾 Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ADD STAFF MODAL -->
+<div class="overlay" id="staff-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="add-staff-title">ДОБАВИТЬ СОТРУДНИКА</div>
+      <button class="modal-close" onclick="closeStaffModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-success" id="staff-ok">✅ <span id="staff-ok-msg"></span></div>
+      <div class="alert alert-error" id="staff-err">⚠️ <span id="staff-err-msg"></span></div>
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-staff-phone">Телефон сотрудника</label>
+        <div style="display:flex;gap:8px">
+          <div style="background:var(--light);border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;color:var(--gray);font-weight:700">+7</div>
+          <input class="fg-inp" id="inp-staff-phone" type="tel" placeholder="707 XXX XX XX" maxlength="10" style="flex:1">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-staff-role">Роль</label>
+        <select class="fg-sel" id="sel-staff-role">
+          <option value="manager">👔 Менеджер</option>
+          <option value="warehouse">🏭 Складской работник</option>
+          <option value="raskroi_manager">✂️ Раскрой менеджер</option>
+          <option value="raskroi_worker">🪚 Раскрой работник</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fg-lbl" id="lbl-staff-name">Имя (необязательно)</label>
+        <input class="fg-inp" id="inp-staff-name" placeholder="Имя сотрудника">
+      </div>
+      <button class="btn-main" onclick="addStaff()" id="btn-do-add-staff">➕ Добавить сотрудника</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+let lang='ru', sb=null, currentUser=null, currentStore=null;
+
+const T={
+  ru:{
+    'store-name-label':'ПАНЕЛЬ ВЛАДЕЛЬЦА',
+    't-overview':'📊 Обзор','t-staff':'👥 Сотрудники',
+    't-products':'📦 Товары','t-orders':'🛒 Заказы',
+    't-analytics':'🤖 AI Аналитика','t-settings':'⚙️ Настройки',
+    'btn-add-staff':'+ Добавить',
+    'btn-add-prod':'+ Добавить товар','btn-all-orders':'Все заказы →',
+    'lbl-orders':'Новых заказов','sub-orders':'Ожидают обработки',
+    'lbl-revenue':'Выручка сегодня','sub-revenue':'За сегодня',
+    'lbl-products':'Активных товаров','sub-products':'В каталоге','th-disc':'Скидка','disc_set':'Скидка',
+    'lbl-low-stock':'Мало на складе','sub-low-stock':'Требует пополнения',
+    'ai-title':'AI Аналитика','recent-title':'ПОСЛЕДНИЕ ЗАКАЗЫ',
+    'staff-title':'СОТРУДНИКИ МАГАЗИНА','prod-title':'МОИ ТОВАРЫ',
+    'orders-title':'ВСЕ ЗАКАЗЫ','settings-title':'НАСТРОЙКИ МАГАЗИНА',
+    'ai-full-title':'AI Аналитика и рекомендации',
+    'add-staff-title':'ДОБАВИТЬ СОТРУДНИКА',
+    'lbl-staff-phone':'Телефон сотрудника','lbl-staff-role':'Роль',
+    'lbl-staff-name':'Имя (необязательно)','btn-do-add-staff':'➕ Добавить',
+    'lbl-sname':'Название магазина','lbl-sphone':'Телефон','lbl-saddr':'Адрес',
+    'btn-save-settings':'💾 Сохранить',
+    'th-name':'Название','th-price':'Цена','th-stock':'Остаток',
+    'th-shelf':'Полка','th-status':'Статус',
+    'th-order':'Заказ','th-client':'Клиент','th-amount':'Сумма',
+    'th-status2':'Статус','th-date':'Дата',
+    role_manager:'Менеджер',role_warehouse:'Склад',role_owner:'Владелец',
+    status_new:'Новый',status_preparing:'Собирается',status_ready:'Готов',
+    status_delivery:'Доставка',status_done:'Выполнен',
+    btn_edit:'✏️',btn_delete:'🗑️',
+    empty_staff:'Нет сотрудников',empty_products:'Нет товаров',empty_orders:'Нет заказов',
+    low_stock_warn:'⚠️ Заканчивается',in_stock:'✅ В наличии',
+  },
+  kk:{
+    'store-name-label':'ДҮКЕН ИЕСІнің ПАНЕЛІ',
+    't-overview':'📊 Шолу','t-staff':'👥 Қызметкерлер',
+    't-products':'📦 Тауарлар','t-orders':'🛒 Тапсырыстар',
+    't-analytics':'🤖 AI Талдау','t-settings':'⚙️ Баптаулар',
+    'btn-add-staff':'+ Қосу',
+    'btn-add-prod':'+ Тауар қосу','btn-all-orders':'Барлық тапсырыс →',
+    'lbl-orders':'Жаңа тапсырыс','sub-orders':'Күтуде',
+    'lbl-revenue':'Бүгінгі түсім','sub-revenue':'Бүгін',
+    'lbl-products':'Белсенді тауар','sub-products':'Каталогта','th-disc':'Жеңілдік','disc_set':'Жеңілдік',
+    'lbl-low-stock':'Қоймада аз','sub-low-stock':'Толтыру керек',
+    'ai-title':'AI Талдау','recent-title':'СОҢҒЫ ТАПСЫРЫСТАР',
+    'staff-title':'ДҮКЕН ҚЫЗМЕТКЕРЛЕРІ','prod-title':'МЕНІҢ ТАУАРЛАРЫМ',
+    'orders-title':'БАРЛЫҚ ТАПСЫРЫСТАР','settings-title':'ДҮКЕН БАПТАУЛАРЫ',
+    'ai-full-title':'AI Талдау және ұсыныстар',
+    'add-staff-title':'ҚЫЗМЕТКЕР ҚОСУ',
+    'lbl-staff-phone':'Қызметкер телефоны','lbl-staff-role':'Рөлі',
+    'lbl-staff-name':'Аты (міндетті емес)','btn-do-add-staff':'➕ Қосу',
+    'lbl-sname':'Дүкен атауы','lbl-sphone':'Телефон','lbl-saddr':'Мекенжай',
+    'btn-save-settings':'💾 Сақтау',
+    'th-name':'Атауы','th-price':'Баға','th-stock':'Қалдық',
+    'th-shelf':'Сөре','th-status':'Мәртебе',
+    'th-order':'Тапсырыс','th-client':'Клиент','th-amount':'Сомасы',
+    'th-status2':'Мәртебе','th-date':'Күні',
+    role_manager:'Менеджер',role_warehouse:'Қойма',role_owner:'Иесі',
+    status_new:'Жаңа',status_preparing:'Жиналуда',status_ready:'Дайын',
+    status_delivery:'Жолда',status_done:'Орындалды',
+    btn_edit:'✏️',btn_delete:'🗑️',
+    empty_staff:'Қызметкер жоқ',empty_products:'Тауар жоқ',empty_orders:'Тапсырыс жоқ',
+    low_stock_warn:'⚠️ Таусылуда',in_stock:'✅ Бар',
+  }
+};
+
+function d(){return T[lang];}
+function $(id){return document.getElementById(id);}
+function fmt(n){return Math.round(n).toLocaleString('ru');}
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
+  const d_=d();
+  Object.keys(d_).forEach(k=>{
+    if(typeof d_[k]==='string'){const el=$(k);if(el)el.textContent=d_[k];}
+  });
+  if(currentStore) $('h-name').textContent=currentStore.name;
+  loadStaff();
+  loadProducts();
+}
+
+// ─── RASKROI DASHBOARD ───
+async function loadRaskroiDash(){
+  if(!currentStore){return;}
+  try{
+    // Siparişler
+    const {data:rows,error}=await sb.from('raskroi_orders')
+      .select('id, order_number, status, parts, total_price, created_at, users!raskroi_orders_customer_id_fkey(full_name, phone)')
+      .eq('store_id', currentStore.id)
+      .order('created_at',{ascending:false})
+      .limit(100);
+    if(error) throw error;
+    const all=rows||[];
+    const active=all.filter(o=>['pending','processing'].includes(o.status)).length;
+    const done=all.filter(o=>['ready','done'].includes(o.status)).length;
+    const revenue=all.filter(o=>['ready','done'].includes(o.status)).reduce((s,o)=>s+(parseFloat(o.total_price)||0),0);
+    $('rk-total').textContent=all.length;
+    $('rk-active').textContent=active;
+    $('rk-done').textContent=done;
+    $('rk-revenue').textContent=revenue.toLocaleString('ru-RU');
+    const stMap={pending:['#3b82f6','Новый'],processing:['#f59e0b','В работе'],ready:['#16a34a','Готов'],done:['#16a34a','Выдан'],rejected:['#dc2626','Отклонён']};
+    $('rk-orders').innerHTML=all.length?all.slice(0,30).map(o=>{
+      const st=stMap[o.status]||stMap.pending;
+      const np=Array.isArray(o.parts)?o.parts.reduce((s,p)=>s+(parseInt(p.qty)||1),0):'—';
+      const u=o.users||{};
+      return `<tr>
+        <td style="font-weight:800">${o.order_number||o.id.substring(0,6)}</td>
+        <td>${new Date(o.created_at).toLocaleDateString('ru-RU')}</td>
+        <td>${u.full_name||'—'}</td>
+        <td>${u.phone||'—'}</td>
+        <td>${np}</td>
+        <td style="font-weight:800">${o.total_price?parseFloat(o.total_price).toLocaleString('ru-RU'):'—'}</td>
+        <td><span style="color:${st[0]};font-weight:800">● ${st[1]}</span></td>
+      </tr>`;
+    }).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:18px">Заказов раскроя пока нет</td></tr>';
+
+    // Personel
+    const {data:staff}=await sb.from('store_members')
+      .select('role, users(full_name, phone)')
+      .eq('store_id', currentStore.id)
+      .in('role',['raskroi_manager','raskroi_worker']);
+    const labels={raskroi_manager:'✂️ Менеджер раскроя',raskroi_worker:'🪚 Работник'};
+    $('rk-staff').innerHTML=(staff&&staff.length)?staff.map(s=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-weight:800">${s.users?.full_name||'—'}</div>
+          <div style="font-size:11px;color:var(--gray)">${s.users?.phone||'—'}</div>
+        </div>
+        <span style="font-size:11px;font-weight:800;color:#3b82f6">${labels[s.role]||s.role}</span>
+      </div>`).join('')
+      :'<div style="text-align:center;padding:14px;color:var(--gray)">Персонал раскроя не назначен — нажмите «+ Назначить»</div>';
+  }catch(e){
+    console.warn('raskroi dash:',e.message);
+    $('rk-orders').innerHTML='<tr><td colspan="7" style="text-align:center;color:#dc2626;padding:18px">Ошибка: '+e.message+'</td></tr>';
+  }
+}
+
+function showTab(id, btn){
+  document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  $('sec-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='staff') loadStaff();
+  if(id==='clients') searchClients('');
+  if(id==='products') loadProducts();
+  if(id==='orders') loadOrders();
+  if(id==='raskroi') loadRaskroiDash();
+  if(id==='analytics') loadAI();
+  if(id==='settings') loadSettings();
+}
+
+// INIT
+async function init(){
+  const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+  sb=createClient(SUPABASE_URL, SUPABASE_KEY);
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return;}
+
+  // Kullanıcı bilgisi
+  const {data:user}=await sb.from('users').select('*').eq('id',session.user.id).single();
+  if(!user){window.location.href='login.html';return;}
+  currentUser=user;
+
+  // Store bilgisi
+  const {data:members}=await sb.from('store_members')
+    .select('store_id,role,stores(*)').eq('user_id',session.user.id);
+  if(members && members.length){
+    currentStore=members[0].stores;
+    $('h-name').textContent = (currentStore?.name||'') + ' — ' + (user.full_name||'');
+  $('store-name-label').textContent = lang==='ru' ? 'ПАНЕЛЬ ВЛАДЕЛЬЦА' : 'ДҮКЕН ИЕСІнің ПАНЕЛІ';
+  }
+
+  // Logout butonu
+  const logoutBtn=$('btn-logout');
+  if(logoutBtn) logoutBtn.onclick=doSignOut;
+
+  loadOverview();
+}
+
+async function loadOverview(){
+  if(!currentStore) return;
+  const storeId=currentStore.id;
+
+  // Siparişler
+  const {data:orders}=await sb.from('orders')
+    .select('*').eq('store_id',storeId);
+  const newOrders=(orders||[]).filter(o=>o.status==='new').length;
+  $('stat-orders').textContent=newOrders;
+
+  // Bugünkü gelir
+  const today=new Date().toISOString().split('T')[0];
+  const todayOrders=(orders||[]).filter(o=>o.created_at?.startsWith(today)&&o.status==='done');
+  const revenue=todayOrders.reduce((s,o)=>s+parseFloat(o.total||0),0);
+  $('stat-revenue').textContent=fmt(revenue)+' ₸';
+
+  // Ürünler
+  const {data:prods}=await sb.from('products')
+    .select('*').eq('store_id',storeId).eq('is_active',true);
+  $('stat-products').textContent=(prods||[]).length;
+
+  // Az stok
+  const lowStock=(prods||[]).filter(p=>(p.stock_qty||0)<(p.min_stock||5)&&(p.stock_qty||0)>0).length;
+  const noStock=(prods||[]).filter(p=>(p.stock_qty||0)===0).length;
+  $('stat-low-stock').textContent=lowStock+noStock;
+
+  // Son siparişler
+  const recent=(orders||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,5);
+  renderRecentOrders(recent);
+
+  // AI
+  generateAI(prods||[], orders||[]);
+}
+
+function renderRecentOrders(orders){
+  const statusColors={new:'#f97316',preparing:'#3b82f6',ready:'#10b981',delivery:'#8b5cf6',done:'#64748b'};
+  const statusText={new:'Новый',preparing:'Собирается',ready:'Готов',delivery:'Доставка',done:'Готово'};
+  $('recent-orders-body').innerHTML=orders.length?orders.map(o=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:800;color:var(--orange)">#${o.order_number}</div>
+        <div style="font-size:11px;color:var(--gray)">${o.recipient_name||'—'} · ${new Date(o.created_at).toLocaleDateString('ru')}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;font-weight:800">${fmt(o.total||0)} ₸</div>
+        <div style="font-size:10px;font-weight:800;color:${statusColors[o.status]||'#64748b'}">${statusText[o.status]||o.status}</div>
+      </div>
+    </div>`).join('')
+    :'<div style="text-align:center;padding:20px;color:var(--gray)">'+d().empty_orders+'</div>';
+}
+
+function generateAI(products, orders){
+  const items=[];
+  
+  // Az stok uyarısı
+  const critical=products.filter(p=>(p.stock_qty||0)===0);
+  const low=products.filter(p=>(p.stock_qty||0)>0&&(p.stock_qty||0)<5);
+  if(critical.length) items.push({icon:'🚨',text:`${critical.length} товар закончился! Срочно пополните склад: ${critical.slice(0,3).map(p=>p.name_ru).join(', ')}`,badge:'ai-warn',label:'Срочно'});
+  if(low.length) items.push({icon:'⚠️',text:`${low.length} товара заканчивается. Рекомендуется заказ: ${low.slice(0,3).map(p=>p.name_ru).join(', ')}`,badge:'ai-warn',label:'Внимание'});
+  
+  // Satış analizi
+  const doneOrders=orders.filter(o=>o.status==='done');
+  if(doneOrders.length>0){
+    items.push({icon:'📈',text:`Выполнено ${doneOrders.length} заказов. Средний чек: ${fmt(doneOrders.reduce((s,o)=>s+parseFloat(o.total||0),0)/doneOrders.length)} ₸`,badge:'ai-good',label:'Хорошо'});
+  }
+  
+  // Yeni siparişler
+  const newOrds=orders.filter(o=>o.status==='new');
+  if(newOrds.length>0) items.push({icon:'🔔',text:`${newOrds.length} новых заказов ожидают обработки. Нажмите «Начать сборку» в панели менеджера.`,badge:'ai-info',label:'Инфо'});
+  
+  if(!items.length) items.push({icon:'✅',text:'Всё хорошо! Склад пополнен, заказы обработаны.',badge:'ai-good',label:'Хорошо'});
+  
+  const html=items.map(i=>`<div class="ai-item"><div class="ai-icon">${i.icon}</div><div class="ai-text">${i.text}</div><span class="ai-badge ${i.badge}">${i.label}</span></div>`).join('');
+  $('ai-items').innerHTML=html;
+  $('ai-full-items').innerHTML=html;
+}
+
+async function loadStaff(){
+  if(!currentStore) return;
+  const {data:members}=await sb.from('store_members')
+    .select('*,users(full_name,phone,role)').eq('store_id',currentStore.id);
+  const d_=d();
+  $('staff-list').innerHTML=(members&&members.length)?members.map(m=>{
+    const u=m.users;
+    const roleTxt={manager:d_.role_manager,warehouse:d_.role_warehouse,owner:d_.role_owner,raskroi_manager:'✂️ Раскрой менеджер',raskroi_worker:'🪚 Раскрой работник'}[m.role]||m.role;
+    const roleClass={manager:'b-manager',warehouse:'b-warehouse',owner:'b-owner',raskroi_manager:'b-raskroi',raskroi_worker:'b-raskroi'}[m.role]||'b-manager';
+    const initial=(u?.full_name||'?').charAt(0).toUpperCase();
+    const isOwner=m.role==='owner'&&m.user_id===currentUser?.id;
+    return `<div class="staff-card">
+      <div class="staff-av">${initial}</div>
+      <div class="staff-info">
+        <div class="staff-name">${u?.full_name||'—'}</div>
+        <div class="staff-role">${u?.phone||'—'}</div>
+      </div>
+      <span class="badge ${roleClass}">${roleTxt}</span>
+      ${!isOwner?`<button class="btn-sm btn-red" onclick="removeStaff('${m.user_id}')" style="margin-left:8px">${d_.btn_delete}</button>`:''}
+    </div>`;
+  }).join('')
+  :`<div style="text-align:center;padding:20px;color:var(--gray)">${d_.empty_staff||'—'}</div>`;
+}
+
+async function addStaff(){
+  const ph=$('inp-staff-phone').value.replace(/\D/g,'');
+  const role=$('sel-staff-role').value;
+  const name=$('inp-staff-name').value.trim();
+  if(!ph||ph.length<9){showStaffErr('Введите телефон');return;}
+
+  const btn=$('btn-do-add-staff');
+  btn.disabled=true;btn.innerHTML='<span class="loading-ring"></span>';
+
+  try{
+    const phone='+7'+ph;
+    const email = ph + '@baibesik.kz';
+    const password = 'Baibesik' + ph + '!';
+
+    // 1. RPC ile dene (SECURITY DEFINER — RLS sorunu yok)
+    let {data:res, error:rpcErr} = await sb.rpc('add_staff_to_store',{
+      p_store: currentStore.id, p_phone: phone, p_name: name, p_role: role
+    });
+    if(rpcErr) throw rpcErr;
+
+    // 2. Kullanıcı sistemde yoksa → AYRI client ile auth kaydı oluştur
+    //    (ana sb ile signUp yapılırsa sahibin oturumu yeni kullanıcıya geçer!)
+    if(res && res.found===false){
+      const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+      const sb2 = createClient(
+        'https://fciofuexujtxxjlamxno.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80',
+        {auth:{storageKey:'sb-staff-signup',persistSession:false,autoRefreshToken:false}}
+      );
+      const {data:su, error:suErr} = await sb2.auth.signUp({
+        email, password,
+        options:{data:{full_name: name||ph, phone: phone}}
+      });
+      if(suErr && !suErr.message.includes('already registered')) throw suErr;
+      const newId = su?.user?.id;
+      if(!newId) throw new Error('Auth ID alınamadı — bu telefon Auth\'ta kayıtlı olabilir');
+
+      // RPC'yi yeni id ile tekrar çağır
+      const {data:res2, error:rpcErr2} = await sb.rpc('add_staff_to_store',{
+        p_store: currentStore.id, p_phone: phone, p_name: name, p_role: role, p_user_id: newId
+      });
+      if(rpcErr2) throw rpcErr2;
+    }
+
+    showStaffOk(lang==='ru'
+      ? 'Сотрудник добавлен! Телефон: '+phone+', пароль: '+password
+      : 'Қызметкер қосылды! Телефон: '+phone+', құпия сөз: '+password);
+
+    
+    // Form temizle
+    document.getElementById('inp-staff-phone').value = '';
+    document.getElementById('inp-staff-name').value = '';
+    loadStaff();
+  } catch(e) {
+    showStaffErr(e.message);
+  }
+  btn.disabled=false;btn.textContent=d()['btn-do-add-staff'];
+}
+
+async function removeStaff(userId){
+  if(!confirm(lang==='ru'?'Удалить сотрудника?':'Қызметкерді жою?'))return;
+  await sb.from('store_members').delete()
+    .eq('store_id',currentStore.id).eq('user_id',userId);
+  loadStaff();
+}
+
+async function loadProducts(){
+  if(!currentStore) return;
+  const {data:prods}=await sb.from('products')
+    .select('*').eq('store_id',currentStore.id).order('created_at',{ascending:false});
+  const d_=d();
+  $('products-body').innerHTML=(prods&&prods.length)?prods.map(p=>{
+    const stockColor=(p.stock_qty||0)===0?'var(--red)':(p.stock_qty||0)<5?'var(--yellow)':'var(--green)';
+    const stockText=(p.stock_qty||0)===0?d_.low_stock_warn:(p.stock_qty||0)+'шт';
+    return `<tr>
+      <td><strong>${p.name_ru}</strong><br><small style="color:var(--gray)">${p.spec||''}</small></td>
+      <td style="font-weight:800">${fmt(p.price_retail)} ₸</td>
+      <td>${(p.discount_percent||0)>0?`<span style="background:#fee2e2;color:#ef4444;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px">-${p.discount_percent}%</span>`:'<span style="color:var(--gray);font-size:11px">—</span>'}${(p.wholesale_discount_percent||0)>0?`<br><span style="background:#dcfce7;color:#16a34a;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-top:2px;display:inline-block">📦 -${p.wholesale_discount_percent}%</span>`:''}</td>
+      <td style="color:${stockColor};font-weight:700">${stockText}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;color:var(--orange)">${p.shelf_code||'—'}</td>
+      <td><span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;background:${p.is_active?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)'};color:${p.is_active?'var(--green)':'var(--red)'}">${p.is_active?'✅ Активен':'❌ Скрыт'}</span></td>
+      <td style="white-space:nowrap">
+        <button onclick="openDiscountModal('${p.id}','${(p.name_ru||'').replace(/'/g,'')}',${p.discount_percent||0},${p.wholesale_discount_percent||0})" style="font-size:11px;padding:4px 8px;border:1px solid #fed7aa;background:#fff7ed;color:#ea580c;border-radius:6px;cursor:pointer;margin-right:4px" title="${d_.disc_set||'Скидка'}">%</button>
+        <a href="urun_ekle.html?id=${p.id}&role=owner&from=store_owner.html" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--gray)">✏️</a>
+      </td>
+    </tr>`;
+  }).join('')
+  :`<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--gray)">${d_.empty_products}</td></tr>`;
+}
+
+async function loadOrders(){
+  if(!currentStore) return;
+  const {data:orders}=await sb.from('orders')
+    .select('*').eq('store_id',currentStore.id).order('created_at',{ascending:false});
+  const d_=d();
+  const statusColors={new:'#f97316',preparing:'#3b82f6',ready:'#10b981',delivery:'#8b5cf6',done:'#64748b'};
+  $('orders-body').innerHTML=(orders&&orders.length)?orders.map(o=>`<tr>
+    <td style="font-family:'Bebas Neue',sans-serif;color:var(--orange)">#${o.order_number}</td>
+    <td>${o.recipient_name||'—'}<br><small style="color:var(--gray)">${o.recipient_phone||''}</small></td>
+    <td style="font-weight:800">${fmt(o.total||0)} ₸</td>
+    <td style="color:${statusColors[o.status]||'#64748b'};font-weight:700">${d_['status_'+o.status]||o.status}</td>
+    <td style="color:var(--gray);font-size:12px">${new Date(o.created_at).toLocaleDateString('ru')}</td>
+  </tr>`).join('')
+  :`<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--gray)">${d_.empty_orders}</td></tr>`;
+}
+
+function loadAI(){
+  if(currentStore) loadOverview();
+}
+
+function loadSettings(){
+  if(currentStore){
+    $('inp-sname').value=currentStore.name||'';
+    $('inp-sphone').value=currentStore.phone||'';
+    $('inp-saddr').value=currentStore.address||'';
+  }
+}
+
+async function saveSettings(){
+  if(!currentStore)return;
+  const name=$('inp-sname').value.trim();
+  const phone=$('inp-sphone').value.trim();
+  const address=$('inp-saddr').value.trim();
+  await sb.from('stores').update({name,phone,address}).eq('id',currentStore.id);
+  currentStore={...currentStore,name,phone,address};
+  $('h-name').textContent=name;
+  alert(lang==='ru'?'Сохранено!':'Сақталды!');
+}
+
+function openAddStaff(){$('staff-modal').classList.add('open');}
+function closeStaffModal(){$('staff-modal').classList.remove('open');}
+function showStaffOk(msg){$('staff-ok-msg').textContent=msg;$('staff-ok').classList.add('show');$('staff-err').classList.remove('show');}
+function showStaffErr(msg){$('staff-err-msg').textContent=msg;$('staff-err').classList.add('show');$('staff-ok').classList.remove('show');}
+async function doSignOut(){
+  const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+  const sb2=createClient(SUPABASE_URL,SUPABASE_KEY);
+  await sb2.auth.signOut();
+  window.location.href='login.html';
+}
+
+// Modal kapanması
+$('staff-modal').addEventListener('click',e=>{if(e.target===$('staff-modal'))closeStaffModal();});
+
+window.setLang=setLang;window.showTab=showTab;
+window.openAddStaff=openAddStaff;window.closeStaffModal=closeStaffModal;
+window.addStaff=addStaff;window.removeStaff=removeStaff;
+window.saveSettings=saveSettings;window.doSignOut=doSignOut;
+
+init();
+
+// ─── İNDİRİM AYARLAMA ───
+let discProductId = null;
+function openDiscountModal(id, name, retailDisc, wsDisc) {
+  discProductId = id;
+  const isRu = (typeof lang==='undefined'?'ru':lang) === 'ru';
+  document.getElementById('disc-product-name').textContent = name;
+  document.getElementById('disc-retail-range').value = retailDisc||0;
+  document.getElementById('disc-retail-val').textContent = (retailDisc||0)+'%';
+  document.getElementById('disc-ws-range').value = wsDisc||0;
+  document.getElementById('disc-ws-val').textContent = (wsDisc||0)+'%';
+  document.getElementById('discount-modal').style.display = 'flex';
+}
+function closeDiscountModal(){ document.getElementById('discount-modal').style.display='none'; discProductId=null; }
+async function saveDiscount() {
+  if(!discProductId) return;
+  const retail = parseInt(document.getElementById('disc-retail-range').value)||0;
+  const ws = parseInt(document.getElementById('disc-ws-range').value)||0;
+  try {
+    const {error} = await sb.from('products').update({
+      discount_percent: retail,
+      wholesale_discount_percent: ws
+    }).eq('id', discProductId);
+    if(error) throw error;
+    closeDiscountModal();
+    loadProducts();
+    // Log
+    const {data:{session}} = await sb.auth.getSession();
+    if(session && currentStore) {
+      await sb.from('admin_logs').insert({
+        user_id: session.user.id, store_id: currentStore.id,
+        action_type: 'set_discount',
+        description: (lang==='ru'?'Скидка установлена: розница -':'Жеңілдік: бөлшек -')+retail+'%, опт -'+ws+'%',
+        meta: JSON.stringify({product_id:discProductId, retail_discount:retail, ws_discount:ws})
+      });
+    }
+  } catch(e) {
+    alert((typeof lang!=='undefined'&&lang==='ru')?'Ошибка сохранения. Проверьте колонки discount_percent в БД.':'Сақтау қатесі.');
+    console.log('saveDiscount:', e.message);
+  }
+}
+
+
+// ─── KLIENTLER (dükkana özel indirim) ───
+let clCurrentId = null, clDiscMap = {};
+async function searchClients(q){
+  const list = document.getElementById('clients-list');
+  if(!list || !currentStore) return;
+  try {
+    // Müşteri + toptancıları çek
+    let query = sb.from('users').select('id, full_name, phone, role').in('role',['customer','wholesale']);
+    const {data:users} = await query.limit(100);
+    // Bu dükkanın indirimlerini çek
+    const {data:discs} = await sb.from('customer_discounts')
+      .select('customer_id, discount_percent').eq('store_id', currentStore.id);
+    clDiscMap = {};
+    (discs||[]).forEach(d=>{ clDiscMap[d.customer_id]=d.discount_percent; });
+    // Filtrele
+    const ql = (q||'').toLowerCase().trim();
+    const filtered = (users||[]).filter(u=>{
+      if(!ql) return true;
+      return (u.full_name||'').toLowerCase().includes(ql) || (u.phone||'').includes(ql);
+    });
+    if(!filtered.length){
+      list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray)">Клиенты не найдены</div>';
+      return;
+    }
+    list.innerHTML = filtered.map(u=>{
+      const disc = clDiscMap[u.id]||0;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">${(u.full_name||'?').charAt(0).toUpperCase()}</div>
+          <div>
+            <div style="font-weight:700;font-size:14px">${u.full_name||'—'}</div>
+            <div style="font-size:12px;color:var(--gray)">${u.phone||'—'}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${disc>0?`<span style="background:#dcfce7;color:#16a34a;font-size:12px;font-weight:800;padding:3px 10px;border-radius:20px">-${disc}%</span>`:''}
+          <button onclick="openClModal('${u.id}','${(u.full_name||'').replace(/'/g,'')}','${u.phone||''}')" style="font-size:12px;padding:6px 12px;border:1px solid var(--orange);background:#fff7ed;color:var(--orange);border-radius:8px;cursor:pointer;font-weight:700">💰 Скидка</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){ list.innerHTML='<div style="color:#ef4444;padding:20px;text-align:center">Ошибка: '+e.message+'</div>'; }
+}
+
+async function openClModal(id, name, phone){
+  clCurrentId = id;
+  document.getElementById('cl-modal-name').textContent = name;
+  document.getElementById('cl-modal-phone').textContent = phone;
+  document.getElementById('cl-discount').value = clDiscMap[id] || 0;
+  document.getElementById('cl-orders').textContent = '...';
+  document.getElementById('cl-spent').textContent = '...';
+  document.getElementById('cl-modal').style.display = 'flex';
+  // İstatistik — bu dükkandan yaptığı siparişler
+  try {
+    const {data:ords} = await sb.from('orders')
+      .select('total').eq('customer_id', id).eq('store_id', currentStore.id);
+    const cnt = ords?ords.length:0;
+    const spent = ords?ords.reduce((s,o)=>s+(parseFloat(o.total)||0),0):0;
+    document.getElementById('cl-orders').textContent = cnt;
+    document.getElementById('cl-spent').textContent = spent.toLocaleString('ru');
+  } catch(e){ document.getElementById('cl-orders').textContent='0'; document.getElementById('cl-spent').textContent='0'; }
+}
+function closeClModal(){ document.getElementById('cl-modal').style.display='none'; clCurrentId=null; }
+
+async function saveClientDiscount(){
+  if(!clCurrentId || !currentStore) return;
+  const pct = parseInt(document.getElementById('cl-discount').value)||0;
+  if(pct<0||pct>50){ alert('Скидка 0-50% аралығында'); return; }
+  try {
+    // upsert: varsa güncelle, yoksa ekle (store+customer unique)
+    const {error} = await sb.from('customer_discounts').upsert({
+      store_id: currentStore.id,
+      customer_id: clCurrentId,
+      discount_percent: pct,
+      created_by: currentUser?.id,
+      updated_at: new Date().toISOString(),
+    }, {onConflict:'store_id,customer_id'});
+    if(error) throw error;
+    clDiscMap[clCurrentId] = pct;
+    closeClModal();
+    searchClients(document.getElementById('cl-search')?.value||'');
+    alert(lang==='ru'?'✅ Скидка сохранена (только для вашего магазина)':'✅ Жеңілдік сақталды');
+  } catch(e){ alert('Ошибка: '+e.message); }
+}
+window.searchClients=searchClients; window.openClModal=openClModal;
+window.closeClModal=closeClModal; window.saveClientDiscount=saveClientDiscount;
+
+</script>
+
+<!-- İndirim ayarlama modalı -->
+<div id="discount-modal" onclick="if(event.target===this)closeDiscountModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:18px;max-width:420px;width:100%;padding:26px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3 style="font-size:18px;font-weight:900" id="disc-modal-title">🏷️ Установить скидку</h3>
+      <button onclick="closeDiscountModal()" style="border:none;background:none;font-size:22px;cursor:pointer;color:#94a3b8">✕</button>
+    </div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:18px" id="disc-product-name"></p>
+
+    <div style="margin-bottom:18px">
+      <label style="font-size:12px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px" id="disc-retail-lbl">🛒 Скидка для розницы (видна всем)</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="range" id="disc-retail-range" min="0" max="50" value="0" style="flex:1" oninput="document.getElementById('disc-retail-val').textContent=this.value+'%'">
+        <span id="disc-retail-val" style="font-size:18px;font-weight:900;color:#ef4444;min-width:48px;text-align:right">0%</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:22px">
+      <label style="font-size:12px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px" id="disc-ws-lbl">📦 Доп. скидка для оптовиков</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="range" id="disc-ws-range" min="0" max="30" value="0" style="flex:1" oninput="document.getElementById('disc-ws-val').textContent=this.value+'%'">
+        <span id="disc-ws-val" style="font-size:18px;font-weight:900;color:#16a34a;min-width:48px;text-align:right">0%</span>
+      </div>
+      <p style="font-size:11px;color:#94a3b8;margin-top:6px" id="disc-ws-hint">Только для оптовых клиентов</p>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button onclick="closeDiscountModal()" style="flex:1;padding:11px;border:1px solid var(--border);background:#fff;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit" id="disc-cancel">Отмена</button>
+      <button onclick="saveDiscount()" style="flex:2;padding:11px;border:none;background:var(--orange);color:#fff;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit" id="disc-save">Сохранить</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
