@@ -21,6 +21,31 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .import-bar{background:#fff;border-radius:12px;padding:14px 18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .import-bar textarea{flex:1;min-width:200px;min-height:42px;max-height:120px;padding:8px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:11px;resize:vertical;outline:none}
 .import-bar textarea:focus{border-color:var(--orange)}
+/* ─── CSV MAPPING WIZARD ─── */
+.map-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:500;display:none;align-items:flex-end;justify-content:center}
+.map-overlay.show{display:flex}
+.map-modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:760px;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .2s ease-out}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.map-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.map-head h3{font-size:15px;font-weight:800;color:var(--dark)}
+.map-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--light);color:var(--gray);font-size:16px;cursor:pointer;flex-shrink:0}
+.map-body{padding:12px 16px;overflow:auto;flex:1}
+.map-hint{font-size:11px;color:var(--gray);margin-bottom:10px;line-height:1.5}
+.map-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+.map-table{border-collapse:collapse;font-size:11px;min-width:100%}
+.map-table th,.map-table td{padding:6px 8px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;text-align:left}
+.map-table th:last-child,.map-table td:last-child{border-right:none}
+.map-table tbody tr:last-child td{border-bottom:none}
+.map-table select{font-size:11px;font-weight:800;padding:5px 4px;border:1.5px solid var(--orange);border-radius:6px;background:#fff7ed;color:var(--dark);max-width:120px}
+.map-table td{color:var(--gray);max-width:90px;overflow:hidden;text-overflow:ellipsis}
+.map-mode{display:flex;gap:8px;margin:12px 0}
+.map-mode label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;color:var(--gray)}
+.map-mode input{accent-color:var(--orange)}
+.map-mode input:checked+span{color:var(--orange)}
+.map-mode label:has(input:checked){border-color:var(--orange);background:#fff7ed;color:var(--orange)}
+.map-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0}
+.map-foot button{flex:1;padding:13px;border-radius:10px;font-size:13px;font-weight:800;border:none;cursor:pointer}
+.map-summary{font-size:12px;color:var(--gray);margin-top:8px;text-align:center}
 .main-grid{max-width:760px;margin:0 auto}
 .screen{display:none}
 .screen.active{display:block;animation:fade .25s}
@@ -62,6 +87,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .ig input:focus,.ig select:focus{border-color:var(--orange);background:#fff9f0}
 .btn{padding:10px 14px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;font-family:'Noto Sans';transition:.2s}
 .btn-primary{background:var(--orange);color:#fff}
+.btn-blue{background:#3b82f6;color:#fff}
 .btn-primary:hover{background:var(--orange-dark)}
 .btn-green{background:var(--green);color:#fff}
 .btn-green:hover{background:#059669}
@@ -153,7 +179,31 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
   <div class="import-bar">
     <textarea id="pasteData" placeholder="📋 Excel/TXT: Ctrl+V  →  P1	400	300	1	all	yes"></textarea>
     <button class="btn btn-primary" onclick="importData()">📥 <span data-i18n="import">Импорт</span></button>
+    <button class="btn btn-blue" onclick="openMapWizard()" id="mapWizBtn">📊 <span data-i18n="mapCols">Сопоставить</span></button>
     <button class="ai-btn" onclick="aiSuggestBanding()">🤖 <span data-i18n="ai">AI Кромка</span></button>
+  </div>
+
+  <!-- CSV MAPPING WIZARD -->
+  <div class="map-overlay" id="mapOverlay" onclick="if(event.target===this)closeMapWizard()">
+    <div class="map-modal">
+      <div class="map-head">
+        <h3 data-i18n="mapTitle">📊 Сопоставление колонок</h3>
+        <button class="map-close" onclick="closeMapWizard()">✕</button>
+      </div>
+      <div class="map-body">
+        <div class="map-hint" data-i18n="mapHint">Для каждой колонки выберите, что она означает. Первые строки — предпросмотр.</div>
+        <div class="map-table-wrap"><table class="map-table" id="mapTable"></table></div>
+        <div class="map-mode">
+          <label><input type="radio" name="mapMode" value="replace" checked><span data-i18n="mapReplace">🔄 Заменить всё</span></label>
+          <label><input type="radio" name="mapMode" value="append"><span data-i18n="mapAppend">➕ Добавить к списку</span></label>
+        </div>
+        <div class="map-summary" id="mapSummary"></div>
+      </div>
+      <div class="map-foot">
+        <button style="background:var(--light);color:var(--dark)" onclick="closeMapWizard()" data-i18n="cancel">Отмена</button>
+        <button style="background:var(--orange);color:#fff" onclick="applyMapWizard()" data-i18n="mapApply">✓ Импортировать</button>
+      </div>
+    </div>
   </div>
 
   <!-- ADIM GÖSTERGESİ -->
@@ -310,8 +360,8 @@ import { getCurrentUser } from './supabase_client.js';
 
 // ─── i18n ───
 const I18N = {
-  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',topE:'Верх',botE:'Низ',leftE:'Лево',rightE:'Право',allE:'Все',gAuto:'Авто',delSel:'Удалить',selectAll:'Выбрать всё',addPart:'Деталь',merge:'Объединить',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали',downloadTitle:'Скачать / Поделиться',chooseShop:'Отправить в кесме-цех',loadingShops:'Загрузка цехов...',scanTitle:'Сфотографируй свой листок с деталями',scanSub:'Камера прочитает размеры и заполнит детали автоматически. Фото НЕ сохраняется.',scanCam:'Камера',scanUpload:'Загрузить фото'},
-  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',topE:'Жоғ',botE:'Төм',leftE:'Сол',rightE:'Оң',allE:'Барлығы',gAuto:'Авто',delSel:'Жою',selectAll:'Барлығын таңдау',addPart:'Бөлшек',merge:'Біріктіру',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту',downloadTitle:'Жүктеу / Бөлісу',chooseShop:'Кесу цехына жіберу',loadingShops:'Цехтар жүктелуде...',scanTitle:'Бөлшектер жазылған қағазды суретке түсір',scanSub:'Камера өлшемдерді оқып, бөлшектерді автоматты толтырады. Сурет САҚТАЛМАЙДЫ.',scanCam:'Камера',scanUpload:'Сурет жүктеу'}
+  ru:{import:'Импорт',ai:'AI Кромка',sheetParams:'Параметры листа',width:'Ширина X (mm)',height:'Высота Y (mm)',material:'Материал',grain:'Текстура (узор)',grainNone:'Нет — вращать всё',grainV:'Вертикальная ↕',grainH:'Горизонтальная ↔',kerf:'Рез / Kesme (mm)',trim:'Обрезка края (mm)',grainHint:'⚠️ Если выбрана текстура — детали с «🔒» НЕ вращаются (узор сохраняется).',parts:'Детали',bandAll:'Кромковать ВСЕ края всех деталей (□ квадрат)',part:'Деталь',qty:'Кол',band:'Кромка В/П/Н/Л',mapCols:'Сопоставить',mapTitle:'📊 Сопоставление колонок',mapHint:'Для каждой колонки выберите, что она означает. Ниже — предпросмотр первых строк.',mapReplace:'🔄 Заменить всё',mapAppend:'➕ Добавить к списку',cancel:'Отмена',mapApply:'✓ Импортировать',topE:'Верх',botE:'Низ',leftE:'Лево',rightE:'Право',allE:'Все',gAuto:'Авто',delSel:'Удалить',selectAll:'Выбрать всё',addPart:'Деталь',merge:'Объединить',clear:'Очистить',bandHint:'Кромка: В=верх П=право Н=низ Л=лево | 🔒=не вращать (текстура)',pvcTitle:'Кромка PVC',pvcNone:'Нет',calc:'Рассчитать раскрой',sheetsNeed:'Листов нужно',totalParts:'Всего деталей',eff:'КПД (использование)',waste:'Отходы',cutLen:'Длина реза',pvcLen:'Кромка PVC',send:'Отправить в мастерскую',sendHint:'После отправки мастер рассчитает финальную цену и начнёт резку.',cutPlan:'План раскроя',emptyPlan:'Добавьте детали и нажмите «Рассчитать раскрой»',titleHdr:'Раскрой',step1:'Детали',step2:'План',back:'Назад / Изменить детали',downloadTitle:'Скачать / Поделиться',chooseShop:'Отправить в кесме-цех',loadingShops:'Загрузка цехов...',scanTitle:'Сфотографируй свой листок с деталями',scanSub:'Камера прочитает размеры и заполнит детали автоматически. Фото НЕ сохраняется.',scanCam:'Камера',scanUpload:'Загрузить фото'},
+  kk:{import:'Импорт',ai:'AI Жиек',sheetParams:'Парақ параметрлері',width:'Ені X (mm)',height:'Биіктігі Y (mm)',material:'Материал',grain:'Текстура (өрнек)',grainNone:'Жоқ — бәрін бұру',grainV:'Тік ↕',grainH:'Көлденең ↔',kerf:'Кесу (mm)',trim:'Жиекті кесу (mm)',grainHint:'⚠️ Текстура таңдалса — «🔒» белгісі бар бөлшектер бұрылмайды (өрнек сақталады).',parts:'Бөлшектер',bandAll:'БАРЛЫҚ бөлшектің барлық жиегін жапсыру (□)',part:'Бөлшек',qty:'Саны',band:'Жиек Ж/О/Т/С',mapCols:'Сәйкестендіру',mapTitle:'📊 Бағандарды сәйкестендіру',mapHint:'Әр баған үшін мағынасын таңдаңыз. Төменде — алдын ала қарау.',mapReplace:'🔄 Барлығын алмастыру',mapAppend:'➕ Тізімге қосу',cancel:'Бас тарту',mapApply:'✓ Импорттау',topE:'Жоғ',botE:'Төм',leftE:'Сол',rightE:'Оң',allE:'Барлығы',gAuto:'Авто',delSel:'Жою',selectAll:'Барлығын таңдау',addPart:'Бөлшек',merge:'Біріктіру',clear:'Тазалау',bandHint:'Жиек: Ж=жоғары О=оң Т=төмен С=сол | 🔒=бұрмау (текстура)',pvcTitle:'PVC жиегі',pvcNone:'Жоқ',calc:'Кесуді есептеу',sheetsNeed:'Қажет парақ',totalParts:'Барлық бөлшек',eff:'ПӘК (қолдану)',waste:'Қалдық',cutLen:'Кесу ұзындығы',pvcLen:'PVC жиегі',send:'Шеберханаға жіберу',sendHint:'Жібергеннен кейін шебер бағаны есептеп, кесуді бастайды.',cutPlan:'Кесу жоспары',emptyPlan:'Бөлшектерді қосып, «Кесуді есептеу» басыңыз',titleHdr:'Раскрой',step1:'Бөлшектер',step2:'Жоспар',back:'Артқа / Бөлшектерді өзгерту',downloadTitle:'Жүктеу / Бөлісу',chooseShop:'Кесу цехына жіберу',loadingShops:'Цехтар жүктелуде...',scanTitle:'Бөлшектер жазылған қағазды суретке түсір',scanSub:'Камера өлшемдерді оқып, бөлшектерді автоматты толтырады. Сурет САҚТАЛМАЙДЫ.',scanCam:'Камера',scanUpload:'Сурет жүктеу'}
 };
 let lang = 'ru';
 function applyLang(){
@@ -407,7 +457,7 @@ async function init(){
   }catch(e){console.error(e);}
 }
 
-// ─── IMPORT (Excel/TXT) ───
+// ─── IMPORT (Excel/TXT) — basit, eski format ───
 window.importData=function(){
   const txt=document.getElementById('pasteData').value.trim();
   if(!txt){alert('Вставьте данные / Деректерді қойыңыз');return;}
@@ -430,6 +480,184 @@ window.importData=function(){
   });
   if(!parts.length){alert('Формат: Имя X Y Кол Кромка Поворот');return;}
   pushHistory(); renderTable(); document.getElementById('pasteData').value='';
+};
+
+// ═══ CSV/EXCEL MAPPING WIZARD ═══
+const MAP_FIELDS=[
+  {v:'skip',  ru:'— Пропустить —',     kk:'— Өткізіп жіберу —'},
+  {v:'name',  ru:'Название',           kk:'Атауы'},
+  {v:'w',     ru:'Ширина X (мм)',      kk:'Ені X (мм)'},
+  {v:'h',     ru:'Высота Y (мм)',      kk:'Биіктігі Y (мм)'},
+  {v:'qty',   ru:'Кол-во',             kk:'Саны'},
+  {v:'edges_all', ru:'Кромка (текст: В/Н/Л/П)', kk:'Жиек (мәтін)'},
+  {v:'edge_t',ru:'Кромка ↑ Верх',      kk:'Жиек ↑ Жоғ'},
+  {v:'edge_b',ru:'Кромка ↓ Низ',       kk:'Жиек ↓ Төм'},
+  {v:'edge_l',ru:'Кромка ← Лево',      kk:'Жиек ← Сол'},
+  {v:'edge_r',ru:'Кромка → Право',     kk:'Жиек → Оң'},
+  {v:'grain', ru:'Текстура (авто/lock/free)', kk:'Текстура'},
+];
+
+let mapRows=[], mapHasHeader=false;
+
+function mapDetectDelimiter(lines){
+  const cands=['\t',';',','];
+  let best=null,bestScore=-1;
+  cands.forEach(d=>{
+    const counts=lines.map(l=>l.split(d).length);
+    const maxC=Math.max(...counts);
+    if(maxC<2)return;
+    const freq={}; counts.forEach(c=>freq[c]=(freq[c]||0)+1);
+    const modeC=Math.max(...Object.values(freq));
+    const score=modeC*maxC;
+    if(score>bestScore){bestScore=score;best=d;}
+  });
+  return best; // null => 'multi' (regex fallback)
+}
+function mapSplitRow(line,delim){
+  if(!delim) return line.split(/\t+|\s{2,}|;|,/).map(x=>x.trim()).filter(x=>x!=='');
+  return line.split(delim).map(x=>x.trim());
+}
+function mapGuessField(headerText){
+  const h=(headerText||'').toString().toLowerCase();
+  if(/назв|имя|атау|^name$|деталь|part/.test(h))return 'name';
+  if(/шир|width|ені|^x$|^х$|^w$/.test(h))return 'w';
+  if(/выс|height|биік|^y$|^у$|^h$/.test(h))return 'h';
+  if(/кол|qty|штук|^шт$|сан/.test(h))return 'qty';
+  if(/верх|^top$|жоғ/.test(h))return 'edge_t';
+  if(/низ|bottom|^bot$|төм/.test(h))return 'edge_b';
+  if(/лево|^left$|сол/.test(h))return 'edge_l';
+  if(/право|^right$|оң/.test(h))return 'edge_r';
+  if(/кромк|edge|жиек|band/.test(h))return 'edges_all';
+  if(/текстур|узор|grain|доку/.test(h))return 'grain';
+  return 'skip';
+}
+function parseEdgesAll(s){
+  s=(s||'').toString().toLowerCase().trim();
+  const e={t:false,r:false,b:false,l:false};
+  if(!s)return e;
+  if(/all|все|бәрі|^4$/.test(s)){e.t=e.r=e.b=e.l=true;return e;}
+  if(/^(no|none|нет|жоқ|0)$/.test(s))return e;
+  if(/[tв]|top|верх|жоғ/.test(s))e.t=true;
+  if(/[rп]|right|прав|оң/.test(s))e.r=true;
+  if(/[bн]|bot|низ|төм/.test(s))e.b=true;
+  if(/[lл]|left|лев|сол/.test(s))e.l=true;
+  return e;
+}
+function parseBoolCol(s){
+  s=(s||'').toString().toLowerCase().trim();
+  return ['1','yes','да','true','+','✓','y','бар','есть','иә'].includes(s);
+}
+function parseGrainCol(s){
+  s=(s||'').toString().toLowerCase().trim();
+  if(/lock|закр|не\s*вращ|кілт/.test(s))return 'lock';
+  if(/free|свобод|еркін/.test(s))return 'free';
+  return 'auto';
+}
+
+window.openMapWizard=function(){
+  const txt=document.getElementById('pasteData').value.trim();
+  if(!txt){alert(lang==='kk'?'Алдымен деректерді қойыңыз':'Сначала вставьте данные');return;}
+  const lines=txt.split('\n').map(l=>l.replace(/\r$/,'')).filter(l=>l.trim()!=='');
+  if(!lines.length)return;
+  const delim=mapDetectDelimiter(lines);
+  mapRows=lines.map(l=>mapSplitRow(l,delim));
+  const colCount=Math.max(...mapRows.map(r=>r.length));
+  mapRows=mapRows.map(r=>{ while(r.length<colCount)r.push(''); return r; });
+
+  // Header tahmini: ilk satırın hücrelerinden en az 2'si tanınan alan ise header say
+  const guesses0=mapRows[0].map(mapGuessField);
+  const recognized=guesses0.filter(g=>g!=='skip').length;
+  mapHasHeader = recognized>=2;
+
+  let colMap;
+  if(mapHasHeader){
+    colMap=guesses0;
+  }else{
+    const posDefaults=['name','w','h','qty','edges_all','grain'];
+    colMap=Array.from({length:colCount},(_,i)=>posDefaults[i]||'skip');
+  }
+
+  const previewRows=(mapHasHeader?mapRows.slice(1):mapRows).slice(0,5);
+  const L=(ru,kk)=>lang==='kk'?kk:ru;
+  const table=document.getElementById('mapTable');
+  let html='<thead><tr>';
+  for(let c=0;c<colCount;c++){
+    html+=`<th><select id="mapcol-${c}">`+MAP_FIELDS.map(f=>`<option value="${f.v}" ${f.v===colMap[c]?'selected':''}>${L(f.ru,f.kk)}</option>`).join('')+'</select></th>';
+  }
+  html+='</tr></thead><tbody>';
+  previewRows.forEach(r=>{
+    html+='<tr>'+r.map(cell=>`<td title="${(cell||'').replace(/"/g,'&quot;')}">${cell||'—'}</td>`).join('')+'</tr>';
+  });
+  html+='</tbody>';
+  table.innerHTML=html;
+
+  const dataCount=(mapHasHeader?mapRows.length-1:mapRows.length);
+  document.getElementById('mapSummary').textContent =
+    (mapHasHeader ? L('Найдена строка заголовков. ','Тақырып жолы табылды. ') : '') +
+    L(`Строк данных: ${dataCount}, колонок: ${colCount}`, `Деректер жолы: ${dataCount}, баған: ${colCount}`);
+
+  document.getElementById('mapOverlay').classList.add('show');
+};
+window.closeMapWizard=function(){
+  document.getElementById('mapOverlay').classList.remove('show');
+};
+window.applyMapWizard=function(){
+  const colCount=mapRows[0].length;
+  const colMap=[];
+  for(let c=0;c<colCount;c++) colMap.push(document.getElementById('mapcol-'+c).value);
+
+  if(!colMap.includes('w')||!colMap.includes('h')){
+    alert(lang==='kk'?'Кем дегенде "Ені" және "Биіктігі" бағанын таңдаңыз':'Выберите хотя бы колонки "Ширина" и "Высота"');
+    return;
+  }
+  const wIdx=colMap.indexOf('w'), hIdx=colMap.indexOf('h');
+  const nameIdx=colMap.indexOf('name');
+  const qtyIdx=colMap.indexOf('qty');
+  const edgesAllIdx=colMap.indexOf('edges_all');
+  const grainIdx=colMap.indexOf('grain');
+  const edgeIdx={t:colMap.indexOf('edge_t'),b:colMap.indexOf('edge_b'),l:colMap.indexOf('edge_l'),r:colMap.indexOf('edge_r')};
+
+  const dataRows=mapHasHeader?mapRows.slice(1):mapRows;
+  const mode=document.querySelector('input[name="mapMode"]:checked').value;
+
+  const newParts=[];
+  let skipped=0;
+  let nextId = mode==='append' ? Math.max(0,...parts.map(p=>p.id))+1 : 1;
+
+  dataRows.forEach(row=>{
+    const w=parseFloat(row[wIdx])||0, h=parseFloat(row[hIdx])||0;
+    if(!w||!h){skipped++;return;}
+    const qty=qtyIdx>=0?(parseInt(row[qtyIdx])||1):1;
+    const name=(nameIdx>=0&&row[nameIdx])?row[nameIdx]:('P'+nextId);
+
+    let e={t:false,r:false,b:false,l:false};
+    if(edgesAllIdx>=0) e=parseEdgesAll(row[edgesAllIdx]);
+    if(edgeIdx.t>=0)e.t=parseBoolCol(row[edgeIdx.t]);
+    if(edgeIdx.b>=0)e.b=parseBoolCol(row[edgeIdx.b]);
+    if(edgeIdx.l>=0)e.l=parseBoolCol(row[edgeIdx.l]);
+    if(edgeIdx.r>=0)e.r=parseBoolCol(row[edgeIdx.r]);
+
+    const grainMode = grainIdx>=0 ? parseGrainCol(row[grainIdx]) : 'auto';
+
+    newParts.push({id:nextId++,name,w,h,qty,e,lock:(grainMode==='lock'),grainMode});
+  });
+
+  if(!newParts.length){
+    alert(lang==='kk'?'Жарамды жол табылмады (Ені/Биіктігі бос)':'Не найдено валидных строк (Ширина/Высота пустые)');
+    return;
+  }
+
+  parts = mode==='append' ? [...parts, ...newParts] : newParts;
+  pushHistory(); renderTable();
+  document.getElementById('pasteData').value='';
+  closeMapWizard();
+
+  const L=(ru,kk)=>lang==='kk'?kk:ru;
+  const msg=L(`Импортировано: ${newParts.length}`,`Импортталды: ${newParts.length}`)+
+    (skipped?L(`, пропущено: ${skipped}`,`, өткізілді: ${skipped}`):'');
+  const status=document.getElementById('scanStatus');
+  if(status){status.style.display='block';status.className='scan-status ok';status.textContent='✓ '+msg;setTimeout(()=>{status.style.display='none';status.className='scan-status';},4000);}
+  else alert(msg);
 };
 
 // ─── AI BANDING SUGGESTION ───
