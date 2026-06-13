@@ -243,6 +243,16 @@ async function badgeLogout(){
     // Yetki tamam — içeriği göster
     document.documentElement.style.visibility = 'visible';
     { const hn=document.getElementById('admin-name'); if(hn && user.full_name) hn.textContent=user.full_name; }
+    // Bekleyen raскрой atölye başvuru sayısı
+    try {
+      const {count} = await sb.from('cutting_applications')
+        .select('id', {count:'exact', head:true})
+        .eq('status','pending');
+      if(count>0){
+        const b=document.getElementById('nb-rask-apps');
+        if(b){b.textContent=count; b.style.display='inline-block';}
+      }
+    } catch(e){ console.warn('raskroi badge:', e.message); }
   } catch(e) {
     window.location.replace('login.html?staff=1');
   }
@@ -293,6 +303,14 @@ async function badgeLogout(){
     </a>
     <a class="nav-item" onclick="showSection('categories', this)" href="#">
       <span class="nav-icon">📂</span><span id="ni-cats">Категории</span>
+    </a>
+    <div class="nav-section" id="ns-raskroi">Раскрой</div>
+    <a class="nav-item" href="raskroi_admin.html">
+      <span class="nav-icon">🏪</span><span id="ni-rask-shops">Заявки цехов</span>
+      <span class="nav-badge" id="nb-rask-apps" style="display:none;background:#ef4444"></span>
+    </a>
+    <a class="nav-item" href="raskroi_worker_setup.html">
+      <span class="nav-icon">👔</span><span id="ni-rask-staff">Персонал раскроя</span>
     </a>
     <div class="nav-section" id="ns-system">Система</div>
     <a class="nav-item" onclick="showSection('activity_log', this)" href="#">
