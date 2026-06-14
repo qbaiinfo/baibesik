@@ -8,8 +8,15 @@
 <style>
 :root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;--blue:#3b82f6;}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark)}
-header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+body{font-family:'Noto Sans',sans-serif;background:#fafafa;color:var(--dark);overflow-x:hidden}
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hdr-user{display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:1}
+.hdr-avatar{width:34px;height:34px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.hdr-info{line-height:1.25;min-width:0;overflow:hidden}
+.hdr-name{font-weight:800;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-role{font-size:11px;color:#94a3b8;font-weight:700;white-space:nowrap}
+.hdr-phone{font-size:11px;color:#94a3b8;white-space:nowrap}
+.hdr-logout{background:transparent;border:1px solid rgba(255,255,255,.15);color:#94a3b8;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;flex-shrink:0}
 .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);letter-spacing:2px;text-decoration:none}
 .logo span{color:#fff}
 .badge{background:var(--orange);color:#fff;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:800}
@@ -101,7 +108,16 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 
 <header id="header" style="display:none">
   <a href="index.html" class="logo">BAIBESIK<span>.kz</span> ⚙️ Мастер</a>
+  <div class="hdr-user">
+    <div class="hdr-avatar" id="hdrAvatar">?</div>
+    <div class="hdr-info">
+      <div class="hdr-name" id="hdrName">—</div>
+      <div class="hdr-role" id="hdrRole">—</div>
+      <div class="hdr-phone" id="hdrPhone">—</div>
+    </div>
+  </div>
   <span class="badge">✂️ РАСКРОЙ</span>
+  <a href="login.html" class="hdr-logout" id="hdrLogout" onclick="return doLogout(event)">🚪 Выйти</a>
 </header>
 
 <div class="content" id="content" style="display:none">
@@ -216,6 +232,15 @@ import { getCurrentUser } from './supabase_client.js';
 let currentUser=null, orders=[], currentOrder=null, parts=[], files=[], lastLayout=null;
 const COLORS=['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2','#F8A5B8','#A8E6CF','#FDCB6E','#74B9FF'];
 
+window.doLogout=function(e){
+  e.preventDefault();
+  try{
+    Object.keys(localStorage).forEach(k=>{if(k.startsWith('sb-')&&k.includes('-auth-token'))localStorage.removeItem(k);});
+  }catch(err){}
+  location.href='login.html?staff=1';
+  return false;
+};
+
 async function init(){
   try{
     currentUser=await getCurrentUser();
@@ -240,6 +265,15 @@ async function init(){
     document.getElementById('authGuard').style.display='none';
     document.getElementById('header').style.display='flex';
     document.getElementById('content').style.display='block';
+    // Giriş yapan kişinin adı/rolü/telefonu
+    {
+      const roleLabels={raskroi_manager:'✂️ Менеджер раскроя',raskroi_worker:'🪚 Работник раскроя',manager:'Менеджер',store_owner:'Владелец',super_admin:'Супер-админ'};
+      const fullName=currentUser.full_name||currentUser.phone||'—';
+      document.getElementById('hdrName').textContent=fullName;
+      document.getElementById('hdrRole').textContent=roleLabels[currentUser.role]||currentUser.role||'—';
+      document.getElementById('hdrPhone').textContent=currentUser.phone||'—';
+      document.getElementById('hdrAvatar').textContent=(fullName.charAt(0)||'?').toUpperCase();
+    }
     loadOrders();
     setupUpload();
     // URL'den orderId
@@ -411,34 +445,404 @@ window.delPart=id=>{parts=parts.filter(p=>p.id!==id);renderParts();};
 window.addPart=function(){const id=Math.max(0,...parts.map(p=>p.id))+1;parts.push({id,name:'P'+id,w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false});renderParts();};
 
 // ─── Nesting (same algo as raskroi) ───
+function nestCore(parts, SW, SH, kerf, trim, grain){
+  const usableW=SW-2*trim, usableH=SH-2*trim;
+  const MIN_REM=100;
+  // grainMode: 'auto' (levha doku ayarına uy) | 'lock' (asla döndürme) | 'free' (her zaman döndürülebilir)
+  const rotOK=it=>{
+    const gm=it.grainMode||(it.lock?'lock':'auto');
+    if(gm==='free')return true;
+    if(gm==='lock')return false;
+    return grain==='none';
+  };
+
+  // Parcalari ac
+  let baseItems=[];
+  parts.forEach(p=>{
+    for(let i=0;i<p.qty;i++){
+      baseItems.push({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock,grainMode:p.grainMode,pid:p.id,rot:false});
+    }
+  });
+  // Hic sigmayanlari ayir (dondurmeyle bile)
+  const oversize=[];
+  baseItems=baseItems.filter(it=>{
+    if(it.w<=usableW+0.01&&it.h<=usableH+0.01)return true;
+    if(rotOK(it)&&it.h<=usableW+0.01&&it.w<=usableH+0.01)return true;
+    oversize.push(it);return false;
+  });
+
+  // deterministik RNG (ayni girdi → ayni plan)
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+
+  // ════ STRATEJI 1: SERIT (yatay/dikey) — onceki motor ════
+  function packStrips(itemsIn,UW,UH){
+    let items=itemsIn.map(it=>Object.assign({},it));
+    items.forEach(it=>{
+      if(rotOK(it)&&it.w<it.h){const t=it.w;it.w=it.h;it.h=t;it.rot=!it.rot;}
+    });
+    items=items.filter(it=>{
+      if(it.w<=UW+0.01&&it.h<=UH+0.01)return true;
+      if(rotOK(it)&&it.h<=UW+0.01&&it.w<=UH+0.01){const t=it.w;it.w=it.h;it.h=t;it.rot=!it.rot;return true;}
+      return false;
+    });
+    const gmap={};
+    items.forEach(it=>{const k=Math.round(it.h);(gmap[k]=gmap[k]||[]).push(it);});
+    const groups=Object.keys(gmap).map(h=>{
+      const byName={};
+      gmap[h].forEach(it=>{(byName[it.name]=byName[it.name]||[]).push(it);});
+      let s=[];Object.values(byName).forEach(g=>{g.sort((a,b)=>b.w-a.w);s.push(...g);});
+      return {h:parseFloat(h),items:s};
+    }).sort((a,b)=>b.h-a.h);
+    const rows=[];
+    for(let gi=0;gi<groups.length;gi++){
+      const g=groups[gi];
+      while(g.items.length){
+        const row={h:g.h,parts:[],x:0};
+        for(let i=0;i<g.items.length;){
+          const it=g.items[i];
+          if(row.x+it.w<=UW+0.01){
+            row.parts.push(Object.assign({},it,{rx:row.x,ry:0}));
+            row.x+=it.w+kerf;g.items.splice(i,1);
+          }else i++;
+        }
+        if(!row.parts.length)break;
+        let guard=0;
+        while(row.x<UW-MIN_REM&&guard++<300){
+          let colW=0,colH=0,colParts=[];
+          for(let gj=gi+1;gj<groups.length;gj++){
+            const g2=groups[gj];
+            for(let i=0;i<g2.items.length;){
+              const it=g2.items[i];
+              const fitsH=colH+it.h<=row.h+0.01;
+              const fitsW=colParts.length===0?(row.x+it.w<=UW+0.01):(it.w<=colW+0.01);
+              if(fitsH&&fitsW){
+                colParts.push(Object.assign({},it,{rx:row.x,ry:colH}));
+                colW=Math.max(colW,it.w);colH+=it.h+kerf;
+                g2.items.splice(i,1);
+              }else i++;
+            }
+          }
+          if(!colParts.length)break;
+          row.parts.push(...colParts);row.x+=colW+kerf;
+        }
+        rows.push(row);
+      }
+    }
+    rows.sort((a,b)=>b.h-a.h);
+    const sheets=[];
+    for(const row of rows){
+      let t=null;
+      for(const s of sheets){if(s.usedY+row.h<=UH+0.01){t=s;break;}}
+      if(!t){t={parts:[],remnants:[],usedY:0};sheets.push(t);}
+      row.parts.forEach(p=>t.parts.push(Object.assign({},p,{px:p.rx,py:t.usedY+(p.ry||0)})));
+      const remW=UW-row.x;
+      if(remW>=MIN_REM)t.remnants.push({px:row.x,py:t.usedY,w:remW,h:row.h});
+      t.usedY+=row.h+kerf;
+    }
+    sheets.forEach(s=>{
+      const remH=UH-s.usedY;
+      if(remH>=MIN_REM)s.remnants.push({px:0,py:s.usedY,w:UW,h:remH});
+    });
+    return sheets;
+  }
+
+  // ════ STRATEJI 2: GILOTIN FREE-RECT (BSSF + max-alan bolme) ════
+  // Panel testere uyumlu: her bolme tam gilotin kesim
+  function packGuillotine(itemsIn, splitMode){
+    splitMode = splitMode||'auto';
+    const items=itemsIn.map(it=>Object.assign({},it));
+    const sheets=[]; // {parts:[], free:[{x,y,w,h}]}
+    function newSheet(){const s={parts:[],free:[{x:0,y:0,w:usableW,h:usableH}]};sheets.push(s);return s;}
+    function placeIn(s,it){
+      // en iyi free rect: Best Short Side Fit
+      let best=null;
+      for(let ri=0;ri<s.free.length;ri++){
+        const r=s.free[ri];
+        const tryOrient=(pw,ph,rot)=>{
+          if(pw<=r.w+0.01&&ph<=r.h+0.01){
+            const ss=Math.min(r.w-pw,r.h-ph);
+            if(!best||ss<best.ss)best={ri,pw,ph,rot,ss};
+          }
+        };
+        tryOrient(it.w,it.h,false);
+        if(rotOK(it)&&it.w!==it.h)tryOrient(it.h,it.w,true);
+      }
+      if(!best)return false;
+      const r=s.free[best.ri];
+      s.parts.push(Object.assign({},it,{w:best.pw,h:best.ph,rot:best.rot?!it.rot:it.rot,px:r.x,py:r.y}));
+      // gilotin bolme: secenek A (dikey kesim) veya B (yatay kesim)
+      const pw=best.pw,ph=best.ph;
+      const A1={x:r.x+pw+kerf,y:r.y,w:r.w-pw-kerf,h:r.h};
+      const A2={x:r.x,y:r.y+ph+kerf,w:pw,h:r.h-ph-kerf};
+      const B1={x:r.x+pw+kerf,y:r.y,w:r.w-pw-kerf,h:ph};
+      const B2={x:r.x,y:r.y+ph+kerf,w:r.w,h:r.h-ph-kerf};
+      const area=q=>Math.max(0,q.w)*Math.max(0,q.h);
+      let useA;
+      if(splitMode==='A')useA=true;
+      else if(splitMode==='B')useA=false;
+      else useA=Math.max(area(A1),area(A2))>=Math.max(area(B1),area(B2));
+      const kids=useA?[A1,A2]:[B1,B2];
+      s.free.splice(best.ri,1);
+      kids.forEach(k=>{if(k.w>5&&k.h>5)s.free.push(k);});
+      return true;
+    }
+    for(const it of items){
+      let ok=false;
+      for(const s of sheets){if(placeIn(s,it)){ok=true;break;}}
+      if(!ok){const s=newSheet();placeIn(s,it);}
+    }
+    // free rect'ler kalan olur
+    return sheets.map(s=>({
+      parts:s.parts,
+      remnants:s.free.filter(f=>f.w>=MIN_REM&&f.h>=MIN_REM).map(f=>({px:f.x,py:f.y,w:f.w,h:f.h}))
+    }));
+  }
+
+  // ════ STRATEJI: MAXIMAL RECTANGLES (Best Area Fit) ════
+  // Guillotine'in aksine free-rect'ler CAKISABILIR — bir kesim sirasinda
+  // "kaybedilen" bos alanlar burada korunur, daha sıkı paketleme bulur.
+  function packMaxRects(itemsIn){
+    const items=itemsIn.map(it=>Object.assign({},it));
+    const sheets=[];
+    function splitFree(f,p){
+      // kesismiyorsa f degismeden kalir (sol/sag/ust/alt tamamen ayrik)
+      if(p.x+p.w<=f.x+0.01 || f.x+f.w<=p.x+0.01 || p.y+p.h<=f.y+0.01 || f.y+f.h<=p.y+0.01){
+        return [f];
+      }
+      const out=[];
+      if(p.x>f.x+0.01) out.push({x:f.x,y:f.y,w:p.x-f.x,h:f.h});
+      if(p.x+p.w<f.x+f.w-0.01) out.push({x:p.x+p.w,y:f.y,w:(f.x+f.w)-(p.x+p.w),h:f.h});
+      if(p.y>f.y+0.01) out.push({x:f.x,y:f.y,w:f.w,h:p.y-f.y});
+      if(p.y+p.h<f.y+f.h-0.01) out.push({x:f.x,y:p.y+p.h,w:f.w,h:(f.y+f.h)-(p.y+p.h)});
+      return out.filter(r=>r.w>0.5&&r.h>0.5);
+    }
+    function pruneContained(rects){
+      const out=[];
+      for(let i=0;i<rects.length;i++){
+        const a=rects[i]; let contained=false;
+        for(let j=0;j<rects.length;j++){
+          if(i===j)continue; const b=rects[j];
+          if(a.x>=b.x-0.01&&a.y>=b.y-0.01&&a.x+a.w<=b.x+b.w+0.01&&a.y+a.h<=b.y+b.h+0.01){
+            if(a.w*a.h<b.w*b.h-0.01 || (Math.abs(a.w*a.h-b.w*b.h)<0.01 && i>j)){contained=true;break;}
+          }
+        }
+        if(!contained)out.push(a);
+      }
+      return out;
+    }
+    function newSheet(){const s={parts:[],free:[{x:0,y:0,w:usableW,h:usableH}]};sheets.push(s);return s;}
+    function placeIn(s,it){
+      let best=null;
+      for(let fi=0;fi<s.free.length;fi++){
+        const f=s.free[fi];
+        const tryOri=(pw,ph,rot)=>{
+          if(pw<=f.w+0.01 && ph<=f.h+0.01){
+            const leftover=f.w*f.h-pw*ph;
+            const shortFit=Math.min(f.w-pw,f.h-ph);
+            if(!best||leftover<best.leftover-0.01||(Math.abs(leftover-best.leftover)<0.01&&shortFit<best.shortFit)){
+              best={fi,pw,ph,rot,leftover,shortFit};
+            }
+          }
+        };
+        tryOri(it.w,it.h,false);
+        if(rotOK(it)&&it.w!==it.h) tryOri(it.h,it.w,true);
+      }
+      if(!best)return false;
+      const f=s.free[best.fi];
+      s.parts.push(Object.assign({},it,{w:best.pw,h:best.ph,rot:best.rot?!it.rot:it.rot,px:f.x,py:f.y}));
+      const eff={x:f.x,y:f.y,w:Math.min(best.pw+kerf,f.w),h:Math.min(best.ph+kerf,f.h)};
+      let next=[];
+      s.free.forEach(fr=>{ next.push(...splitFree(fr,eff)); });
+      s.free = next.length>40 ? pruneContained(next) : next;
+      return true;
+    }
+    for(const it of items){
+      let ok=false;
+      for(const s of sheets){if(placeIn(s,it)){ok=true;break;}}
+      if(!ok){const s=newSheet();placeIn(s,it);}
+    }
+    return sheets.map(s=>({
+      parts:s.parts,
+      remnants:pruneContained(s.free).filter(f=>f.w>=MIN_REM&&f.h>=MIN_REM).map(f=>({px:f.x,py:f.y,w:f.w,h:f.h}))
+    }));
+  }
+
+
+  function finalize(relSheets){
+    const sheets=relSheets.map(s=>({
+      parts:s.parts.map(p=>Object.assign({},p,{x:trim+p.px,y:trim+p.py})),
+      remnants:(s.remnants||[]).map(r=>({x:trim+r.px,y:trim+r.py,w:r.w,h:r.h})),
+      strips:[]
+    }));
+    for(let si=sheets.length-1;si>0;si--){
+      const src=sheets[si];
+      src.parts.sort((a,b)=>b.w*b.h-a.w*a.h);
+      for(let pi=0;pi<src.parts.length;){
+        const p=src.parts[pi];
+        let moved=false;
+        for(let ti=0;ti<si&&!moved;ti++){
+          const t=sheets[ti];
+          for(let ri=0;ri<t.remnants.length;ri++){
+            const r=t.remnants[ri];
+            let pw=p.w,ph=p.h,rotd=false;
+            if(!(pw<=r.w+0.01&&ph<=r.h+0.01)){
+              if(rotOK(p)&&p.h<=r.w+0.01&&p.w<=r.h+0.01){pw=p.h;ph=p.w;rotd=true;}
+              else continue;
+            }
+            t.parts.push(Object.assign({},p,{w:pw,h:ph,rot:rotd?!p.rot:p.rot,x:r.x,y:r.y}));
+            src.parts.splice(pi,1);
+            const right={x:r.x+pw+kerf,y:r.y,w:r.w-pw-kerf,h:ph};
+            const bottom={x:r.x,y:r.y+ph+kerf,w:r.w,h:r.h-ph-kerf};
+            t.remnants.splice(ri,1);
+            if(right.w>=MIN_REM&&right.h>=MIN_REM)t.remnants.push(right);
+            if(bottom.w>=MIN_REM&&bottom.h>=MIN_REM)t.remnants.push(bottom);
+            moved=true;break;
+          }
+        }
+        if(!moved)pi++;
+      }
+    }
+    for(let i=sheets.length-1;i>=0;i--)if(!sheets[i].parts.length)sheets.splice(i,1);
+    return sheets;
+  }
+
+  // ════ COKLU STRATEJI YARISI ════
+  const candidates=[];
+  // 1-2: serit H + V (transpoze)
+  candidates.push({tag:'stripsH',sheets:finalize(packStrips(baseItems,usableW,usableH))});
+  {
+    const tr=packStrips(baseItems.map(it=>Object.assign({},it,{w:it.h,h:it.w})),usableH,usableW);
+    const back=tr.map(s=>({
+      parts:s.parts.map(p=>({name:p.name,e:p.e,lock:p.lock,grainMode:p.grainMode,pid:p.pid,rot:p.rot,w:p.h,h:p.w,px:p.py,py:p.px})),
+      remnants:s.remnants.map(r=>({px:r.py,py:r.px,w:r.h,h:r.w}))
+    }));
+    candidates.push({tag:'stripsV',sheets:finalize(back)});
+  }
+  // 3+: gilotin, farkli siralamalar
+  const sorts={
+    area:(a,b)=>b.w*b.h-a.w*a.h,
+    hgt:(a,b)=>b.h-a.h||b.w-a.w,
+    wid:(a,b)=>b.w-a.w||b.h-a.h,
+    maxside:(a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h),
+    perim:(a,b)=>(b.w+b.h)-(a.w+a.h)
+  };
+  Object.keys(sorts).forEach(k=>{
+    const arr=baseItems.slice().sort(sorts[k]);
+    candidates.push({tag:'guil-'+k,sheets:finalize(packGuillotine(arr))});
+  });
+  // Zorla dikey/yatay bolme varyantlari — split secimi bazen "auto" kriterinin
+  // kacirdigi daha iyi bir genel duzen bulabilir (ozellikle karisik yukseklik gruplari)
+  ['area','hgt'].forEach(k=>{
+    const arr=baseItems.slice().sort(sorts[k]);
+    candidates.push({tag:'guil-'+k+'-A',sheets:finalize(packGuillotine(arr,'A'))});
+    candidates.push({tag:'guil-'+k+'-B',sheets:finalize(packGuillotine(arr,'B'))});
+  });
+  // rastgele restartlar (deterministik tohum) — buyuk siparislerde az, kucukte cok
+  const nRestarts = baseItems.length>200?2 : baseItems.length>80?4 : 8;
+  const rng=mulberry32(baseItems.length*7919+Math.round(usableW));
+  for(let t=0;t<nRestarts;t++){
+    const arr=baseItems.slice().sort(sorts.area);
+    for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
+    candidates.push({tag:'guil-rnd'+t,sheets:finalize(packGuillotine(arr))});
+  }
+
+  // MaxRects-BAF: guillotine'in kaybettigi bos alanlari yakalar.
+  // Buyuk siparislerde free-rect listesi sisip yavaslayabilecegi icin sinirli.
+  if(baseItems.length<=150){
+    candidates.push({tag:'maxrects-area',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.area)))});
+    candidates.push({tag:'maxrects-hgt',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.hgt)))});
+    candidates.push({tag:'maxrects-perim',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.perim)))});
+    const nMaxRnd = baseItems.length>80?2:4;
+    for(let t=0;t<nMaxRnd;t++){
+      const arr=baseItems.slice().sort(sorts.area);
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
+      candidates.push({tag:'maxrects-rnd'+t,sheets:finalize(packMaxRects(arr))});
+    }
+  }
+
+  // skor: az levha → son levha az dolu → en buyuk kalan buyuk
+  function score(sh){
+    const n=sh.length;
+    if(!n)return [9e9,9e9,9e9];
+    const last=sh[n-1];
+    const lastUsed=last.parts.reduce((s,p)=>s+p.w*p.h,0);
+    let bigRem=0;
+    sh.forEach(s=>s.remnants.forEach(r=>{if(r.w*r.h>bigRem)bigRem=r.w*r.h;}));
+    return [n,lastUsed,-bigRem];
+  }
+  let best=null,bestS=null;
+  candidates.forEach(c=>{
+    const s=score(c.sheets);
+    if(!best||s[0]<bestS[0]||(s[0]===bestS[0]&&(s[1]<bestS[1]||(s[1]===bestS[1]&&s[2]<bestS[2])))){
+      best=c;bestS=s;
+    }
+  });
+
+  const sheets=best.sheets;
+  // MaxRects cakisan kalan uretebilir — gosterim icin buyukten kucuge
+  // siralayip, baska bir kalanin %60+'i icinde kalanlari ele
+  function pruneOverlapRemnants(rects){
+    const sorted=rects.slice().sort((a,b)=>b.w*b.h-a.w*a.h);
+    const out=[];
+    for(const r of sorted){
+      let dup=false;
+      for(const o of out){
+        const ix=Math.max(0,Math.min(r.x+r.w,o.x+o.w)-Math.max(r.x,o.x));
+        const iy=Math.max(0,Math.min(r.y+r.h,o.y+o.h)-Math.max(r.y,o.y));
+        if(ix*iy>0.6*r.w*r.h){dup=true;break;}
+      }
+      if(!dup)out.push(r);
+    }
+    return out;
+  }
+  sheets.forEach(s=>{s.remnants=pruneOverlapRemnants(s.remnants||[]);});
+  // kesim uzunlugu (yaklasik gilotin): parca cevre/2 + levha trim cevresi
+  let cutLen=0;
+  sheets.forEach(s=>{
+    cutLen+=2*(usableW+usableH);
+    s.parts.forEach(pt=>{cutLen+=pt.w+pt.h;});
+  });
+
+  return {sheets,SW,SH,usableW,usableH,trim,kerf,oversize,cutLen,dir:best.tag};
+}
+
 function nest(){
+  const SW=parseFloat(document.getElementById('sheetW').value)||2800;
+  const SH=parseFloat(document.getElementById('sheetH').value)||2070;
+  const kerf=parseFloat(document.getElementById('kerf').value)||4;
+  const trim=parseFloat(document.getElementById('trim').value)||10;
+  const grain=document.getElementById('grainDir').value;
+  return nestCore(parts, SW, SH, kerf, trim, grain);
+}
+
+// Edge Function üzerinden hesapla; başarısız olursa lokal nestCore'a düş
+// (raskroi.html ile birebir aynı algoritma/davranış)
+async function nestRemote(SW,SH,kerf,trim,grain){
+  try{
+    const { supabase } = await import('./supabase_client.js');
+    const { data, error } = await supabase.functions.invoke('nest-cutting',{
+      body:{ parts, sheetW:SW, sheetH:SH, kerf, trim, grainDir:grain }
+    });
+    if(error||!data||data.error||!Array.isArray(data.sheets)) throw new Error(error?.message||data?.error||'nest-cutting boş yanıt');
+    return data;
+  }catch(e){
+    console.warn('nest-cutting Edge Function başarısız, lokal motora geçiliyor:',e.message);
+    return nestCore(parts, SW, SH, kerf, trim, grain);
+  }
+}
+
+window.calcNest=async function(){
+  if(!parts.length)return;
   const SW=parseFloat(currentOrder?.sheetW)||2800, SH=parseFloat(currentOrder?.sheetH)||2070;
   const kerf=parseFloat(currentOrder?.kerf)||4, trim=parseFloat(currentOrder?.trim)||10;
   const grain=currentOrder?.grain||'none';
-  const usableW=SW-2*trim, usableH=SH-2*trim;
-  let items=[];
-  parts.forEach(p=>{for(let i=0;i<p.qty;i++)items.push({name:p.name,w:p.w,h:p.h,e:p.e,lock:p.lock});});
-  items.sort((a,b)=>(b.w*b.h)-(a.w*a.h)||a.name.localeCompare(b.name));
-  const sheets=[];
-  function tryPlace(sheet,it){
-    let orients=[{w:it.w,h:it.h,rot:false}];
-    if(!it.lock&&grain==='none'&&it.w!==it.h)orients.push({w:it.h,h:it.w,rot:true});
-    for(const o of orients){const pw=o.w+kerf,ph=o.h+kerf;
-      for(const sh of sheet.shelves){if(o.h<=sh.h&&sh.x+pw<=usableW+.01){sheet.parts.push({...it,x:trim+sh.x,y:trim+sh.y,w:o.w,h:o.h,rot:o.rot});sh.x+=pw;sheet.usedArea+=it.w*it.h;return true;}}
-      const uH=sheet.shelves.reduce((s,sh)=>Math.max(s,sh.y+sh.h),0);
-      if(uH+ph<=usableH+.01&&pw<=usableW+.01){const sh={y:uH,x:pw,h:ph};sheet.parts.push({...it,x:trim,y:trim+uH,w:o.w,h:o.h,rot:o.rot});sheet.shelves.push(sh);sheet.usedArea+=it.w*it.h;return true;}
-    }return false;
-  }
-  items.forEach(it=>{let pl=false;for(const s of sheets){if(tryPlace(s,it)){pl=true;break;}}if(!pl){const s={parts:[],shelves:[],usedArea:0};tryPlace(s,it);sheets.push(s);}});
-  return {sheets,SW,SH,usableW,usableH,trim};
-}
-
-window.calcNest=function(){
-  if(!parts.length)return;
-  const L=nest();lastLayout=L;
-  const sheetArea=L.SW*L.SH;let pa=0,cut=0,pvc=0,tp=0;
+  const btn=document.getElementById('cSheets');
+  if(btn) btn.textContent='⏳';
+  const L=await nestRemote(SW,SH,kerf,trim,grain);
+  lastLayout=L;
+  const sheetArea=L.SW*L.SH;let pa=0,pvc=0,tp=0;
   parts.forEach(p=>{pa+=p.w*p.h*p.qty;tp+=p.qty;let per=0;if(p.e.t)per+=p.w;if(p.e.b)per+=p.w;if(p.e.l)per+=p.h;if(p.e.r)per+=p.h;pvc+=per*p.qty;});
-  L.sheets.forEach(s=>s.parts.forEach(pt=>cut+=pt.w+pt.h));
+  const cut=L.cutLen||0;
   const n=L.sheets.length,eff=n?pa/(sheetArea*n)*100:0;
   document.getElementById('cSheets').textContent=n;
   document.getElementById('cEff').textContent=eff.toFixed(0)+'%';
@@ -461,6 +865,23 @@ function drawSheets(L){
     const cv=document.createElement('canvas');const sc=Math.min(560/L.SW,360/L.SH);cv.width=L.SW*sc;cv.height=L.SH*sc;
     const ctx=cv.getContext('2d');ctx.fillStyle='#f1f5f9';ctx.fillRect(0,0,cv.width,cv.height);
     ctx.strokeStyle='#cbd5e1';ctx.setLineDash([4,3]);ctx.strokeRect(L.trim*sc,L.trim*sc,L.usableW*sc,L.usableH*sc);ctx.setLineDash([]);
+    // KALANLAR (остатки) — taralı + ölçü
+    (sheet.remnants||[]).forEach(r=>{
+      const x=r.x*sc,y=r.y*sc,w=r.w*sc,h=r.h*sc;
+      ctx.save();
+      ctx.fillStyle='#e2e8f0';ctx.fillRect(x,y,w,h);
+      ctx.strokeStyle='#94a3b8';ctx.lineWidth=.6;
+      ctx.beginPath();
+      for(let d=-h;d<w;d+=8){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+      ctx.rect(x,y,w,h);ctx.clip();ctx.stroke();
+      ctx.restore();
+      ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.strokeRect(x,y,w,h);ctx.setLineDash([]);
+      if(w>40&&h>14){
+        ctx.fillStyle='#64748b';ctx.font='bold 9px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
+      }
+    });
     sheet.parts.forEach(pt=>{const x=pt.x*sc,y=pt.y*sc,w=pt.w*sc,h=pt.h*sc;
       ctx.fillStyle=cm[pt.name]||'#999';ctx.globalAlpha=.82;ctx.fillRect(x,y,w,h);ctx.globalAlpha=1;
       ctx.strokeStyle='#1e293b';ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);

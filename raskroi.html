@@ -925,7 +925,8 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
 
   // ════ STRATEJI 2: GILOTIN FREE-RECT (BSSF + max-alan bolme) ════
   // Panel testere uyumlu: her bolme tam gilotin kesim
-  function packGuillotine(itemsIn){
+  function packGuillotine(itemsIn, splitMode){
+    splitMode = splitMode||'auto';
     const items=itemsIn.map(it=>Object.assign({},it));
     const sheets=[]; // {parts:[], free:[{x,y,w,h}]}
     function newSheet(){const s={parts:[],free:[{x:0,y:0,w:usableW,h:usableH}]};sheets.push(s);return s;}
@@ -946,16 +947,17 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
       if(!best)return false;
       const r=s.free[best.ri];
       s.parts.push(Object.assign({},it,{w:best.pw,h:best.ph,rot:best.rot?!it.rot:it.rot,px:r.x,py:r.y}));
-      // gilotin bolme: iki secenekten cocuklarin EN BUYUGUNU maksimize eden
+      // gilotin bolme: secenek A (dikey kesim) veya B (yatay kesim)
       const pw=best.pw,ph=best.ph;
-      // secenek A (dikey kesim): sag tam boy + alt parca-genisliginde
       const A1={x:r.x+pw+kerf,y:r.y,w:r.w-pw-kerf,h:r.h};
       const A2={x:r.x,y:r.y+ph+kerf,w:pw,h:r.h-ph-kerf};
-      // secenek B (yatay kesim): alt tam boy + sag parca-yuksekliginde
       const B1={x:r.x+pw+kerf,y:r.y,w:r.w-pw-kerf,h:ph};
       const B2={x:r.x,y:r.y+ph+kerf,w:r.w,h:r.h-ph-kerf};
       const area=q=>Math.max(0,q.w)*Math.max(0,q.h);
-      const useA=Math.max(area(A1),area(A2))>=Math.max(area(B1),area(B2));
+      let useA;
+      if(splitMode==='A')useA=true;
+      else if(splitMode==='B')useA=false;
+      else useA=Math.max(area(A1),area(A2))>=Math.max(area(B1),area(B2));
       const kids=useA?[A1,A2]:[B1,B2];
       s.free.splice(best.ri,1);
       kids.forEach(k=>{if(k.w>5&&k.h>5)s.free.push(k);});
@@ -973,7 +975,76 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     }));
   }
 
-  // ════ FINALIZE: mutlak koordinat + kalanlara geri yerlestirme ════
+  // ════ STRATEJI: MAXIMAL RECTANGLES (Best Area Fit) ════
+  // Guillotine'in aksine free-rect'ler CAKISABILIR — bir kesim sirasinda
+  // "kaybedilen" bos alanlar burada korunur, daha sıkı paketleme bulur.
+  function packMaxRects(itemsIn){
+    const items=itemsIn.map(it=>Object.assign({},it));
+    const sheets=[];
+    function splitFree(f,p){
+      // kesismiyorsa f degismeden kalir (sol/sag/ust/alt tamamen ayrik)
+      if(p.x+p.w<=f.x+0.01 || f.x+f.w<=p.x+0.01 || p.y+p.h<=f.y+0.01 || f.y+f.h<=p.y+0.01){
+        return [f];
+      }
+      const out=[];
+      if(p.x>f.x+0.01) out.push({x:f.x,y:f.y,w:p.x-f.x,h:f.h});
+      if(p.x+p.w<f.x+f.w-0.01) out.push({x:p.x+p.w,y:f.y,w:(f.x+f.w)-(p.x+p.w),h:f.h});
+      if(p.y>f.y+0.01) out.push({x:f.x,y:f.y,w:f.w,h:p.y-f.y});
+      if(p.y+p.h<f.y+f.h-0.01) out.push({x:f.x,y:p.y+p.h,w:f.w,h:(f.y+f.h)-(p.y+p.h)});
+      return out.filter(r=>r.w>0.5&&r.h>0.5);
+    }
+    function pruneContained(rects){
+      const out=[];
+      for(let i=0;i<rects.length;i++){
+        const a=rects[i]; let contained=false;
+        for(let j=0;j<rects.length;j++){
+          if(i===j)continue; const b=rects[j];
+          if(a.x>=b.x-0.01&&a.y>=b.y-0.01&&a.x+a.w<=b.x+b.w+0.01&&a.y+a.h<=b.y+b.h+0.01){
+            if(a.w*a.h<b.w*b.h-0.01 || (Math.abs(a.w*a.h-b.w*b.h)<0.01 && i>j)){contained=true;break;}
+          }
+        }
+        if(!contained)out.push(a);
+      }
+      return out;
+    }
+    function newSheet(){const s={parts:[],free:[{x:0,y:0,w:usableW,h:usableH}]};sheets.push(s);return s;}
+    function placeIn(s,it){
+      let best=null;
+      for(let fi=0;fi<s.free.length;fi++){
+        const f=s.free[fi];
+        const tryOri=(pw,ph,rot)=>{
+          if(pw<=f.w+0.01 && ph<=f.h+0.01){
+            const leftover=f.w*f.h-pw*ph;
+            const shortFit=Math.min(f.w-pw,f.h-ph);
+            if(!best||leftover<best.leftover-0.01||(Math.abs(leftover-best.leftover)<0.01&&shortFit<best.shortFit)){
+              best={fi,pw,ph,rot,leftover,shortFit};
+            }
+          }
+        };
+        tryOri(it.w,it.h,false);
+        if(rotOK(it)&&it.w!==it.h) tryOri(it.h,it.w,true);
+      }
+      if(!best)return false;
+      const f=s.free[best.fi];
+      s.parts.push(Object.assign({},it,{w:best.pw,h:best.ph,rot:best.rot?!it.rot:it.rot,px:f.x,py:f.y}));
+      const eff={x:f.x,y:f.y,w:Math.min(best.pw+kerf,f.w),h:Math.min(best.ph+kerf,f.h)};
+      let next=[];
+      s.free.forEach(fr=>{ next.push(...splitFree(fr,eff)); });
+      s.free = next.length>40 ? pruneContained(next) : next;
+      return true;
+    }
+    for(const it of items){
+      let ok=false;
+      for(const s of sheets){if(placeIn(s,it)){ok=true;break;}}
+      if(!ok){const s=newSheet();placeIn(s,it);}
+    }
+    return sheets.map(s=>({
+      parts:s.parts,
+      remnants:pruneContained(s.free).filter(f=>f.w>=MIN_REM&&f.h>=MIN_REM).map(f=>({px:f.x,py:f.y,w:f.w,h:f.h}))
+    }));
+  }
+
+
   function finalize(relSheets){
     const sheets=relSheets.map(s=>({
       parts:s.parts.map(p=>Object.assign({},p,{x:trim+p.px,y:trim+p.py})),
@@ -1036,6 +1107,13 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     const arr=baseItems.slice().sort(sorts[k]);
     candidates.push({tag:'guil-'+k,sheets:finalize(packGuillotine(arr))});
   });
+  // Zorla dikey/yatay bolme varyantlari — split secimi bazen "auto" kriterinin
+  // kacirdigi daha iyi bir genel duzen bulabilir (ozellikle karisik yukseklik gruplari)
+  ['area','hgt'].forEach(k=>{
+    const arr=baseItems.slice().sort(sorts[k]);
+    candidates.push({tag:'guil-'+k+'-A',sheets:finalize(packGuillotine(arr,'A'))});
+    candidates.push({tag:'guil-'+k+'-B',sheets:finalize(packGuillotine(arr,'B'))});
+  });
   // rastgele restartlar (deterministik tohum) — buyuk siparislerde az, kucukte cok
   const nRestarts = baseItems.length>200?2 : baseItems.length>80?4 : 8;
   const rng=mulberry32(baseItems.length*7919+Math.round(usableW));
@@ -1043,6 +1121,20 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     const arr=baseItems.slice().sort(sorts.area);
     for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
     candidates.push({tag:'guil-rnd'+t,sheets:finalize(packGuillotine(arr))});
+  }
+
+  // MaxRects-BAF: guillotine'in kaybettigi bos alanlari yakalar.
+  // Buyuk siparislerde free-rect listesi sisip yavaslayabilecegi icin sinirli.
+  if(baseItems.length<=150){
+    candidates.push({tag:'maxrects-area',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.area)))});
+    candidates.push({tag:'maxrects-hgt',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.hgt)))});
+    candidates.push({tag:'maxrects-perim',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.perim)))});
+    const nMaxRnd = baseItems.length>80?2:4;
+    for(let t=0;t<nMaxRnd;t++){
+      const arr=baseItems.slice().sort(sorts.area);
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
+      candidates.push({tag:'maxrects-rnd'+t,sheets:finalize(packMaxRects(arr))});
+    }
   }
 
   // skor: az levha → son levha az dolu → en buyuk kalan buyuk
@@ -1064,6 +1156,23 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
   });
 
   const sheets=best.sheets;
+  // MaxRects cakisan kalan uretebilir — gosterim icin buyukten kucuge
+  // siralayip, baska bir kalanin %60+'i icinde kalanlari ele
+  function pruneOverlapRemnants(rects){
+    const sorted=rects.slice().sort((a,b)=>b.w*b.h-a.w*a.h);
+    const out=[];
+    for(const r of sorted){
+      let dup=false;
+      for(const o of out){
+        const ix=Math.max(0,Math.min(r.x+r.w,o.x+o.w)-Math.max(r.x,o.x));
+        const iy=Math.max(0,Math.min(r.y+r.h,o.y+o.h)-Math.max(r.y,o.y));
+        if(ix*iy>0.6*r.w*r.h){dup=true;break;}
+      }
+      if(!dup)out.push(r);
+    }
+    return out;
+  }
+  sheets.forEach(s=>{s.remnants=pruneOverlapRemnants(s.remnants||[]);});
   // kesim uzunlugu (yaklasik gilotin): parca cevre/2 + levha trim cevresi
   let cutLen=0;
   sheets.forEach(s=>{
@@ -1457,6 +1566,7 @@ window.sendToManager=async function(){
   };
   const selShop=document.getElementById('shopSel'); const storeId=selShop?selShop.value:'';
   order.storeId=storeId;
+  let dbSaved=false, dbErr=null;
   try{
     const { createRaskroiOrder } = await import('./supabase_client.js');
     const saved = await createRaskroiOrder({
@@ -1467,12 +1577,17 @@ window.sendToManager=async function(){
       kerf:parseFloat(order.kerf), trim_margin:parseFloat(order.trim),
       pvc_thickness:order.pvc, parts:order.parts, sheets_used:order.sheets
     });
-    if(saved && saved.order_number) order.id = saved.order_number;
-  }catch(e){ console.warn('Supabase yok, localStorage:', e.message); }
+    if(saved && saved.order_number){order.id = saved.order_number; dbSaved=true;}
+  }catch(e){ console.warn('Supabase yazma başarısız, sadece localStorage:', e.message); dbErr=e.message; }
   const hist=JSON.parse(localStorage.getItem('raskroiOrders')||'[]');
   hist.push(order);
   localStorage.setItem('raskroiOrders',JSON.stringify(hist));
-  alert(`✓ ${order.id}\n${lang==='kk'?'Шеберханаға жіберілді!':'Отправлено в мастерскую!'}`);
+  if(dbSaved){
+    alert(`✓ ${order.id}\n${lang==='kk'?'Шеберханаға жіберілді!':'Отправлено в мастерскую!'}`);
+  }else{
+    // Bulut'a yazılamadı — sadece bu cihazda saklandı, menecer GÖREMEZ.
+    alert(`⚠️ ${order.id}\n${lang==='kk'?'Бұлтқа жіберілмеді (тек осы құрылғыда сақталды). Интернет/кірісті тексеріп қайта көріңіз.':'Не отправлено в облако (сохранено только на этом устройстве). Проверьте интернет/вход и попробуйте снова.'}\n${dbErr?('('+dbErr+')'):''}`);
+  }
   window.location.href=`raskroi_manager.html?orderId=${order.id}`;
 };
 
