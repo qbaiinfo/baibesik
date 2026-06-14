@@ -206,7 +206,7 @@ footer { background: var(--dark); color: #94a3b8; padding: 48px 20px 24px; }
     <a href="catalog.html" class="nav-link active" id="nav-catalog">Каталог</a>
     <a href="#categories" class="nav-link" id="nav-cats">Категории</a>
     <a href="magazalar.html" class="nav-link" id="nav-shops">🏪 Магазины</a>
-    <a href="raskroi.html" class="nav-link" id="nav-cutting" style="background: linear-gradient(135deg, #FF6B35 0%, #FF9800 100%); border-radius: 4px; padding: 12px 16px;">✂️ Раскрой</a>
+    <a href="raskroi.html" class="nav-link" id="nav-cutting" onclick="return goCutting(event,this)" style="background: linear-gradient(135deg, #FF6B35 0%, #FF9800 100%); border-radius: 4px; padding: 12px 16px;">✂️ Раскрой</a>
     <a href="raskroi_shop_apply.html" class="nav-link" id="nav-shop-apply">🏪 Цех ашу</a>
     <a href="optovikam.html" class="nav-link" id="nav-wholesale">Оптовикам</a>
     <a href="#" class="nav-link" id="nav-delivery">Доставка</a>
@@ -486,6 +486,29 @@ setLang(localStorage.getItem("baibesik_lang") || "kk");
 </script>
 
 <script>
+// "✂️ Раскрой" linki: raskroi_manager/raskroi_worker → kendi panosu,
+// diğer herkes (müşteri, anonim, dükkan sahibi vb.) → kesim aracı (raskroi.html)
+async function goCutting(e, link){
+  e.preventDefault();
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(
+      'https://fciofuexujtxxjlamxno.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80'
+    );
+    const {data:{session}} = await sb.auth.getSession();
+    if(session){
+      const {data:user} = await sb.from('users').select('role').eq('id',session.user.id).single();
+      if(user && (user.role==='raskroi_manager' || user.role==='raskroi_worker')){
+        window.location.href='raskroi_manager.html';
+        return false;
+      }
+    }
+  } catch(err) {}
+  window.location.href = link.href; // raskroi.html
+  return false;
+}
+
 async function checkAuth(e, link) {
   e.preventDefault();
   try {

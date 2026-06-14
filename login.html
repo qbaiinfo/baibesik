@@ -306,7 +306,16 @@ async function doLogin(){
     }
 
     showOk(`${d_.ok_login} ${user?.full_name||''}`);
-    const nextUrl = new URLSearchParams(window.location.search).get('next');
+    // 'next' parametresi sadece müşteri/sepet akışı için onurlandırılır.
+    // Aksi halde her rol KENDİ panosuna gider (raskroi_manager → raskroi_manager.html vb),
+    // session-yokken tıklanan eski linkler ('?next=raskroi.html' gibi) rol yönlendirmesini ezmesin.
+    const CUSTOMER_NEXT_WHITELIST=['checkout_and_orders.html'];
+    const nextUrlRaw = new URLSearchParams(window.location.search).get('next');
+    let nextUrl=null;
+    if(nextUrlRaw && customerRoles.includes(role)){
+      const nextPage=decodeURIComponent(nextUrlRaw).split('/').pop().split('?')[0];
+      if(CUSTOMER_NEXT_WHITELIST.includes(nextPage)) nextUrl=nextUrlRaw;
+    }
     setTimeout(()=>window.location.href=nextUrl||(ROUTES[role]||'musteri_dashboard.html'),1000);
 
   }catch(e){
