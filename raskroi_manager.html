@@ -770,6 +770,60 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     sh.forEach(s=>s.remnants.forEach(r=>{if(r.w*r.h>bigRem)bigRem=r.w*r.h;}));
     return [n,lastUsed,-bigRem];
   }
+
+  // ════ SIMULATED ANNEALING ════
+  // Heuristikler (guillotine/maxrects) "kara kutu" olarak kullanilir;
+  // SA, PARCA SIRALAMASI uzayinda swap/reinsert/reverse hamleleriyle
+  // arama yapar — her hamlede yeniden paketler, score()'a gore
+  // iyiyse kabul eder, kotuyse bazen (sicaklikla azalan ihtimalle)
+  // yine kabul eder (lokal minimumdan kacmak icin).
+  function scalarScore(sh){
+    const s=score(sh);
+    const A=usableW*usableH;
+    return s[0]*10 + s[1]/A + s[2]/A*0.001;
+  }
+  function simulatedAnnealing(initialOrder, packFn, rnd){
+    const n=initialOrder.length;
+    if(n<2)return packFn(initialOrder);
+    let current=initialOrder.slice();
+    let curSheets=packFn(current), curE=scalarScore(curSheets);
+    let best=current.slice(), bestSheets=curSheets, bestE=curE;
+    const iters = n<=20?2500 : n<=50?1000 : n<=100?300 : 60;
+    const T0=1.0, Tmin=0.02;
+    const cooling=Math.pow(Tmin/T0,1/Math.max(1,iters));
+    let T=T0;
+    for(let it=0;it<iters;it++){
+      const cand=current.slice();
+      const mv=rnd();
+      if(mv<0.34){ // swap
+        const i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
+        const tmp=cand[i];cand[i]=cand[j];cand[j]=tmp;
+      }else if(mv<0.67){ // reinsert (or-opt)
+        const i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
+        const [el]=cand.splice(i,1);
+        cand.splice(j,0,el);
+      }else{ // segment reverse (2-opt)
+        let i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
+        if(i>j){const t=i;i=j;j=t;}
+        const seg=cand.slice(i,j+1).reverse();
+        for(let k=0;k<seg.length;k++)cand[i+k]=seg[k];
+      }
+      const candSheets=packFn(cand);
+      const candE=scalarScore(candSheets);
+      const delta=candE-curE;
+      if(delta<0||rnd()<Math.exp(-delta/T)){
+        current=cand;curSheets=candSheets;curE=candE;
+        if(curE<bestE-1e-9){best=current.slice();bestSheets=candSheets;bestE=curE;}
+      }
+      T*=cooling;
+    }
+    return bestSheets;
+  }
+  // n<=120: 2 SA kosusu (MaxRects + Guillotine uzerinde), farklı baslangic siralamasi
+  if(baseItems.length<=120){
+    candidates.push({tag:'sa-maxrects',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),packMaxRects,mulberry32(baseItems.length*104723+Math.round(usableH)+17)))});
+    candidates.push({tag:'sa-guillotine',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.hgt),(arr)=>packGuillotine(arr),mulberry32(baseItems.length*65599+Math.round(usableW)+31)))});
+  }
   let best=null,bestS=null;
   candidates.forEach(c=>{
     const s=score(c.sheets);
