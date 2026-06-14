@@ -1234,7 +1234,25 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     s.parts.forEach(pt=>{cutLen+=pt.w+pt.h;});
   });
 
-  return {sheets,SW,SH,usableW,usableH,trim,kerf,oversize,cutLen,dir:best.tag};
+  // ════ LEVHA DUZENI TEKRARI TESPITI (GibLab "N plan x M levha" mantigi) ════
+  // Ayni "imza"ya (parca tipi+boyut+pozisyon+rotasyon kombinasyonu) sahip
+  // levhalar tek bir kesim planinin kopyasidir — operator ayni programi
+  // M kez uygular, her levha icin ayri plan okumaz.
+  function computeGroups(sh){
+    const sigOf=s=>s.parts.map(p=>`${p.pid}:${Math.round(p.w)}x${Math.round(p.h)}@${Math.round(p.x)},${Math.round(p.y)}:${p.rot?1:0}`).sort().join('|');
+    const sigMap=new Map();
+    const repFor=sh.map((s,i)=>{
+      const sig=sigOf(s);
+      if(sigMap.has(sig))return sigMap.get(sig);
+      sigMap.set(sig,i);return i;
+    });
+    const counts={};
+    repFor.forEach(r=>{counts[r]=(counts[r]||0)+1;});
+    const uniqueCount=sigMap.size;
+    return {repFor,counts,uniqueCount};
+  }
+
+  return {sheets,SW,SH,usableW,usableH,trim,kerf,oversize,cutLen,dir:best.tag,groups:computeGroups(sheets)};
 }
 
 function nest(){
@@ -1294,7 +1312,7 @@ window.calculate=async function(){
   const nSheets=L.sheets.length;
   const eff = nSheets? (totalPartArea/(sheetArea*nSheets)*100):0;
 
-  document.getElementById('rSheets').textContent=nSheets;
+  document.getElementById('rSheets').textContent=L.groups&&L.groups.uniqueCount<nSheets ? `${nSheets} (${L.groups.uniqueCount} ${lang==='kk'?'үлгі':'план'})` : nSheets;
   document.getElementById('rParts').textContent=totalParts;
   document.getElementById('rEff').textContent=eff.toFixed(1)+'%';
   document.getElementById('rWaste').textContent=(100-eff).toFixed(1)+'%';
@@ -1328,11 +1346,21 @@ function drawSheets(L){
   parts.forEach(p=>{if(!(p.name in colorMap)){colorMap[p.name]=COLORS[ci%COLORS.length];ci++;}});
 
   L.sheets.forEach((sheet,si)=>{
+    const rep=L.groups?L.groups.repFor[si]:si;
+    if(rep!==si){
+      // bu levha, daha once gosterilen bir planin AYNISI — canvas tekrar cizilmez
+      const note=document.createElement('div'); note.className='sheet-block sheet-dup';
+      note.innerHTML=`<div class="sheet-label" style="opacity:.75">${lang==='kk'?'Парақ':'Лист'} ${si+1}/${L.sheets.length} — ${lang==='kk'?`Парақ ${rep+1} раскладкасымен бірдей (көшірме)`:`совпадает с Лист ${rep+1} (копия раскладки)`}</div>`;
+      wrap.appendChild(note);
+      return;
+    }
+    const cnt=L.groups?(L.groups.counts[si]||1):1;
+    const copyTxt=cnt>1?` · ×${cnt} ${lang==='kk'?'көшірме':'копий'}`:'';
     const block=document.createElement('div'); block.className='sheet-block';
     const lbl=document.createElement('div'); lbl.className='sheet-label';
     const sArea=sheet.parts.reduce((s,pt)=>s+pt.w*pt.h,0);
     const sEff=(sArea/(L.SW*L.SH)*100).toFixed(1);
-    lbl.textContent=`${lang==='kk'?'Парақ':'Лист'} ${si+1}/${L.sheets.length} — ${L.SW}×${L.SH}mm · ${sheet.parts.length} ${lang==='kk'?'бөлшек':'дет.'} · ${sEff}%`;
+    lbl.textContent=`${lang==='kk'?'Парақ':'Лист'} ${si+1}/${L.sheets.length} — ${L.SW}×${L.SH}mm · ${sheet.parts.length} ${lang==='kk'?'бөлшек':'дет.'} · ${sEff}%${copyTxt}`;
     block.appendChild(lbl);
     const cv=document.createElement('canvas');
     const scale=Math.min(540/L.SW, 380/L.SH);

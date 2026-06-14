@@ -857,7 +857,25 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     s.parts.forEach(pt=>{cutLen+=pt.w+pt.h;});
   });
 
-  return {sheets,SW,SH,usableW,usableH,trim,kerf,oversize,cutLen,dir:best.tag};
+  // ════ LEVHA DUZENI TEKRARI TESPITI (GibLab "N plan x M levha" mantigi) ════
+  // Ayni "imza"ya (parca tipi+boyut+pozisyon+rotasyon kombinasyonu) sahip
+  // levhalar tek bir kesim planinin kopyasidir — operator ayni programi
+  // M kez uygular, her levha icin ayri plan okumaz.
+  function computeGroups(sh){
+    const sigOf=s=>s.parts.map(p=>`${p.pid}:${Math.round(p.w)}x${Math.round(p.h)}@${Math.round(p.x)},${Math.round(p.y)}:${p.rot?1:0}`).sort().join('|');
+    const sigMap=new Map();
+    const repFor=sh.map((s,i)=>{
+      const sig=sigOf(s);
+      if(sigMap.has(sig))return sigMap.get(sig);
+      sigMap.set(sig,i);return i;
+    });
+    const counts={};
+    repFor.forEach(r=>{counts[r]=(counts[r]||0)+1;});
+    const uniqueCount=sigMap.size;
+    return {repFor,counts,uniqueCount};
+  }
+
+  return {sheets,SW,SH,usableW,usableH,trim,kerf,oversize,cutLen,dir:best.tag,groups:computeGroups(sheets)};
 }
 
 function nest(){
@@ -915,7 +933,16 @@ function drawSheets(L){
   const wrap=document.getElementById('canvasWrap');wrap.innerHTML='';
   const cm={};let ci=0;parts.forEach(p=>{if(!(p.name in cm)){cm[p.name]=COLORS[ci%COLORS.length];ci++;}});
   L.sheets.forEach((sheet,si)=>{
-    const lbl=document.createElement('div');lbl.className='sheet-label';lbl.textContent=`Лист ${si+1} — ${L.SW}×${L.SH}mm`;wrap.appendChild(lbl);
+    const rep=L.groups?L.groups.repFor[si]:si;
+    if(rep!==si){
+      const note=document.createElement('div');note.className='sheet-label';note.style.opacity='.75';
+      note.textContent=`Лист ${si+1}/${L.sheets.length} — совпадает с Лист ${rep+1} (копия раскладки)`;
+      wrap.appendChild(note);
+      return;
+    }
+    const cnt=L.groups?(L.groups.counts[si]||1):1;
+    const copyTxt=cnt>1?` · ×${cnt} копий`:'';
+    const lbl=document.createElement('div');lbl.className='sheet-label';lbl.textContent=`Лист ${si+1}/${L.sheets.length} — ${L.SW}×${L.SH}mm${copyTxt}`;wrap.appendChild(lbl);
     const cv=document.createElement('canvas');const sc=Math.min(560/L.SW,360/L.SH);cv.width=L.SW*sc;cv.height=L.SH*sc;
     const ctx=cv.getContext('2d');ctx.fillStyle='#f1f5f9';ctx.fillRect(0,0,cv.width,cv.height);
     ctx.strokeStyle='#cbd5e1';ctx.setLineDash([4,3]);ctx.strokeRect(L.trim*sc,L.trim*sc,L.usableW*sc,L.usableH*sc);ctx.setLineDash([]);
