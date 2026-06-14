@@ -822,12 +822,7 @@ window.selPVC=(t,el)=>{selectedPVC=t;document.querySelectorAll('.pvc-opt').forEa
 // NESTING ALGORITHM (Shelf/Guillotine + kerf + trim + rotation + grouping)
 // ═══════════════════════════════════════════
 // ════ STRIP BIN PACKING (KDT Makinalar İçin Optimize) ════
-function nest(){
-  const SW=parseFloat(document.getElementById('sheetW').value)||2800;
-  const SH=parseFloat(document.getElementById('sheetH').value)||2070;
-  const kerf=parseFloat(document.getElementById('kerf').value)||4;
-  const trim=parseFloat(document.getElementById('trim').value)||10;
-  const grain=document.getElementById('grainDir').value;
+function nestCore(parts, SW, SH, kerf, trim, grain){
   const usableW=SW-2*trim, usableH=SH-2*trim;
   const MIN_REM=100;
   // grainMode: 'auto' (levha doku ayarına uy) | 'lock' (asla döndürme) | 'free' (her zaman döndürülebilir)
@@ -1079,9 +1074,47 @@ function nest(){
   return {sheets,SW,SH,usableW,usableH,trim,kerf,oversize,cutLen,dir:best.tag};
 }
 
-window.calculate=function(){
+function nest(){
+  const SW=parseFloat(document.getElementById('sheetW').value)||2800;
+  const SH=parseFloat(document.getElementById('sheetH').value)||2070;
+  const kerf=parseFloat(document.getElementById('kerf').value)||4;
+  const trim=parseFloat(document.getElementById('trim').value)||10;
+  const grain=document.getElementById('grainDir').value;
+  return nestCore(parts, SW, SH, kerf, trim, grain);
+}
+
+// Edge Function üzerinden hesapla; başarısız olursa lokal nestCore'a düş
+async function nestRemote(){
+  try{
+    const SW=parseFloat(document.getElementById('sheetW').value)||2800;
+    const SH=parseFloat(document.getElementById('sheetH').value)||2070;
+    const kerf=parseFloat(document.getElementById('kerf').value)||4;
+    const trim=parseFloat(document.getElementById('trim').value)||10;
+    const grain=document.getElementById('grainDir').value;
+    const { supabase } = await import('./supabase_client.js');
+    const { data, error } = await supabase.functions.invoke('nest-cutting',{
+      body:{ parts, sheetW:SW, sheetH:SH, kerf, trim, grainDir:grain }
+    });
+    if(error||!data||data.error||!Array.isArray(data.sheets)) throw new Error(error?.message||data?.error||'nest-cutting boş yanıt');
+    return data;
+  }catch(e){
+    console.warn('nest-cutting Edge Function başarısız, lokal motora geçiliyor:',e.message);
+    return nest(); // lokal fallback (nestCore aynı algoritma)
+  }
+}
+
+window.calculate=async function(){
   if(!parts.length){alert('Добавьте детали');return;}
-  const L=nest(); lastLayout=L;
+  const btn=document.querySelector('.big-calc');
+  const oldTxt=btn?btn.innerHTML:null;
+  if(btn){btn.disabled=true;btn.innerHTML='⏳ '+(lang==='kk'?'Есептеу...':'Расчёт...');}
+  let L;
+  try{
+    L=await nestRemote();
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML=oldTxt;}
+  }
+  lastLayout=L;
   if(L.oversize&&L.oversize.length){
     const names=[...new Set(L.oversize.map(o=>o.name+' ('+o.w+'×'+o.h+')'))].join(', ');
     alert((lang==='kk'?'Параққа сыймайтын бөлшектер: ':'Детали не помещаются на лист: ')+names);
@@ -1404,7 +1437,7 @@ async function loadShops(){
 
 window.sendToManager=async function(){
   if(!parts.length){alert('Сначала добавьте детали');return;}
-  if(!lastLayout){calculate();}
+  if(!lastLayout){await calculate();}
   const order={
     id:'RSK-'+Date.now().toString(36).toUpperCase(),
     customer:currentUser.full_name,
