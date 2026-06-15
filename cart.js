@@ -91,3 +91,11 @@ window.Cart = Cart;
 window.Auth = Auth;
 
 window.addEventListener('DOMContentLoaded', () => Cart.updateUI());
+
+// ── MULTI-TENANT: subdomain varsa dükkanın temasını uygula ──
+(async function(){
+  try {
+    const { applyStoreTheme } = await import('./supabase_client.js');
+    await applyStoreTheme();
+  } catch(e){ console.error('cart theme', e); }
+})();

@@ -355,6 +355,57 @@ async function getCurrentStore() {
   return _currentStoreCache;
 }
 
+// ── MULTI-TENANT: dükkanın temasını sayfaya uygula (generic, idempotent) ──
+// .logo varsa adını yanına ekler, yoksa sol üstte yüzen rozet gösterir.
+// --orange/--orange-dark/--orange-light CSS değişkenlerini günceller.
+// nav-shops / nav-shop-apply / nav-cutting (varsa) buna göre gizlenir.
+let _themeApplied = false;
+async function applyStoreTheme() {
+  try {
+    const store = await getCurrentStore();
+    if (!store) return null;
+    if (_themeApplied) return store;
+    _themeApplied = true;
+
+    function shade(hex, percent) {
+      const f = parseInt(hex.slice(1), 16);
+      const t = percent < 0 ? 0 : 255;
+      const p = Math.abs(percent) / 100;
+      const R = f >> 16, G = (f >> 8) & 0xff, B = f & 0xff;
+      const r = Math.round((t - R) * p) + R;
+      const g = Math.round((t - G) * p) + G;
+      const b = Math.round((t - B) * p) + B;
+      return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+    }
+    const root = document.documentElement.style;
+    root.setProperty('--orange', store.theme_color);
+    root.setProperty('--orange-dark', shade(store.theme_color, -20));
+    root.setProperty('--orange-light', shade(store.theme_color, 92));
+
+    const logo = document.querySelector('.logo');
+    if (logo) {
+      logo.insertAdjacentHTML('beforeend',
+        ` <small style="font-size:18px;font-weight:600;opacity:.8">· ${store.name}</small>`);
+    } else {
+      const badge = document.createElement('div');
+      badge.textContent = '🏪 ' + store.name;
+      badge.style.cssText = 'position:fixed;top:8px;left:8px;z-index:9999;background:' +
+        store.theme_color + ';color:#fff;padding:5px 12px;border-radius:20px;' +
+        'font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.25);font-family:sans-serif';
+      document.body.appendChild(badge);
+    }
+
+    ['nav-shops', 'nav-shop-apply'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    const cuttingLink = document.getElementById('nav-cutting');
+    if (cuttingLink) cuttingLink.style.display = store.has_cutting ? '' : 'none';
+
+    return store;
+  } catch (e) { console.error('applyStoreTheme', e); return null; }
+}
+
 // ============================================================
 // ИЗБРАННОЕ
 // ============================================================
@@ -436,7 +487,7 @@ export {
   // Заказы
   placeOrder, getMyOrders, getStoreOrders, updateOrderStatus,
   // Магазины
-  getAllStores, getMyStore, getCurrentStore,
+  getAllStores, getMyStore, getCurrentStore, applyStoreTheme,
   // Избранное
   toggleFavourite, getMyFavourites,
   // Уведомления

@@ -660,49 +660,5 @@ async function badgeLogout(){
   } catch(e){}
 })();
 </script>
-<script>
-// ── MULTI-TENANT: subdomain varsa dükkanın temasını uygula ──
-// Ana domain (baibesik.kz, subdomain yok) → hiçbir şey değişmez.
-(async function(){
-  try {
-    const { getCurrentStore } = await import('./supabase_client.js');
-    const store = await getCurrentStore();
-    if (!store) return;
-
-    // hex rengi koyulaştır(-)/açıklaştır(+) — dark/light варианты üretmek için
-    function shade(hex, percent){
-      const f = parseInt(hex.slice(1), 16);
-      const t = percent < 0 ? 0 : 255;
-      const p = Math.abs(percent) / 100;
-      const R = f >> 16, G = (f >> 8) & 0xff, B = f & 0xff;
-      const r = Math.round((t - R) * p) + R;
-      const g = Math.round((t - G) * p) + G;
-      const b = Math.round((t - B) * p) + B;
-      return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
-    }
-    const root = document.documentElement.style;
-    root.setProperty('--orange', store.theme_color);
-    root.setProperty('--orange-dark', shade(store.theme_color, -20));
-    root.setProperty('--orange-light', shade(store.theme_color, 92));
-
-    // Logo: "BAIBESIK · Dükkan adı"
-    const logo = document.querySelector('.logo');
-    if (logo) logo.insertAdjacentHTML('beforeend',
-      ` <small style="font-size:18px;font-weight:600;opacity:.8">· ${store.name}</small>`);
-
-    // "✂️ Раскрой" linki — sadece has_cutting=true olan dükkanlarda
-    const cuttingLink = document.getElementById('nav-cutting');
-    if (cuttingLink) cuttingLink.style.display = store.has_cutting ? '' : 'none';
-
-    // "🏪 Магазины" linki — dükkan zaten kendi sayfasında, gerek yok
-    const shopsLink = document.getElementById('nav-shops');
-    if (shopsLink) shopsLink.style.display = 'none';
-
-    // "🏪 Цех ашу" (atölye açma başvurusu) — dükkan zaten var, gerek yok
-    const shopApplyLink = document.getElementById('nav-shop-apply');
-    if (shopApplyLink) shopApplyLink.style.display = 'none';
-  } catch(e){ console.error('store theme', e); }
-})();
-</script>
 </body>
 </html>
