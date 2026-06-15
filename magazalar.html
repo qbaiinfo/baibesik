@@ -235,8 +235,9 @@ function renderStores(list){
     const name=lang==='ru'?s.name_ru:s.name_kk;
     const addr=lang==='ru'?s.addr_ru:s.addr_kk;
     const tags=lang==='ru'?s.tags_ru:s.tags_kk;
+    const link=(s.is_db&&s.slug)?`https://${s.slug}.baibesik.kz`:`catalog.html?store=${s.id}`;
     return `
-      <div class="store-card" onclick="window.location.href='catalog.html?store=${s.id}'">
+      <div class="store-card" onclick="window.location.href='${link}'">
         <div class="sc-banner" style="background:${s.bg}">
           ${s.icon}
           <div class="sc-status ${s.isOpen?'st-open':'st-closed'}">
@@ -260,7 +261,7 @@ function renderStores(list){
               ${s.halyk?'<span class="pay-badge pb-halyk">Halyk</span>':''}
             </div>
           </div>
-          <button class="btn-visit" onclick="event.stopPropagation();window.location.href='catalog.html?store=${s.id}'">${t.visit}</button>
+          <button class="btn-visit" onclick="event.stopPropagation();window.location.href='${link}'">${t.visit}</button>
         </div>
       </div>`;
   }).join('');
@@ -284,6 +285,7 @@ async function loadStoresFromDB() {
     // DB mağazalarını STORES formatına çevir
     const dbStores = stores.map((s,i) => ({
       id: s.id,
+      slug: s.slug, theme_color: s.theme_color, logo_url: s.logo_url,
       name_ru: s.name, name_kk: s.name,
       addr_ru: s.address || 'мкр. Байбесик',
       addr_kk: s.address || 'Байбесік шаг.',
@@ -291,8 +293,8 @@ async function loadStoresFromDB() {
       rating: 4.8, orders: 0,
       isOpen: true, delivery: true, wholesale: true,
       kaspi: !!s.kaspi_merchant_id, halyk: !!s.halyk_merchant_id,
-      bg: 'linear-gradient(135deg,#0f172a,#1e293b)',
-      icon: '<span style="font-size:40px">🏪</span>',
+      bg: s.theme_color ? `linear-gradient(135deg,${s.theme_color}cc,${s.theme_color}66)` : 'linear-gradient(135deg,#0f172a,#1e293b)',
+      icon: s.logo_url ? `<img src="${s.logo_url}" style="width:64px;height:64px;object-fit:contain;border-radius:8px;background:#fff">` : '<span style="font-size:40px">🏪</span>',
       is_db: true
     }));
     // DB mağazalarını başa ekle
