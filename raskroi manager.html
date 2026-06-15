@@ -92,6 +92,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 .empty{color:#64748b;text-align:center;margin:auto;font-size:13px}
 .sheet-label{color:#fff;font-size:11px;font-weight:700;align-self:flex-start;margin-bottom:4px}
 .price-input{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.price-input .full{grid-column:1/-1}
 .price-input input{padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none}
 .hidden{display:none}
 @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
@@ -210,13 +211,15 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
       <div class="panel">
         <h3 class="panel-title">💰 Цена и обработка</h3>
         <div class="price-input">
-          <input type="number" id="pricePerM2" placeholder="Цена м² (₸)" value="5000">
-          <input type="number" id="pricePvc" placeholder="Цена кромки м (₸)" value="500">
+          <input type="number" id="priceSheet" placeholder="Цена листа ₸ (напр. 14500)" value="">
+          <input type="number" id="priceCut" placeholder="Резка за заказ ₸" value="3000">
+          <input type="number" id="pricePvc" class="full" placeholder="Кромка PVC ₸/м (180-250)" value="200">
         </div>
-        <div class="calc-card" style="margin-bottom:10px"><div class="cv" id="finalPrice">0 ₸</div><div class="cl">Итоговая цена</div></div>
+        <div class="calc-card" style="margin-bottom:10px"><div class="cv" id="finalPrice">0 ₸</div><div class="cl">Итоговая цена</div><div id="priceBreakdown" style="font-size:9px;color:var(--gray);margin-top:4px"></div></div>
         <button class="btn btn-green btn-block" onclick="startProcess()">✓ Начать резку</button>
         <button class="btn btn-blue btn-block" style="background:#dc2626" onclick="exportCuttingPDF()">📄 PDF Отчёт (полный)</button>
         <button class="btn btn-blue btn-block" onclick="exportDXF()" style="margin-top:6px">📥 Экспорт DXF</button>
+        <button class="btn btn-blue btn-block" onclick="exportKdtCsv()" style="margin-top:6px">🏭 Экспорт CSV (КДТ/ЧПУ раскладка)</button>
         <button class="btn btn-blue btn-block" onclick="exportGCode()" style="margin-top:6px">⚙️ Экспорт G-Code (ЧПУ)</button>
         <button class="btn btn-blue btn-block" onclick="sendWhatsApp()">💬 Отправить в WhatsApp</button>
         <button class="btn btn-red btn-block" onclick="rejectOrder()">✗ Отклонить</button>
@@ -255,9 +258,25 @@ async function init(){
       }
       document.getElementById('authGuard').classList.add('show');return;
     }
+    // Kesim/PVC fiyatlarını cihazda hatırla (atölyenin kendi sabit ücretleri).
+    // Sunta fiyatı HİÇ HATIRLANMAZ - piyasa fiyatı sık değiştiği için
+    // her sipariş için operatör güncel fiyatı girmek zorunda.
+    try{
+      const sCut=localStorage.getItem('raskroiPriceCut');
+      const sPvc=localStorage.getItem('raskroiPricePvc');
+      if(sCut!==null)document.getElementById('priceCut').value=sCut;
+      if(sPvc!==null)document.getElementById('pricePvc').value=sPvc;
+    }catch(e){}
+    ['priceCut','pricePvc'].forEach(id=>{
+      document.getElementById(id).addEventListener('change',e=>{
+        try{localStorage.setItem(id==='priceCut'?'raskroiPriceCut':'raskroiPricePvc',e.target.value);}catch(_){}
+        if(lastLayout)calcNest();
+      });
+    });
+    document.getElementById('priceSheet').addEventListener('input',()=>{ if(lastLayout)calcNest(); });
     // Sadece kesim çalışanı → fiyat alanları kilitli (fiyatı menajer belirler)
     if(currentUser.role==='raskroi_worker'){
-      ['pricePerM2','pricePvc'].forEach(id=>{
+      ['priceSheet','priceCut','pricePvc'].forEach(id=>{
         const el=document.getElementById(id);
         if(el){el.disabled=true;el.style.background='#f1f5f9';el.title='Цену устанавливает менеджер';}
       });
@@ -548,7 +567,8 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
 
   // ════ STRATEJI 2: GILOTIN FREE-RECT (BSSF + max-alan bolme) ════
   // Panel testere uyumlu: her bolme tam gilotin kesim
-  function packGuillotine(itemsIn){
+  function packGuillotine(itemsIn, splitMode){
+    splitMode = splitMode||'auto';
     const items=itemsIn.map(it=>Object.assign({},it));
     const sheets=[]; // {parts:[], free:[{x,y,w,h}]}
     function newSheet(){const s={parts:[],free:[{x:0,y:0,w:usableW,h:usableH}]};sheets.push(s);return s;}
@@ -569,16 +589,17 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
       if(!best)return false;
       const r=s.free[best.ri];
       s.parts.push(Object.assign({},it,{w:best.pw,h:best.ph,rot:best.rot?!it.rot:it.rot,px:r.x,py:r.y}));
-      // gilotin bolme: iki secenekten cocuklarin EN BUYUGUNU maksimize eden
+      // gilotin bolme: secenek A (dikey kesim) veya B (yatay kesim)
       const pw=best.pw,ph=best.ph;
-      // secenek A (dikey kesim): sag tam boy + alt parca-genisliginde
       const A1={x:r.x+pw+kerf,y:r.y,w:r.w-pw-kerf,h:r.h};
       const A2={x:r.x,y:r.y+ph+kerf,w:pw,h:r.h-ph-kerf};
-      // secenek B (yatay kesim): alt tam boy + sag parca-yuksekliginde
       const B1={x:r.x+pw+kerf,y:r.y,w:r.w-pw-kerf,h:ph};
       const B2={x:r.x,y:r.y+ph+kerf,w:r.w,h:r.h-ph-kerf};
       const area=q=>Math.max(0,q.w)*Math.max(0,q.h);
-      const useA=Math.max(area(A1),area(A2))>=Math.max(area(B1),area(B2));
+      let useA;
+      if(splitMode==='A')useA=true;
+      else if(splitMode==='B')useA=false;
+      else useA=Math.max(area(A1),area(A2))>=Math.max(area(B1),area(B2));
       const kids=useA?[A1,A2]:[B1,B2];
       s.free.splice(best.ri,1);
       kids.forEach(k=>{if(k.w>5&&k.h>5)s.free.push(k);});
@@ -596,7 +617,76 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     }));
   }
 
-  // ════ FINALIZE: mutlak koordinat + kalanlara geri yerlestirme ════
+  // ════ STRATEJI: MAXIMAL RECTANGLES (Best Area Fit) ════
+  // Guillotine'in aksine free-rect'ler CAKISABILIR — bir kesim sirasinda
+  // "kaybedilen" bos alanlar burada korunur, daha sıkı paketleme bulur.
+  function packMaxRects(itemsIn){
+    const items=itemsIn.map(it=>Object.assign({},it));
+    const sheets=[];
+    function splitFree(f,p){
+      // kesismiyorsa f degismeden kalir (sol/sag/ust/alt tamamen ayrik)
+      if(p.x+p.w<=f.x+0.01 || f.x+f.w<=p.x+0.01 || p.y+p.h<=f.y+0.01 || f.y+f.h<=p.y+0.01){
+        return [f];
+      }
+      const out=[];
+      if(p.x>f.x+0.01) out.push({x:f.x,y:f.y,w:p.x-f.x,h:f.h});
+      if(p.x+p.w<f.x+f.w-0.01) out.push({x:p.x+p.w,y:f.y,w:(f.x+f.w)-(p.x+p.w),h:f.h});
+      if(p.y>f.y+0.01) out.push({x:f.x,y:f.y,w:f.w,h:p.y-f.y});
+      if(p.y+p.h<f.y+f.h-0.01) out.push({x:f.x,y:p.y+p.h,w:f.w,h:(f.y+f.h)-(p.y+p.h)});
+      return out.filter(r=>r.w>0.5&&r.h>0.5);
+    }
+    function pruneContained(rects){
+      const out=[];
+      for(let i=0;i<rects.length;i++){
+        const a=rects[i]; let contained=false;
+        for(let j=0;j<rects.length;j++){
+          if(i===j)continue; const b=rects[j];
+          if(a.x>=b.x-0.01&&a.y>=b.y-0.01&&a.x+a.w<=b.x+b.w+0.01&&a.y+a.h<=b.y+b.h+0.01){
+            if(a.w*a.h<b.w*b.h-0.01 || (Math.abs(a.w*a.h-b.w*b.h)<0.01 && i>j)){contained=true;break;}
+          }
+        }
+        if(!contained)out.push(a);
+      }
+      return out;
+    }
+    function newSheet(){const s={parts:[],free:[{x:0,y:0,w:usableW,h:usableH}]};sheets.push(s);return s;}
+    function placeIn(s,it){
+      let best=null;
+      for(let fi=0;fi<s.free.length;fi++){
+        const f=s.free[fi];
+        const tryOri=(pw,ph,rot)=>{
+          if(pw<=f.w+0.01 && ph<=f.h+0.01){
+            const leftover=f.w*f.h-pw*ph;
+            const shortFit=Math.min(f.w-pw,f.h-ph);
+            if(!best||leftover<best.leftover-0.01||(Math.abs(leftover-best.leftover)<0.01&&shortFit<best.shortFit)){
+              best={fi,pw,ph,rot,leftover,shortFit};
+            }
+          }
+        };
+        tryOri(it.w,it.h,false);
+        if(rotOK(it)&&it.w!==it.h) tryOri(it.h,it.w,true);
+      }
+      if(!best)return false;
+      const f=s.free[best.fi];
+      s.parts.push(Object.assign({},it,{w:best.pw,h:best.ph,rot:best.rot?!it.rot:it.rot,px:f.x,py:f.y}));
+      const eff={x:f.x,y:f.y,w:Math.min(best.pw+kerf,f.w),h:Math.min(best.ph+kerf,f.h)};
+      let next=[];
+      s.free.forEach(fr=>{ next.push(...splitFree(fr,eff)); });
+      s.free = next.length>40 ? pruneContained(next) : next;
+      return true;
+    }
+    for(const it of items){
+      let ok=false;
+      for(const s of sheets){if(placeIn(s,it)){ok=true;break;}}
+      if(!ok){const s=newSheet();placeIn(s,it);}
+    }
+    return sheets.map(s=>({
+      parts:s.parts,
+      remnants:pruneContained(s.free).filter(f=>f.w>=MIN_REM&&f.h>=MIN_REM).map(f=>({px:f.x,py:f.y,w:f.w,h:f.h}))
+    }));
+  }
+
+
   function finalize(relSheets){
     const sheets=relSheets.map(s=>({
       parts:s.parts.map(p=>Object.assign({},p,{x:trim+p.px,y:trim+p.py})),
@@ -659,6 +749,13 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     const arr=baseItems.slice().sort(sorts[k]);
     candidates.push({tag:'guil-'+k,sheets:finalize(packGuillotine(arr))});
   });
+  // Zorla dikey/yatay bolme varyantlari — split secimi bazen "auto" kriterinin
+  // kacirdigi daha iyi bir genel duzen bulabilir (ozellikle karisik yukseklik gruplari)
+  ['area','hgt'].forEach(k=>{
+    const arr=baseItems.slice().sort(sorts[k]);
+    candidates.push({tag:'guil-'+k+'-A',sheets:finalize(packGuillotine(arr,'A'))});
+    candidates.push({tag:'guil-'+k+'-B',sheets:finalize(packGuillotine(arr,'B'))});
+  });
   // rastgele restartlar (deterministik tohum) — buyuk siparislerde az, kucukte cok
   const nRestarts = baseItems.length>200?2 : baseItems.length>80?4 : 8;
   const rng=mulberry32(baseItems.length*7919+Math.round(usableW));
@@ -666,6 +763,20 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     const arr=baseItems.slice().sort(sorts.area);
     for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
     candidates.push({tag:'guil-rnd'+t,sheets:finalize(packGuillotine(arr))});
+  }
+
+  // MaxRects-BAF: guillotine'in kaybettigi bos alanlari yakalar.
+  // Buyuk siparislerde free-rect listesi sisip yavaslayabilecegi icin sinirli.
+  if(baseItems.length<=150){
+    candidates.push({tag:'maxrects-area',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.area)))});
+    candidates.push({tag:'maxrects-hgt',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.hgt)))});
+    candidates.push({tag:'maxrects-perim',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.perim)))});
+    const nMaxRnd = baseItems.length>80?2:4;
+    for(let t=0;t<nMaxRnd;t++){
+      const arr=baseItems.slice().sort(sorts.area);
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
+      candidates.push({tag:'maxrects-rnd'+t,sheets:finalize(packMaxRects(arr))});
+    }
   }
 
   // skor: az levha → son levha az dolu → en buyuk kalan buyuk
@@ -678,6 +789,60 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     sh.forEach(s=>s.remnants.forEach(r=>{if(r.w*r.h>bigRem)bigRem=r.w*r.h;}));
     return [n,lastUsed,-bigRem];
   }
+
+  // ════ SIMULATED ANNEALING ════
+  // Heuristikler (guillotine/maxrects) "kara kutu" olarak kullanilir;
+  // SA, PARCA SIRALAMASI uzayinda swap/reinsert/reverse hamleleriyle
+  // arama yapar — her hamlede yeniden paketler, score()'a gore
+  // iyiyse kabul eder, kotuyse bazen (sicaklikla azalan ihtimalle)
+  // yine kabul eder (lokal minimumdan kacmak icin).
+  function scalarScore(sh){
+    const s=score(sh);
+    const A=usableW*usableH;
+    return s[0]*10 + s[1]/A + s[2]/A*0.001;
+  }
+  function simulatedAnnealing(initialOrder, packFn, rnd){
+    const n=initialOrder.length;
+    if(n<2)return packFn(initialOrder);
+    let current=initialOrder.slice();
+    let curSheets=packFn(current), curE=scalarScore(curSheets);
+    let best=current.slice(), bestSheets=curSheets, bestE=curE;
+    const iters = n<=20?2500 : n<=50?1000 : n<=100?300 : 60;
+    const T0=1.0, Tmin=0.02;
+    const cooling=Math.pow(Tmin/T0,1/Math.max(1,iters));
+    let T=T0;
+    for(let it=0;it<iters;it++){
+      const cand=current.slice();
+      const mv=rnd();
+      if(mv<0.34){ // swap
+        const i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
+        const tmp=cand[i];cand[i]=cand[j];cand[j]=tmp;
+      }else if(mv<0.67){ // reinsert (or-opt)
+        const i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
+        const [el]=cand.splice(i,1);
+        cand.splice(j,0,el);
+      }else{ // segment reverse (2-opt)
+        let i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
+        if(i>j){const t=i;i=j;j=t;}
+        const seg=cand.slice(i,j+1).reverse();
+        for(let k=0;k<seg.length;k++)cand[i+k]=seg[k];
+      }
+      const candSheets=packFn(cand);
+      const candE=scalarScore(candSheets);
+      const delta=candE-curE;
+      if(delta<0||rnd()<Math.exp(-delta/T)){
+        current=cand;curSheets=candSheets;curE=candE;
+        if(curE<bestE-1e-9){best=current.slice();bestSheets=candSheets;bestE=curE;}
+      }
+      T*=cooling;
+    }
+    return bestSheets;
+  }
+  // n<=120: 2 SA kosusu (MaxRects + Guillotine uzerinde), farklı baslangic siralamasi
+  if(baseItems.length<=120){
+    candidates.push({tag:'sa-maxrects',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),packMaxRects,mulberry32(baseItems.length*104723+Math.round(usableH)+17)))});
+    candidates.push({tag:'sa-guillotine',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.hgt),(arr)=>packGuillotine(arr),mulberry32(baseItems.length*65599+Math.round(usableW)+31)))});
+  }
   let best=null,bestS=null;
   candidates.forEach(c=>{
     const s=score(c.sheets);
@@ -687,6 +852,23 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
   });
 
   const sheets=best.sheets;
+  // MaxRects cakisan kalan uretebilir — gosterim icin buyukten kucuge
+  // siralayip, baska bir kalanin %60+'i icinde kalanlari ele
+  function pruneOverlapRemnants(rects){
+    const sorted=rects.slice().sort((a,b)=>b.w*b.h-a.w*a.h);
+    const out=[];
+    for(const r of sorted){
+      let dup=false;
+      for(const o of out){
+        const ix=Math.max(0,Math.min(r.x+r.w,o.x+o.w)-Math.max(r.x,o.x));
+        const iy=Math.max(0,Math.min(r.y+r.h,o.y+o.h)-Math.max(r.y,o.y));
+        if(ix*iy>0.6*r.w*r.h){dup=true;break;}
+      }
+      if(!dup)out.push(r);
+    }
+    return out;
+  }
+  sheets.forEach(s=>{s.remnants=pruneOverlapRemnants(s.remnants||[]);});
   // kesim uzunlugu (yaklasik gilotin): parca cevre/2 + levha trim cevresi
   let cutLen=0;
   sheets.forEach(s=>{
@@ -694,7 +876,25 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     s.parts.forEach(pt=>{cutLen+=pt.w+pt.h;});
   });
 
-  return {sheets,SW,SH,usableW,usableH,trim,kerf,oversize,cutLen,dir:best.tag};
+  // ════ LEVHA DUZENI TEKRARI TESPITI (GibLab "N plan x M levha" mantigi) ════
+  // Ayni "imza"ya (parca tipi+boyut+pozisyon+rotasyon kombinasyonu) sahip
+  // levhalar tek bir kesim planinin kopyasidir — operator ayni programi
+  // M kez uygular, her levha icin ayri plan okumaz.
+  function computeGroups(sh){
+    const sigOf=s=>s.parts.map(p=>`${p.pid}:${Math.round(p.w)}x${Math.round(p.h)}@${Math.round(p.x)},${Math.round(p.y)}:${p.rot?1:0}`).sort().join('|');
+    const sigMap=new Map();
+    const repFor=sh.map((s,i)=>{
+      const sig=sigOf(s);
+      if(sigMap.has(sig))return sigMap.get(sig);
+      sigMap.set(sig,i);return i;
+    });
+    const counts={};
+    repFor.forEach(r=>{counts[r]=(counts[r]||0)+1;});
+    const uniqueCount=sigMap.size;
+    return {repFor,counts,uniqueCount};
+  }
+
+  return {sheets,SW,SH,usableW,usableH,trim,kerf,oversize,cutLen,dir:best.tag,groups:computeGroups(sheets)};
 }
 
 function nest(){
@@ -741,10 +941,20 @@ window.calcNest=async function(){
   const pvcM=currentOrder?.pvc==='0'?0:pvc/1000*1.05;
   document.getElementById('cPvc').textContent=pvcM.toFixed(1)+'м';
   drawSheets(L);
-  // fiyat
-  const ppm=parseFloat(document.getElementById('pricePerM2').value)||0;
+  // fiyat: (levha sayısı × levha fiyatı) + (PVC м × ₸/м) + sabit kesim ücreti
+  const priceSheet=parseFloat(document.getElementById('priceSheet').value)||0;
+  const priceCut=parseFloat(document.getElementById('priceCut').value)||0;
   const ppvc=parseFloat(document.getElementById('pricePvc').value)||0;
-  const price=(pa/1e6*ppm)+(pvcM*ppvc);
+  const sheetsCost=n*priceSheet, pvcCost=pvcM*ppvc;
+  const price=sheetsCost+pvcCost+priceCut;
+  const bd=document.getElementById('priceBreakdown');
+  if(priceSheet<=0){
+    document.getElementById('finalPrice').style.color='#dc2626';
+    bd.innerHTML='⚠️ Введите цену листа (₸)';
+  }else{
+    document.getElementById('finalPrice').style.color='';
+    bd.textContent=`${n}×${priceSheet.toLocaleString('ru-RU')} + ${pvcM.toFixed(1)}м×${ppvc} + ${priceCut.toLocaleString('ru-RU')} (резка)`;
+  }
   document.getElementById('finalPrice').textContent=Math.round(price).toLocaleString('ru-RU')+' ₸';
 };
 
@@ -752,7 +962,16 @@ function drawSheets(L){
   const wrap=document.getElementById('canvasWrap');wrap.innerHTML='';
   const cm={};let ci=0;parts.forEach(p=>{if(!(p.name in cm)){cm[p.name]=COLORS[ci%COLORS.length];ci++;}});
   L.sheets.forEach((sheet,si)=>{
-    const lbl=document.createElement('div');lbl.className='sheet-label';lbl.textContent=`Лист ${si+1} — ${L.SW}×${L.SH}mm`;wrap.appendChild(lbl);
+    const rep=L.groups?L.groups.repFor[si]:si;
+    if(rep!==si){
+      const note=document.createElement('div');note.className='sheet-label';note.style.opacity='.75';
+      note.textContent=`Лист ${si+1}/${L.sheets.length} — совпадает с Лист ${rep+1} (копия раскладки)`;
+      wrap.appendChild(note);
+      return;
+    }
+    const cnt=L.groups?(L.groups.counts[si]||1):1;
+    const copyTxt=cnt>1?` · ×${cnt} копий`:'';
+    const lbl=document.createElement('div');lbl.className='sheet-label';lbl.textContent=`Лист ${si+1}/${L.sheets.length} — ${L.SW}×${L.SH}mm${copyTxt}`;wrap.appendChild(lbl);
     const cv=document.createElement('canvas');const sc=Math.min(560/L.SW,360/L.SH);cv.width=L.SW*sc;cv.height=L.SH*sc;
     const ctx=cv.getContext('2d');ctx.fillStyle='#f1f5f9';ctx.fillRect(0,0,cv.width,cv.height);
     ctx.strokeStyle='#cbd5e1';ctx.setLineDash([4,3]);ctx.strokeRect(L.trim*sc,L.trim*sc,L.usableW*sc,L.usableH*sc);ctx.setLineDash([]);
@@ -934,6 +1153,26 @@ window.exportDXF=function(){if(!lastLayout){alert('Сначала рассчит
   dxf+='0\nENDSEC\n0\nEOF\n';
   const blob=new Blob([dxf],{type:'application/dxf'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'.dxf';a.click();
+};
+// KDT/CNC nest-yazılımı için: her parçanın levha içi konumu, boyutu, rotasyonu ve kromek bilgisi.
+// "Копия" sütunu: ayni kesim plani N levhada tekrar ediyorsa, operatore "bu programi N kez calistir" der.
+window.exportKdtCsv=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
+  const rows=[['ЛевхаНо','Копия x','X','Y','Ширина','Высота','Поворот','КромкаВерх','КромкаНиз','КромкаЛево','КромкаПраво','Деталь']];
+  const groups=lastLayout.groups||{repFor:lastLayout.sheets.map((_,i)=>i),counts:{}};
+  lastLayout.sheets.forEach((sheet,si)=>{
+    const rep=groups.repFor[si];
+    if(rep!==si)return; // kopya levha — ayni satirlari tekrar yazma
+    const cnt=groups.counts[si]||1;
+    sheet.parts.forEach(pt=>{
+      rows.push([si+1,cnt,Math.round(pt.x),Math.round(pt.y),Math.round(pt.w),Math.round(pt.h),
+        pt.rot?90:0,
+        pt.e&&pt.e.t?1:0, pt.e&&pt.e.b?1:0, pt.e&&pt.e.l?1:0, pt.e&&pt.e.r?1:0,
+        pt.name||'']);
+    });
+  });
+  const csv=rows.map(r=>r.join(';')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'_kdt.csv';a.click();
 };
 window.sendWhatsApp=function(){if(!currentOrder){alert('Выберите заказ');return;}
   const txt=`Раскрой ${currentOrder.id}%0AМатериал: ${currentOrder.material}%0AЛист: ${currentOrder.sheetW}×${currentOrder.sheetH}%0AДеталей: ${parts.reduce((s,p)=>s+p.qty,0)}%0AЛистов: ${lastLayout?lastLayout.sheets.length:'?'}%0AЦена: ${document.getElementById('finalPrice').textContent}`;
