@@ -211,8 +211,8 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
       <div class="panel">
         <h3 class="panel-title">💰 Цена и обработка</h3>
         <div class="price-input">
-          <input type="number" id="priceSheet" placeholder="Цена листа ₸ (напр. 14500)" value="">
-          <input type="number" id="priceCut" placeholder="Резка за заказ ₸" value="3000">
+          <input type="number" id="priceSheet" placeholder="Цена листа ₸ (12000-35000)" value="">
+          <input type="number" id="priceCut" placeholder="Резка за лист ₸ (2500-3500)" value="3000">
           <input type="number" id="pricePvc" class="full" placeholder="Кромка PVC ₸/м (180-250)" value="200">
         </div>
         <div class="calc-card" style="margin-bottom:10px"><div class="cv" id="finalPrice">0 ₸</div><div class="cl">Итоговая цена</div><div id="priceBreakdown" style="font-size:9px;color:var(--gray);margin-top:4px"></div></div>
@@ -941,19 +941,19 @@ window.calcNest=async function(){
   const pvcM=currentOrder?.pvc==='0'?0:pvc/1000*1.05;
   document.getElementById('cPvc').textContent=pvcM.toFixed(1)+'м';
   drawSheets(L);
-  // fiyat: (levha sayısı × levha fiyatı) + (PVC м × ₸/м) + sabit kesim ücreti
+  // fiyat: levha sayısı × (levha fiyatı + kesim ücreti/levha) + PVC м × ₸/м
   const priceSheet=parseFloat(document.getElementById('priceSheet').value)||0;
   const priceCut=parseFloat(document.getElementById('priceCut').value)||0;
   const ppvc=parseFloat(document.getElementById('pricePvc').value)||0;
-  const sheetsCost=n*priceSheet, pvcCost=pvcM*ppvc;
-  const price=sheetsCost+pvcCost+priceCut;
+  const sheetsCost=n*priceSheet, cutCost=n*priceCut, pvcCost=pvcM*ppvc;
+  const price=sheetsCost+cutCost+pvcCost;
   const bd=document.getElementById('priceBreakdown');
   if(priceSheet<=0){
     document.getElementById('finalPrice').style.color='#dc2626';
     bd.innerHTML='⚠️ Введите цену листа (₸)';
   }else{
     document.getElementById('finalPrice').style.color='';
-    bd.textContent=`${n}×${priceSheet.toLocaleString('ru-RU')} + ${pvcM.toFixed(1)}м×${ppvc} + ${priceCut.toLocaleString('ru-RU')} (резка)`;
+    bd.textContent=`${n}×(${priceSheet.toLocaleString('ru-RU')}+${priceCut.toLocaleString('ru-RU')}) + ${pvcM.toFixed(1)}м×${ppvc}`;
   }
   document.getElementById('finalPrice').textContent=Math.round(price).toLocaleString('ru-RU')+' ₸';
 };
