@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>⚙️ Раскрой — Мастер</title>
+<!-- BUILD: 2026-06-15-v2 (SA+groups+KDT-CSV+price3input) -->
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 :root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;--blue:#3b82f6;}
@@ -92,6 +93,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 .empty{color:#64748b;text-align:center;margin:auto;font-size:13px}
 .sheet-label{color:#fff;font-size:11px;font-weight:700;align-self:flex-start;margin-bottom:4px}
 .price-input{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.price-input .full{grid-column:1/-1}
 .price-input input{padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none}
 .hidden{display:none}
 @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
@@ -210,13 +212,15 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
       <div class="panel">
         <h3 class="panel-title">💰 Цена и обработка</h3>
         <div class="price-input">
-          <input type="number" id="pricePerM2" placeholder="Цена м² (₸)" value="5000">
-          <input type="number" id="pricePvc" placeholder="Цена кромки м (₸)" value="500">
+          <input type="number" id="priceSheet" placeholder="Цена листа ₸ (12000-35000)" value="">
+          <input type="number" id="priceCut" placeholder="Резка за лист ₸ (2500-3500)" value="3000">
+          <input type="number" id="pricePvc" class="full" placeholder="Кромка PVC ₸/м (180-250)" value="200">
         </div>
-        <div class="calc-card" style="margin-bottom:10px"><div class="cv" id="finalPrice">0 ₸</div><div class="cl">Итоговая цена</div></div>
+        <div class="calc-card" style="margin-bottom:10px"><div class="cv" id="finalPrice">0 ₸</div><div class="cl">Итоговая цена</div><div id="priceBreakdown" style="font-size:9px;color:var(--gray);margin-top:4px"></div></div>
         <button class="btn btn-green btn-block" onclick="startProcess()">✓ Начать резку</button>
         <button class="btn btn-blue btn-block" style="background:#dc2626" onclick="exportCuttingPDF()">📄 PDF Отчёт (полный)</button>
         <button class="btn btn-blue btn-block" onclick="exportDXF()" style="margin-top:6px">📥 Экспорт DXF</button>
+        <button class="btn btn-blue btn-block" onclick="exportKdtCsv()" style="margin-top:6px">🏭 Экспорт CSV (КДТ/ЧПУ раскладка)</button>
         <button class="btn btn-blue btn-block" onclick="exportGCode()" style="margin-top:6px">⚙️ Экспорт G-Code (ЧПУ)</button>
         <button class="btn btn-blue btn-block" onclick="sendWhatsApp()">💬 Отправить в WhatsApp</button>
         <button class="btn btn-red btn-block" onclick="rejectOrder()">✗ Отклонить</button>
@@ -255,9 +259,25 @@ async function init(){
       }
       document.getElementById('authGuard').classList.add('show');return;
     }
+    // Kesim/PVC fiyatlarını cihazda hatırla (atölyenin kendi sabit ücretleri).
+    // Sunta fiyatı HİÇ HATIRLANMAZ - piyasa fiyatı sık değiştiği için
+    // her sipariş için operatör güncel fiyatı girmek zorunda.
+    try{
+      const sCut=localStorage.getItem('raskroiPriceCut');
+      const sPvc=localStorage.getItem('raskroiPricePvc');
+      if(sCut!==null)document.getElementById('priceCut').value=sCut;
+      if(sPvc!==null)document.getElementById('pricePvc').value=sPvc;
+    }catch(e){}
+    ['priceCut','pricePvc'].forEach(id=>{
+      document.getElementById(id).addEventListener('change',e=>{
+        try{localStorage.setItem(id==='priceCut'?'raskroiPriceCut':'raskroiPricePvc',e.target.value);}catch(_){}
+        if(lastLayout)calcNest();
+      });
+    });
+    document.getElementById('priceSheet').addEventListener('input',()=>{ if(lastLayout)calcNest(); });
     // Sadece kesim çalışanı → fiyat alanları kilitli (fiyatı menajer belirler)
     if(currentUser.role==='raskroi_worker'){
-      ['pricePerM2','pricePvc'].forEach(id=>{
+      ['priceSheet','priceCut','pricePvc'].forEach(id=>{
         const el=document.getElementById(id);
         if(el){el.disabled=true;el.style.background='#f1f5f9';el.title='Цену устанавливает менеджер';}
       });
@@ -922,10 +942,20 @@ window.calcNest=async function(){
   const pvcM=currentOrder?.pvc==='0'?0:pvc/1000*1.05;
   document.getElementById('cPvc').textContent=pvcM.toFixed(1)+'м';
   drawSheets(L);
-  // fiyat
-  const ppm=parseFloat(document.getElementById('pricePerM2').value)||0;
+  // fiyat: levha sayısı × (levha fiyatı + kesim ücreti/levha) + PVC м × ₸/м
+  const priceSheet=parseFloat(document.getElementById('priceSheet').value)||0;
+  const priceCut=parseFloat(document.getElementById('priceCut').value)||0;
   const ppvc=parseFloat(document.getElementById('pricePvc').value)||0;
-  const price=(pa/1e6*ppm)+(pvcM*ppvc);
+  const sheetsCost=n*priceSheet, cutCost=n*priceCut, pvcCost=pvcM*ppvc;
+  const price=sheetsCost+cutCost+pvcCost;
+  const bd=document.getElementById('priceBreakdown');
+  if(priceSheet<=0){
+    document.getElementById('finalPrice').style.color='#dc2626';
+    bd.innerHTML='⚠️ Введите цену листа (₸)';
+  }else{
+    document.getElementById('finalPrice').style.color='';
+    bd.textContent=`${n}×(${priceSheet.toLocaleString('ru-RU')}+${priceCut.toLocaleString('ru-RU')}) + ${pvcM.toFixed(1)}м×${ppvc}`;
+  }
   document.getElementById('finalPrice').textContent=Math.round(price).toLocaleString('ru-RU')+' ₸';
 };
 
@@ -1124,6 +1154,26 @@ window.exportDXF=function(){if(!lastLayout){alert('Сначала рассчит
   dxf+='0\nENDSEC\n0\nEOF\n';
   const blob=new Blob([dxf],{type:'application/dxf'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'.dxf';a.click();
+};
+// KDT/CNC nest-yazılımı için: her parçanın levha içi konumu, boyutu, rotasyonu ve kromek bilgisi.
+// "Копия" sütunu: ayni kesim plani N levhada tekrar ediyorsa, operatore "bu programi N kez calistir" der.
+window.exportKdtCsv=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
+  const rows=[['ЛевхаНо','Копия x','X','Y','Ширина','Высота','Поворот','КромкаВерх','КромкаНиз','КромкаЛево','КромкаПраво','Деталь']];
+  const groups=lastLayout.groups||{repFor:lastLayout.sheets.map((_,i)=>i),counts:{}};
+  lastLayout.sheets.forEach((sheet,si)=>{
+    const rep=groups.repFor[si];
+    if(rep!==si)return; // kopya levha — ayni satirlari tekrar yazma
+    const cnt=groups.counts[si]||1;
+    sheet.parts.forEach(pt=>{
+      rows.push([si+1,cnt,Math.round(pt.x),Math.round(pt.y),Math.round(pt.w),Math.round(pt.h),
+        pt.rot?90:0,
+        pt.e&&pt.e.t?1:0, pt.e&&pt.e.b?1:0, pt.e&&pt.e.l?1:0, pt.e&&pt.e.r?1:0,
+        pt.name||'']);
+    });
+  });
+  const csv=rows.map(r=>r.join(';')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'_kdt.csv';a.click();
 };
 window.sendWhatsApp=function(){if(!currentOrder){alert('Выберите заказ');return;}
   const txt=`Раскрой ${currentOrder.id}%0AМатериал: ${currentOrder.material}%0AЛист: ${currentOrder.sheetW}×${currentOrder.sheetH}%0AДеталей: ${parts.reduce((s,p)=>s+p.qty,0)}%0AЛистов: ${lastLayout?lastLayout.sheets.length:'?'}%0AЦена: ${document.getElementById('finalPrice').textContent}`;
