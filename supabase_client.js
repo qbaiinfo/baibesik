@@ -70,6 +70,8 @@ async function redirectByRole() {
     warehouse:   'depo_panel.html',
     wholesale:   'toptanci_dashboard.html',
     customer:    'musteri_dashboard.html',
+    raskroi_manager: 'raskroi_manager.html',
+    raskroi_worker:  'raskroi_manager.html',
   };
   window.location.href = routes[user.role] || 'index.html';
 }
@@ -330,6 +332,29 @@ async function getMyStore() {
   return data;
 }
 
+// ── MULTI-TENANT: hostname (subdomain) → stores satırı ──────
+// btm.baibesik.kz → slug='btm'. Subdomain yoksa (baibesik.kz/www)
+// ?store=slug ile test edilebilir (DNS kurulana kadar).
+let _currentStoreCache;
+async function getCurrentStore() {
+  if (_currentStoreCache !== undefined) return _currentStoreCache;
+  const host = window.location.hostname;
+  const hp = host.split('.');
+  let slug = null;
+  if (hp.length > 2 && hp[0] !== 'www') slug = hp[0];
+  else slug = new URLSearchParams(window.location.search).get('store');
+  if (!slug) { _currentStoreCache = null; return null; }
+  const { data, error } = await supabase
+    .from('stores')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle();
+  if (error) { console.error('getCurrentStore', error); _currentStoreCache = null; return null; }
+  _currentStoreCache = data || null;
+  return _currentStoreCache;
+}
+
 // ============================================================
 // ИЗБРАННОЕ
 // ============================================================
@@ -411,7 +436,7 @@ export {
   // Заказы
   placeOrder, getMyOrders, getStoreOrders, updateOrderStatus,
   // Магазины
-  getAllStores, getMyStore,
+  getAllStores, getMyStore, getCurrentStore,
   // Избранное
   toggleFavourite, getMyFavourites,
   // Уведомления
