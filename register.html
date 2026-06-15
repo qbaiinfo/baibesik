@@ -412,6 +412,14 @@ async function doRegister(){
           is_default:true, is_main:true
         });
       }
+      // Subdomain'den (bmt.baibesik.kz vb.) kayıt olduysa — bu dükkanın müşterisi
+      if(currentStore && regType !== 'store_owner'){
+        try {
+          await sb.from('store_members').insert({
+            store_id: currentStore.id, user_id: data.user.id, role: 'customer'
+          });
+        } catch(e3){ console.log('store_members:', e3.message); }
+      }
       // Dükkan sahibiyse pending store oluştur
       if(regType === 'store_owner') {
         try {
@@ -455,6 +463,7 @@ $('inp-ph').addEventListener('input',function(){
 
 // ─── KAYIT TİPİ ───
 let regType = 'customer';
+let currentStore = null;
 function setRegType(type, el) {
   regType = type;
   document.querySelectorAll('#type-customer,#type-store').forEach(d => {
@@ -467,6 +476,21 @@ function setRegType(type, el) {
   }
   document.getElementById('store-pending-info').style.display = type==='store_owner' ? 'block' : 'none';
 }
+
+// ─── MULTI-TENANT: subdomain (bmt.baibesik.kz vb.) varsa ───
+// "Владелец магазина" seçeneği anlamsız (dükkan zaten var) — gizle,
+// kayıt doğrudan müşteri olarak bu dükkana bağlanır.
+(async function(){
+  try {
+    const { getCurrentStore } = await import('./supabase_client.js');
+    currentStore = await getCurrentStore();
+    if (currentStore) {
+      regType = 'customer';
+      const sel = document.getElementById('type-selector');
+      if (sel) sel.style.display = 'none';
+    }
+  } catch(e){ console.error('store check', e); }
+})();
 
 </script>
 </body>
