@@ -697,6 +697,10 @@ async function badgeLogout(){
     // "🏪 Магазины" linki — dükkan zaten kendi sayfasında, gerek yok
     const shopsLink = document.getElementById('nav-shops');
     if (shopsLink) shopsLink.style.display = 'none';
+
+    // "🏪 Цех ашу" (atölye açma başvurusu) — dükkan zaten var, gerek yok
+    const shopApplyLink = document.getElementById('nav-shop-apply');
+    if (shopApplyLink) shopApplyLink.style.display = 'none';
   } catch(e){ console.error('store theme', e); }
 })();
 </script>
