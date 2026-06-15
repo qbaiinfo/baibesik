@@ -693,6 +693,10 @@ async function badgeLogout(){
     // "✂️ Раскрой" linki — sadece has_cutting=true olan dükkanlarda
     const cuttingLink = document.getElementById('nav-cutting');
     if (cuttingLink) cuttingLink.style.display = store.has_cutting ? '' : 'none';
+
+    // "🏪 Магазины" linki — dükkan zaten kendi sayfasında, gerek yok
+    const shopsLink = document.getElementById('nav-shops');
+    if (shopsLink) shopsLink.style.display = 'none';
   } catch(e){ console.error('store theme', e); }
 })();
 </script>
