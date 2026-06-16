@@ -909,6 +909,11 @@ async function getMyRaskroiOrders() {
 
 // Atölye/çalışan için gelen siparişler (store_id'ye göre)
 async function getStoreRaskroiOrders(storeId) {
+  // storeId verilmemişse subdomain'den otomatik al
+  if (!storeId) {
+    const store = await getCurrentStore();
+    if (store) storeId = store.id;
+  }
   let q = supabase.from('raskroi_orders').select('*').order('created_at', { ascending: false });
   if (storeId) q = q.eq('store_id', storeId);
   const { data, error } = await q;
