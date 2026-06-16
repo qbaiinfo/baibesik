@@ -438,6 +438,25 @@ async function badgeLogout(){
 
   <!-- НАСТРОЙКИ -->
   <div class="tab-section" id="sec-payroll">
+
+    <!-- MAKİNE YÖNETİMİ -->
+    <div class="section-card" style="margin-bottom:12px">
+      <div class="sc-head">
+        <div class="sc-title">🏭 МАШИНАЛАР</div>
+        <button class="btn-sm btn-orange" onclick="openAddMachine()">+ Добавить</button>
+      </div>
+      <div class="sc-body">
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button onclick="filterMachines('all')" id="mf-all" class="btn-sm btn-orange">Барлығы</button>
+          <button onclick="filterMachines('cutting')" id="mf-cutting" class="btn-sm" style="background:var(--light);border:1px solid var(--border)">✂️ Кесу</button>
+          <button onclick="filterMachines('pvc')" id="mf-pvc" class="btn-sm" style="background:var(--light);border:1px solid var(--border)">🎀 PVC</button>
+        </div>
+        <div id="machine-list" style="display:flex;flex-direction:column;gap:8px">
+          <div style="text-align:center;color:var(--gray);font-size:13px;padding:12px">Жүктелуде...</div>
+        </div>
+      </div>
+    </div>
+
     <!-- TARİFE KARTI -->
     <div class="section-card" style="margin-bottom:12px">
       <div class="sc-head">
@@ -488,6 +507,31 @@ async function badgeLogout(){
     </div>
   </div>
 
+</div>
+
+<!-- MAKİNE MODAL -->
+<div class="overlay" id="machine-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🏭 МАШИНА ҚОСУ</div>
+      <button class="modal-close" onclick="closeMachineModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" id="machine-err" style="display:none">⚠️ <span id="machine-err-msg"></span></div>
+      <div class="fg">
+        <label class="fg-lbl">Машина атауы</label>
+        <input class="fg-inp" id="inp-machine-name" placeholder="Кесу Машинасы 1">
+      </div>
+      <div class="fg">
+        <label class="fg-lbl">Түрі</label>
+        <select class="fg-sel" id="sel-machine-type">
+          <option value="cutting">✂️ Кесу машинасы</option>
+          <option value="pvc">🎀 PVC машинасы</option>
+        </select>
+      </div>
+      <button class="btn-main" onclick="addMachine()">➕ Қосу</button>
+    </div>
+  </div>
 </div>
 
 <!-- ADD STAFF MODAL -->
@@ -735,6 +779,7 @@ async function init(){
   const pm = document.getElementById('payroll-month');
   if(pm) pm.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   loadRates();
+  loadMachines();
 }
 
 async function loadOverview(){
@@ -956,6 +1001,82 @@ function loadSettings(){
   }
 }
 
+
+
+// ── MAKİNE YÖNETİMİ ────────────────────────────────────────────────────────
+let _machines=[], _machineFilter='all';
+
+async function loadMachines(){
+  if(!currentStore) return;
+  try{
+    const {data} = await sb.from('store_machines')
+      .select('*').eq('store_id', currentStore.id).order('machine_type').order('name');
+    _machines = data||[];
+    renderMachines();
+  }catch(e){ console.log('loadMachines:', e.message); }
+}
+
+function renderMachines(){
+  const el = document.getElementById('machine-list');
+  if(!el) return;
+  const filtered = _machineFilter==='all' ? _machines : _machines.filter(m=>m.machine_type===_machineFilter);
+  if(!filtered.length){
+    el.innerHTML='<div style="text-align:center;color:var(--gray);font-size:13px;padding:12px">Машина жоқ</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(m=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--light);border-radius:8px;border:1px solid var(--border)">
+      <span style="font-size:18px">${m.machine_type==='cutting'?'✂️':'🎀'}</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--dark)">${m.name}</div>
+        <div style="font-size:11px;color:var(--gray)">${m.machine_type==='cutting'?'Кесу машинасы':'PVC машинасы'}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <span style="font-size:11px;padding:3px 8px;border-radius:10px;font-weight:700;background:${m.is_active?'rgba(16,185,129,.15)':'rgba(239,68,68,.1)'};color:${m.is_active?'#065f46':'#dc2626'}">${m.is_active?'Белсенді':'Өшік'}</span>
+        <button onclick="toggleMachine('${m.id}',${m.is_active})" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:11px;cursor:pointer;font-weight:700">${m.is_active?'Өшіру':'Қосу'}</button>
+      </div>
+    </div>`).join('');
+}
+
+window.filterMachines=function(type){
+  _machineFilter=type;
+  ['all','cutting','pvc'].forEach(t=>{
+    const btn=document.getElementById('mf-'+t);
+    if(btn){ btn.className=t===type?'btn-sm btn-orange':'btn-sm'; btn.style.background=t===type?'':'var(--light)'; btn.style.border=t===type?'':'1px solid var(--border)'; }
+  });
+  renderMachines();
+};
+
+window.openAddMachine=function(){
+  document.getElementById('inp-machine-name').value='';
+  document.getElementById('machine-err').style.display='none';
+  document.getElementById('machine-modal').classList.add('active');
+};
+window.closeMachineModal=function(){
+  document.getElementById('machine-modal').classList.remove('active');
+};
+
+window.addMachine=async function(){
+  const name=document.getElementById('inp-machine-name').value.trim();
+  const type=document.getElementById('sel-machine-type').value;
+  const errEl=document.getElementById('machine-err');
+  errEl.style.display='none';
+  if(!name){ document.getElementById('machine-err-msg').textContent='Машина атауын енгізіңіз'; errEl.style.display=''; return; }
+  if(!currentStore) return;
+  try{
+    const {error}=await sb.from('store_machines').insert({store_id:currentStore.id, name, machine_type:type});
+    if(error) throw error;
+    closeMachineModal();
+    await loadMachines();
+  }catch(e){ document.getElementById('machine-err-msg').textContent=e.message; errEl.style.display=''; }
+};
+
+window.toggleMachine=async function(id, isActive){
+  try{
+    await sb.from('store_machines').update({is_active:!isActive}).eq('id',id);
+    await loadMachines();
+  }catch(e){ alert('Ошибка: '+e.message); }
+};
 
 // ── MАЙ ЕСЕБІ (PAYROLL) ────────────────────────────────────────────────────
 const TASK_TYPES = {
