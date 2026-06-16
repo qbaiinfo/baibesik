@@ -131,14 +131,13 @@ function render(){
       </div>
       ${o.status!=='rejected'?`<div class="steps">${stepsHtml}</div>`:''}
       <div class="oc-info">
-        <span>📐 ${o.sheetW||'?'}×${o.sheetH||'?'}mm</span>
-        <span>📦 ${np} ${t.parts}</span>
-        ${o.sheets?`<span>📄 ${o.sheets} ${t.sheets}</span>`:''}
         ${o.material?`<span>🪵 ${o.material}</span>`:''}
+        ${o.sheets?`<span>📄 ${o.sheets} ${lang==='kk'?'парақ':'лист'}</span>`:''}
+        <span>✂️ ${np} ${t.parts}</span>
+        <span>📐 ${o.sheetW||'?'}×${o.sheetH||'?'}mm</span>
       </div>
       <div class="oc-actions">
         <button class="oc-btn primary" onclick='resend(${JSON.stringify(o.id)})'>${t.resend}</button>
-        <a class="oc-btn" href="raskroi_manager.html?orderId=${encodeURIComponent(o.id)}">${t.detail}</a>
       </div>`;
     el.appendChild(card);
   });
