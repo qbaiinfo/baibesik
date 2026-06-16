@@ -224,6 +224,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
         <button class="btn btn-blue btn-block" style="background:#dc2626" onclick="exportCuttingPDF()">📄 PDF Отчёт (полный)</button>
         <button class="btn btn-blue btn-block" onclick="exportDXF()" style="margin-top:6px">📥 Экспорт DXF</button>
         <button class="btn btn-blue btn-block" onclick="exportKdtCsv()" style="margin-top:6px">🏭 Экспорт CSV (КДТ/ЧПУ раскладка)</button>
+        <button class="btn btn-blue btn-block" onclick="exportKdtXml()" style="margin-top:6px;background:#7c3aed">📋 Экспорт XML (КДТ машина)</button>
         <button class="btn btn-blue btn-block" onclick="exportGCode()" style="margin-top:6px">⚙️ Экспорт G-Code (ЧПУ)</button>
         <button class="btn btn-blue btn-block" onclick="sendWhatsApp()">💬 Отправить в WhatsApp</button>
         <button class="btn btn-red btn-block" onclick="rejectOrder()">✗ Отклонить</button>
@@ -1209,6 +1210,50 @@ window.exportKdtCsv=function(){if(!lastLayout){alert('Сначала рассч�
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'_kdt.csv';a.click();
 };
+window.exportKdtXml=function(){
+  if(!parts.length){alert('Сначала откройте заказ');return;}
+  const o=currentOrder||{};
+  const SW=o.sheetW||2800, SH=o.sheetH||2070;
+  const mat=o.material||'ЛДСП';
+  const kerf=o.kerf||4, trim=o.trim||10;
+  const orderDate=o.createdAt?new Date(o.createdAt).toLocaleDateString('ru-RU'):'';
+  const orderId=o.id||'RSK';
+  const customer=o.customer||'';
+  const esc=s=>(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
+
+  let xml='<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml+=`<KDTProject Version="2.0" OrderID="${esc(orderId)}" Customer="${esc(customer)}" Date="${orderDate}">\n`;
+  xml+=`  <Board Width="${SW}" Height="${SH}" Material="${esc(mat)}" Kerf="${kerf}" Trim="${trim}"/>\n`;
+  xml+=`  <Parts Count="${parts.reduce((s,p)=>s+(p.qty||1),0)}">\n`;
+  parts.forEach((p,i)=>{
+    const grain=p.lock?'1':(p.grainMode==='free'?'0':'2');
+    xml+=`    <Part ID="${i+1}" Name="${esc(p.name)}" Length="${p.w}" Width="${p.h}" Quantity="${p.qty||1}" Grain="${grain}">\n`;
+    xml+=`      <EdgeBanding Top="${p.e&&p.e.t?1:0}" Bottom="${p.e&&p.e.b?1:0}" Left="${p.e&&p.e.l?1:0}" Right="${p.e&&p.e.r?1:0}"/>\n`;
+    xml+=`    </Part>\n`;
+  });
+  xml+=`  </Parts>\n`;
+  if(lastLayout){
+    xml+=`  <CuttingPlan Sheets="${lastLayout.sheets.length}">\n`;
+    const groups=lastLayout.groups||{repFor:lastLayout.sheets.map((_,i)=>i),counts:{}};
+    lastLayout.sheets.forEach((sheet,si)=>{
+      const rep=groups.repFor[si];
+      const cnt=groups.counts[si]||1;
+      xml+=`    <Sheet Index="${si+1}" IsUnique="${rep===si?1:0}" Copies="${cnt}">\n`;
+      sheet.parts.forEach((pt,pi)=>{
+        xml+=`      <PlacedPart Index="${pi+1}" Name="${esc(pt.name)}" X="${Math.round(pt.x)}" Y="${Math.round(pt.y)}" W="${Math.round(pt.w)}" H="${Math.round(pt.h)}" Rotated="${pt.rot?1:0}"/>\n`;
+      });
+      xml+=`    </Sheet>\n`;
+    });
+    xml+=`  </CuttingPlan>\n`;
+  }
+  xml+=`</KDTProject>`;
+  const blob=new Blob([xml],{type:'application/xml;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(orderId||'raskroi')+'_kdt.xml';
+  a.click();
+};
+
 window.sendWhatsApp=function(){if(!currentOrder){alert('Выберите заказ');return;}
   const txt=`Раскрой ${currentOrder.id}%0AМатериал: ${currentOrder.material}%0AЛист: ${currentOrder.sheetW}×${currentOrder.sheetH}%0AДеталей: ${parts.reduce((s,p)=>s+p.qty,0)}%0AЛистов: ${lastLayout?lastLayout.sheets.length:'?'}%0AЦена: ${document.getElementById('finalPrice').textContent}`;
   window.open('https://wa.me/?text='+txt,'_blank');
