@@ -656,14 +656,34 @@ async function init(){
   if(!user){window.location.href='login.html';return;}
   currentUser=user;
 
-  // Store bilgisi
+  // Store bilgisi — subdomain öncelikli
   const {data:members}=await sb.from('store_members')
     .select('store_id,role,stores(*)').eq('user_id',session.user.id);
-  if(members && members.length){
-    currentStore=members[0].stores;
-    $('h-name').textContent = (currentStore?.name||'') + ' — ' + (user.full_name||'');
-  $('store-name-label').textContent = lang==='ru' ? 'ПАНЕЛЬ ВЛАДЕЛЬЦА' : 'ДҮКЕН ИЕСІнің ПАНЕЛІ';
+
+  const { getCurrentStore } = await import('./supabase_client.js');
+  const subdomainStore = await getCurrentStore();
+
+  if(subdomainStore){
+    // Subdomain'de: bu dükkanın yetkili üyesi mi kontrol et
+    const membership=(members||[]).find(m=>
+      m.store_id===subdomainStore.id &&
+      ['owner','manager','raskroi_manager','raskroi_worker','warehouse'].includes(m.role)
+    );
+    if(!membership){
+      // Bu dükkana erişimi yok — çıkış yap ve login'e gönder
+      await sb.auth.signOut();
+      window.location.href='login.html';
+      return;
+    }
+    currentStore=subdomainStore;
+  } else {
+    // Ana domain: kendi ilk dükkanı (eski davranış)
+    if(members && members.length) currentStore=members[0].stores;
   }
+
+  if(!currentStore){window.location.href='login.html';return;}
+  $('h-name').textContent=(currentStore?.name||'')+' — '+(user.full_name||'');
+  $('store-name-label').textContent=lang==='ru'?'ПАНЕЛЬ ВЛАДЕЛЬЦА':'ДҮКЕН ИЕСІнің ПАНЕЛІ';
 
   // Logout butonu
   const logoutBtn=$('btn-logout');
