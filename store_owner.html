@@ -120,7 +120,7 @@ const SUPABASE_KEY_BADGE='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 
 // ── KULLANICI ROZETİ (kim giriş yaptı) ──
 function showUserBadge(name, role){
-  const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'Менеджер',warehouse:'Склад',wholesale:'Оптовик',customer:'Клиент',raskroi_manager:'✂️ Раскрой менеджер',raskroi_worker:'🪚 Раскрой работник'};
+  const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'👔 Менеджер',warehouse:'🏭 Деpo чалышаны',wholesale:'Оптовик',customer:'Клиент',raskroi_manager:'✂️ Раскрой менеджер',raskroi_worker:'🪚 Раскрой работник',pvc_worker:'🎀 PVC Уста',cutting_worker:'✂️ Кесу Устасы'};
   const roleColors = {super_admin:'#7c3aed',store_owner:'#f97316',manager:'#3b82f6',warehouse:'#10b981',wholesale:'#0891b2',customer:'#64748b'};
   const rl = roleLabels[role]||role||'';
   const rc = roleColors[role]||'#64748b';
@@ -209,6 +209,7 @@ async function badgeLogout(){
     <button class="tab-btn" onclick="showTab('orders',this)" id="t-orders">🛒 Заказы</button>
     <button class="tab-btn" onclick="showTab('raskroi',this)" id="t-raskroi">✂️ Раскрой</button>
     <button class="tab-btn" onclick="showTab('analytics',this)" id="t-analytics">🤖 AI Аналитика</button>
+    <button class="tab-btn" onclick="showTab('payroll',this)" id="t-payroll">💰 Мааш</button>
     <button class="tab-btn" onclick="showTab('settings',this)" id="t-settings">⚙️ Настройки</button>
   </div>
 </div>
@@ -436,6 +437,43 @@ async function badgeLogout(){
   </div>
 
   <!-- НАСТРОЙКИ -->
+  <div class="tab-section" id="sec-payroll">
+    <!-- TARİFE KARTI -->
+    <div class="section-card" style="margin-bottom:12px">
+      <div class="sc-head">
+        <div class="sc-title">💰 ТАРИФЫ (₸/бірлік)</div>
+        <button class="btn-sm btn-orange" onclick="saveRates()">💾 Сохранить</button>
+      </div>
+      <div class="sc-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fg">
+            <label class="fg-lbl">✂️ Кесу (₸/лист)</label>
+            <input class="fg-inp" id="rate-cutting" type="number" placeholder="500" min="0">
+          </div>
+          <div class="fg">
+            <label class="fg-lbl">🎀 PVC (₸/м)</label>
+            <input class="fg-inp" id="rate-pvc" type="number" placeholder="200" min="0" step="0.5">
+          </div>
+        </div>
+        <div id="rates-msg" style="font-size:12px;color:var(--green);display:none;margin-top:6px">✅ Сохранено</div>
+      </div>
+    </div>
+
+    <!-- DÖNEM SEÇİCİ + ÖZET -->
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-title">📊 МАЙ ЕСЕБІ</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="month" id="payroll-month" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:700">
+          <button class="btn-sm btn-orange" onclick="loadPayroll()">🔍 Қараu</button>
+        </div>
+      </div>
+      <div class="sc-body" id="payroll-body">
+        <div style="text-align:center;color:var(--gray);padding:20px;font-size:13px">Айды таңдаңыз</div>
+      </div>
+    </div>
+  </div>
+
   <div class="tab-section" id="sec-settings">
     <div class="section-card">
       <div class="sc-head">
@@ -472,10 +510,12 @@ async function badgeLogout(){
       <div class="fg">
         <label class="fg-lbl" id="lbl-staff-role">Роль</label>
         <select class="fg-sel" id="sel-staff-role">
-          <option value="manager">👔 Менеджер</option>
-          <option value="warehouse">🏭 Складской работник</option>
+          <option value="manager">👔 Менеджер (дүкен)</option>
+          <option value="warehouse">🏭 Деpo чалышаны</option>
           <option value="raskroi_manager">✂️ Раскрой менеджер</option>
           <option value="raskroi_worker">🪚 Раскрой работник</option>
+          <option value="cutting_worker">✂️ Кесу Устасы</option>
+          <option value="pvc_worker">🎀 PVC Уста</option>
         </select>
       </div>
       <div class="fg">
@@ -690,6 +730,11 @@ async function init(){
   if(logoutBtn) logoutBtn.onclick=doSignOut;
 
   loadOverview();
+  // Mevcut ayı payroll'a set et
+  const now = new Date();
+  const pm = document.getElementById('payroll-month');
+  if(pm) pm.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  loadRates();
 }
 
 async function loadOverview(){
@@ -910,6 +955,129 @@ function loadSettings(){
     $('inp-saddr').value=currentStore.address||'';
   }
 }
+
+
+// ── MАЙ ЕСЕБІ (PAYROLL) ────────────────────────────────────────────────────
+const TASK_TYPES = {
+  cutting: {label:'✂️ Кесу', unit:'лист', rate_key:'cutting'},
+  pvc:     {label:'🎀 PVC',  unit:'м',    rate_key:'pvc'}
+};
+
+async function loadRates(){
+  if(!currentStore) return;
+  try{
+    const {data:rates} = await sb.from('worker_rates')
+      .select('*').eq('store_id', currentStore.id);
+    if(!rates) return;
+    rates.forEach(r=>{
+      const el = document.getElementById('rate-'+r.task_type);
+      if(el) el.value = r.unit_price;
+    });
+  }catch(e){ console.log('loadRates:', e.message); }
+}
+
+window.saveRates=async function(){
+  if(!currentStore) return;
+  const msg = document.getElementById('rates-msg');
+  try{
+    const tasks = Object.keys(TASK_TYPES);
+    for(const type of tasks){
+      const price = parseFloat(document.getElementById('rate-'+type)?.value)||0;
+      await sb.from('worker_rates').upsert({
+        store_id: currentStore.id,
+        task_type: type,
+        unit: TASK_TYPES[type].unit,
+        unit_price: price,
+        worker_id: currentUser.id
+      }, {onConflict:'store_id,worker_id,task_type'});
+    }
+    msg.style.display='';
+    setTimeout(()=>msg.style.display='none', 2000);
+  }catch(e){ alert('Ошибка: '+e.message); }
+};
+
+window.loadPayroll=async function(){
+  const monthEl = document.getElementById('payroll-month');
+  const body = document.getElementById('payroll-body');
+  if(!monthEl.value){ body.innerHTML='<div style="text-align:center;color:var(--gray);padding:20px">Айды таңдаңыз</div>'; return; }
+  if(!currentStore){ body.innerHTML='<div style="color:#ef4444">Магазин не определён</div>'; return; }
+
+  body.innerHTML='<div style="text-align:center;padding:20px">⏳ Жүктелуде...</div>';
+
+  try{
+    const [year, month] = monthEl.value.split('-');
+    const from = `${year}-${month}-01`;
+    const toDate = new Date(parseInt(year), parseInt(month), 0);
+    const to = toDate.toISOString().slice(0,10);
+
+    // Görevleri çek
+    const {data:tasks} = await sb.from('worker_tasks')
+      .select('*, users:worker_id(full_name, phone)')
+      .eq('store_id', currentStore.id)
+      .gte('task_date', from)
+      .lte('task_date', to)
+      .order('task_date');
+
+    // Tarifeleri çek
+    const {data:rates} = await sb.from('worker_rates')
+      .select('*').eq('store_id', currentStore.id);
+    const rateMap = {};
+    (rates||[]).forEach(r=>rateMap[r.task_type]=r.unit_price||0);
+
+    if(!tasks||!tasks.length){
+      body.innerHTML='<div style="text-align:center;color:var(--gray);padding:20px;font-size:13px">Бұл айда жұмыс тіркелмеген</div>';
+      return;
+    }
+
+    // Worker bazında topla
+    const workers = {};
+    tasks.forEach(t=>{
+      const wid = t.worker_id;
+      if(!workers[wid]) workers[wid]={
+        name: t.users?.full_name || t.users?.phone || wid,
+        tasks: {}
+      };
+      if(!workers[wid].tasks[t.task_type]) workers[wid].tasks[t.task_type]={qty:0, total:0};
+      const rate = t.unit_price||rateMap[t.task_type]||0;
+      workers[wid].tasks[t.task_type].qty += parseFloat(t.quantity)||0;
+      workers[wid].tasks[t.task_type].total += (parseFloat(t.quantity)||0) * rate;
+    });
+
+    // Render
+    let totalAll = 0;
+    const cards = Object.values(workers).map(w=>{
+      let workerTotal = 0;
+      const taskRows = Object.entries(w.tasks).map(([type, d])=>{
+        const rate = rateMap[type]||0;
+        const total = d.qty * rate;
+        workerTotal += total;
+        const info = TASK_TYPES[type]||{label:type, unit:'бірлік'};
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
+          <span style="font-size:12px;color:var(--gray)">${info.label}</span>
+          <span style="font-size:12px">${d.qty.toFixed(1)} ${info.unit} × ${rate.toLocaleString('ru-RU')}₸</span>
+          <span style="font-size:13px;font-weight:700;color:var(--orange)">${Math.round(total).toLocaleString('ru-RU')} ₸</span>
+        </div>`;
+      }).join('');
+      totalAll += workerTotal;
+      return `<div style="background:var(--light);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--dark)">${w.name}</div>
+          </div>
+          <div style="font-size:18px;font-weight:800;color:var(--orange)">${Math.round(workerTotal).toLocaleString('ru-RU')} ₸</div>
+        </div>
+        ${taskRows}
+      </div>`;
+    }).join('');
+
+    body.innerHTML = cards + `
+      <div style="border-top:2px solid var(--orange);padding-top:12px;display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <span style="font-size:14px;font-weight:700;color:var(--dark)">ЖАЛПЫ МАЙ ҚОРЫ</span>
+        <span style="font-size:22px;font-weight:800;color:var(--orange)">${Math.round(totalAll).toLocaleString('ru-RU')} ₸</span>
+      </div>`;
+
+  }catch(e){ body.innerHTML='<div style="color:#ef4444">Ошибка: '+e.message+'</div>'; }
+};
 
 async function saveSettings(){
   if(!currentStore)return;
