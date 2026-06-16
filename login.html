@@ -96,6 +96,7 @@ footer{position:relative;z-index:10;text-align:center;padding:16px;font-size:11p
   <div class="card">
 
     <!-- MODE TABS -->
+    <div id="store-login-badge" style="display:none;text-align:center;margin-bottom:12px;font-size:13px;font-weight:700;color:var(--orange);letter-spacing:.5px"></div>
     <div class="mode-tabs">
       <button class="mode-tab customer active" id="tab-customer" onclick="setMode('customer')">
         <span class="mode-icon">🛒</span>
@@ -336,6 +337,29 @@ window.setLang=setLang;
 window.setMode=setMode;
 window.togglePw=togglePw;
 window.doLogin=doLogin;
+
+// ── MULTI-TENANT: subdomain varsa dükkan temasını uygula ──
+(async function(){
+  try {
+    const { getCurrentStore } = await import('./supabase_client.js');
+    const store = await getCurrentStore();
+    if (!store) return;
+
+    // Renk
+    function shade(hex, p){const f=parseInt(hex.slice(1),16),t=p<0?0:255,a=Math.abs(p)/100,R=f>>16,G=(f>>8)&0xff,B=f&0xff;return'#'+(0x1000000+(Math.round((t-R)*a)+R)*0x10000+(Math.round((t-G)*a)+G)*0x100+(Math.round((t-B)*a)+B)).toString(16).slice(1);}
+    document.documentElement.style.setProperty('--orange', store.theme_color);
+    document.documentElement.style.setProperty('--orange-dark', shade(store.theme_color,-20));
+
+    // Logo → "BAIBESIK · BMT"
+    const logo = document.querySelector('.logo');
+    if (logo) logo.insertAdjacentHTML('beforeend',
+      `<small style="font-size:16px;font-weight:700;opacity:.85;letter-spacing:1px"> · ${store.name}</small>`);
+
+    // Card badge → "🏪 Вход в BMT"
+    const badge = document.getElementById('store-login-badge');
+    if (badge) { badge.textContent = '🏪 Вход в ' + store.name; badge.style.display = 'block'; }
+  } catch(e) { console.error('login theme', e); }
+})();
 </script>
 </body>
 </html>
