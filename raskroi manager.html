@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>⚙️ Раскрой — Мастер</title>
-<!-- BUILD: 2026-06-15-v2 (SA+groups+KDT-CSV+price3input) -->
+<!-- BUILD: 2026-06-15-v3 (SA+groups+KDT-CSV+price3input+pdf-a4-2up+order-split) -->
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 :root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--light:#f8fafc;--border:#e2e8f0;--green:#10b981;--red:#ef4444;--blue:#3b82f6;}
@@ -126,12 +126,67 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
   <div class="grid2">
     <!-- LEFT: Orders + Customer search -->
     <div>
+
+      <!-- AYARLAR PANELİ -->
+      <div class="panel" id="settingsPanel" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 class="panel-title" style="margin:0;border:none;padding:0">⚙️ Настройки материалов</h3>
+          <button onclick="toggleSettings()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#64748b">✕</button>
+        </div>
+        <!-- Yeni malzeme formu -->
+        <div style="background:#f8fafc;border-radius:8px;padding:12px;margin-bottom:12px;border:1px solid var(--border)">
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--dark)">➕ Добавить материал</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+            <div style="grid-column:1/-1">
+              <label style="font-size:10px;font-weight:700;color:#64748b">НАЗВАНИЕ</label>
+              <input type="text" id="matName" placeholder="ЛДСП Белый 16мм" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
+            </div>
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#64748b">ТОЛЩИНА мм</label>
+              <input type="number" id="matThick" value="16" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
+            </div>
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#64748b">КРОМКА мм</label>
+              <input type="number" id="matEdge" value="0.4" step="0.1" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
+            </div>
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#64748b">ЛИСТ Ш мм</label>
+              <input type="number" id="matW" value="2800" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
+            </div>
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#64748b">ЛИСТ В мм</label>
+              <input type="number" id="matH" value="2070" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
+            </div>
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#64748b">ПРОПИЛ мм</label>
+              <input type="number" id="matKerf" value="4" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
+            </div>
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#64748b">ОТСТУП мм</label>
+              <input type="number" id="matTrim" value="10" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
+            </div>
+          </div>
+          <button onclick="saveMaterial()" style="width:100%;padding:8px;background:var(--orange);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">💾 Сохранить</button>
+        </div>
+        <!-- Malzeme listesi -->
+        <div id="matList" style="display:flex;flex-direction:column;gap:6px">
+          <div style="text-align:center;color:#94a3b8;font-size:12px;padding:10px">Загрузка...</div>
+        </div>
+      </div>
+
       <div class="panel">
-        <h3 class="panel-title">🔍 Поиск заказов / клиента</h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <h3 class="panel-title" style="margin:0;border:none;padding:0">🔍 Поиск заказов</h3>
+          <button onclick="toggleSettings()" id="settingsBtn" style="padding:5px 10px;background:#f1f5f9;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:#475569">⚙️ Материалы</button>
+        </div>
+        <h3 class="panel-title" style="display:none">🔍 Поиск заказов / клиента</h3>
         <div class="search-box">
           <input type="text" id="searchInp" placeholder="Имя, телефон или № заказа..." oninput="filterOrders()">
         </div>
-        <div class="order-list" id="orderList"></div>
+        <div style="font-size:12px;font-weight:700;color:var(--dark);margin:10px 0 6px;display:flex;align-items:center;gap:6px">🆕 Новые заказы <span id="newCount" style="background:var(--orange);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px"></span></div>
+        <div class="order-list" id="orderListNew"></div>
+        <div style="font-size:12px;font-weight:700;color:var(--dark);margin:14px 0 6px;display:flex;align-items:center;gap:6px">🪚 Готово к резке (мастеру) <span id="readyCount" style="background:#1e40af;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px"></span></div>
+        <div class="order-list" id="orderListReady"></div>
       </div>
 
       <div class="panel" id="orderDetailPanel" style="display:none">
@@ -141,27 +196,24 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
         <div class="info-row"><span class="l">Телефон</span><span class="v" id="dPhone">—</span></div>
         <div class="info-row"><span class="l">Дата</span><span class="v" id="dDate">—</span></div>
         <div class="info-row" style="align-items:center"><span class="l">Материал</span>
-          <span class="v" style="flex:1;display:flex;flex-direction:column;gap:4px">
+          <span class="v" style="flex:1">
             <select id="dMatSel" onchange="matChanged()" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:700">
-              <option value="ЛДСП 16мм">ЛДСП 16мм</option>
-              <option value="ЛДСП 16мм Белый">ЛДСП 16мм Белый</option>
-              <option value="ЛДСП 16мм Белый матовый">ЛДСП 16мм Белый матовый</option>
-              <option value="ЛДСП 16мм Дуб Сонома">ЛДСП 16мм Дуб Сонома</option>
-              <option value="ЛДСП 16мм Венге">ЛДСП 16мм Венге</option>
-              <option value="ЛДСП 18мм">ЛДСП 18мм</option>
-              <option value="ЛДСП 18мм Белый">ЛДСП 18мм Белый</option>
-              <option value="МДФ 16мм">МДФ 16мм</option>
-              <option value="МДФ 18мм">МДФ 18мм</option>
-              <option value="ХДФ 3мм">ХДФ 3мм</option>
+              <option value="">— выбрать —</option>
               <option value="__custom__">✏️ Другое (ввести)...</option>
             </select>
-            <input type="text" id="dMatCustom" placeholder="Название материала" style="display:none;width:100%;padding:6px;border:1.5px solid var(--orange);border-radius:6px;font-size:12px;font-weight:700" onchange="matCustomChanged()">
+            <input type="text" id="dMatCustom" placeholder="Название материала" style="display:none;width:100%;margin-top:4px;padding:6px;border:1.5px solid var(--orange);border-radius:6px;font-size:12px;font-weight:700" onchange="matCustomChanged()">
           </span>
         </div>
-        <div class="info-row" style="align-items:center"><span class="l">Лист</span>
+        <div class="info-row" style="align-items:center"><span class="l">Лист мм</span>
           <span class="v" style="display:flex;gap:4px;align-items:center">
-            <input type="number" id="dSheetW" style="width:70px;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:700" onchange="sheetChanged()">×
-            <input type="number" id="dSheetH" style="width:70px;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:700" onchange="sheetChanged()">mm
+            <input type="number" id="dSheetW" style="width:65px;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:700" onchange="sheetChanged()">×
+            <input type="number" id="dSheetH" style="width:65px;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:700" onchange="sheetChanged()">
+          </span>
+        </div>
+        <div class="info-row" style="align-items:center"><span class="l">Пропил / Отступ</span>
+          <span class="v" style="display:flex;gap:4px;align-items:center">
+            <input type="number" id="dKerf" value="4" style="width:55px;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:700" onchange="kerfTrimChanged()"> мм /
+            <input type="number" id="dTrim" value="10" style="width:55px;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:700" onchange="kerfTrimChanged()"> мм
           </span>
         </div>
         <div class="info-row"><span class="l">Статус</span><span class="v"><span class="st st-pending" id="dStatus">—</span></span></div>
@@ -221,6 +273,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
         <button class="btn btn-blue btn-block" style="background:#dc2626" onclick="exportCuttingPDF()">📄 PDF Отчёт (полный)</button>
         <button class="btn btn-blue btn-block" onclick="exportDXF()" style="margin-top:6px">📥 Экспорт DXF</button>
         <button class="btn btn-blue btn-block" onclick="exportKdtCsv()" style="margin-top:6px">🏭 Экспорт CSV (КДТ/ЧПУ раскладка)</button>
+        <button class="btn btn-blue btn-block" onclick="exportKdtXml()" style="margin-top:6px;background:#7c3aed">📋 Экспорт XML (КДТ машина)</button>
         <button class="btn btn-blue btn-block" onclick="exportGCode()" style="margin-top:6px">⚙️ Экспорт G-Code (ЧПУ)</button>
         <button class="btn btn-blue btn-block" onclick="sendWhatsApp()">💬 Отправить в WhatsApp</button>
         <button class="btn btn-red btn-block" onclick="rejectOrder()">✗ Отклонить</button>
@@ -308,10 +361,11 @@ async function init(){
 }
 
 async function loadOrders(){
-  let dbOrders=[];
+  let dbOrders=[], currentStore=null;
   try{
-    const { getStoreRaskroiOrders } = await import('./supabase_client.js');
-    const rows = await getStoreRaskroiOrders();
+    const { getStoreRaskroiOrders, getCurrentStore } = await import('./supabase_client.js');
+    currentStore = await getCurrentStore();
+    const rows = await getStoreRaskroiOrders(currentStore?.id);
     // Supabase satırlarını yerel formata çevir
     dbOrders = (rows||[]).map(r=>({
       id:r.order_number, _uuid:r.id, customer:r.customer_name, phone:r.customer_phone,
@@ -320,7 +374,8 @@ async function loadOrders(){
       status:r.status, createdAt:r.created_at, _db:true
     }));
   }catch(e){ console.warn('Supabase yok, localStorage:', e.message); }
-  const local=JSON.parse(localStorage.getItem('raskroiOrders')||'[]');
+  // Subdomain'de localStorage atla — sadece o dükkanın DB siparişleri
+  const local=currentStore?[]:JSON.parse(localStorage.getItem('raskroiOrders')||'[]');
   // DB'de olmayan yerel siparişleri ekle (id'ye göre)
   const ids=new Set(dbOrders.map(o=>o.id));
   const merged=[...dbOrders, ...local.filter(o=>!ids.has(o.id))];
@@ -328,8 +383,16 @@ async function loadOrders(){
   renderOrders(orders);
 }
 function renderOrders(list){
-  const el=document.getElementById('orderList');
-  if(!list.length){el.innerHTML='<div class="empty" style="padding:20px">Заказов нет</div>';return;}
+  const newOrders=list.filter(o=>o.status==='pending'||!o.status);
+  const readyOrders=list.filter(o=>o.status==='processing');
+  renderOrderList('orderListNew',newOrders,'Новых заказов нет');
+  renderOrderList('orderListReady',readyOrders,'Нет заказов в работе');
+  document.getElementById('newCount').textContent=newOrders.length||'';
+  document.getElementById('readyCount').textContent=readyOrders.length||'';
+}
+function renderOrderList(elId,list,emptyTxt){
+  const el=document.getElementById(elId);
+  if(!list.length){el.innerHTML=`<div class="empty" style="padding:14px;font-size:12px;color:var(--gray)">${emptyTxt}</div>`;return;}
   el.innerHTML='';
   list.forEach(o=>{
     const c=document.createElement('div');c.className='order-card'+(currentOrder&&currentOrder.id===o.id?' sel':'');
@@ -362,7 +425,12 @@ window.selectOrder=function(oid){
   else{matSel.value='__custom__';matCustom.style.display='block';matCustom.value=mat;}
   document.getElementById('dSheetW').value=currentOrder.sheetW||2800;
   document.getElementById('dSheetH').value=currentOrder.sheetH||2070;
+  document.getElementById('dKerf').value=currentOrder.kerf||4;
+  document.getElementById('dTrim').value=currentOrder.trim||10;
   const stEl=document.getElementById('dStatus');stEl.textContent=currentOrder.status;stEl.className='st st-'+currentOrder.status;
+  // Malzeme listesini yükle (henüz yüklenmemişse)
+  if(!_storeMaterials.length) loadStoreMaterials();
+  else loadMaterialOptions();
   renderParts();renderOrders(orders);calcNest();
 };
 
@@ -959,53 +1027,59 @@ window.calcNest=async function(){
   document.getElementById('finalPrice').textContent=Math.round(price).toLocaleString('ru-RU')+' ₸';
 };
 
-function drawSheets(L){
-  const wrap=document.getElementById('canvasWrap');wrap.innerHTML='';
+function drawSheets(L, wrapEl, pxScale){
+  wrapEl = wrapEl || document.getElementById('canvasWrap');
+  pxScale = pxScale || 1;
+  wrapEl.innerHTML='';
+  const panels=[]; // {label, canvas|null} — PDF/export icin yeniden kullanilir
   const cm={};let ci=0;parts.forEach(p=>{if(!(p.name in cm)){cm[p.name]=COLORS[ci%COLORS.length];ci++;}});
   L.sheets.forEach((sheet,si)=>{
     const rep=L.groups?L.groups.repFor[si]:si;
     if(rep!==si){
       const note=document.createElement('div');note.className='sheet-label';note.style.opacity='.75';
       note.textContent=`Лист ${si+1}/${L.sheets.length} — совпадает с Лист ${rep+1} (копия раскладки)`;
-      wrap.appendChild(note);
+      wrapEl.appendChild(note);
+      panels.push({label:note.textContent,canvas:null});
       return;
     }
     const cnt=L.groups?(L.groups.counts[si]||1):1;
     const copyTxt=cnt>1?` · ×${cnt} копий`:'';
-    const lbl=document.createElement('div');lbl.className='sheet-label';lbl.textContent=`Лист ${si+1}/${L.sheets.length} — ${L.SW}×${L.SH}mm${copyTxt}`;wrap.appendChild(lbl);
-    const cv=document.createElement('canvas');const sc=Math.min(560/L.SW,360/L.SH);cv.width=L.SW*sc;cv.height=L.SH*sc;
+    const lbl=document.createElement('div');lbl.className='sheet-label';lbl.textContent=`Лист ${si+1}/${L.sheets.length} — ${L.SW}×${L.SH}mm${copyTxt}`;wrapEl.appendChild(lbl);
+    const cv=document.createElement('canvas');const sc=Math.min(560/L.SW,360/L.SH)*pxScale;cv.width=L.SW*sc;cv.height=L.SH*sc;
     const ctx=cv.getContext('2d');ctx.fillStyle='#f1f5f9';ctx.fillRect(0,0,cv.width,cv.height);
-    ctx.strokeStyle='#cbd5e1';ctx.setLineDash([4,3]);ctx.strokeRect(L.trim*sc,L.trim*sc,L.usableW*sc,L.usableH*sc);ctx.setLineDash([]);
+    ctx.strokeStyle='#cbd5e1';ctx.setLineDash([4*pxScale,3*pxScale]);ctx.strokeRect(L.trim*sc,L.trim*sc,L.usableW*sc,L.usableH*sc);ctx.setLineDash([]);
     // KALANLAR (остатки) — taralı + ölçü
     (sheet.remnants||[]).forEach(r=>{
       const x=r.x*sc,y=r.y*sc,w=r.w*sc,h=r.h*sc;
       ctx.save();
       ctx.fillStyle='#e2e8f0';ctx.fillRect(x,y,w,h);
-      ctx.strokeStyle='#94a3b8';ctx.lineWidth=.6;
+      ctx.strokeStyle='#94a3b8';ctx.lineWidth=.6*pxScale;
       ctx.beginPath();
-      for(let d=-h;d<w;d+=8){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+      for(let d=-h;d<w;d+=8*pxScale){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
       ctx.rect(x,y,w,h);ctx.clip();ctx.stroke();
       ctx.restore();
-      ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.strokeStyle='#94a3b8';ctx.lineWidth=1*pxScale;ctx.setLineDash([3*pxScale,3*pxScale]);
       ctx.strokeRect(x,y,w,h);ctx.setLineDash([]);
-      if(w>40&&h>14){
-        ctx.fillStyle='#64748b';ctx.font='bold 9px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+      if(w>40*pxScale&&h>14*pxScale){
+        ctx.fillStyle='#64748b';ctx.font=`bold ${Math.round(9*pxScale)}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';
         ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
       }
     });
     sheet.parts.forEach(pt=>{const x=pt.x*sc,y=pt.y*sc,w=pt.w*sc,h=pt.h*sc;
       ctx.fillStyle=cm[pt.name]||'#999';ctx.globalAlpha=.82;ctx.fillRect(x,y,w,h);ctx.globalAlpha=1;
-      ctx.strokeStyle='#1e293b';ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);
-      ctx.strokeStyle='#f97316';ctx.lineWidth=3;
+      ctx.strokeStyle='#1e293b';ctx.lineWidth=1*pxScale;ctx.strokeRect(x,y,w,h);
+      ctx.strokeStyle='#f97316';ctx.lineWidth=3*pxScale;
       if(pt.e.t){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);ctx.stroke();}
       if(pt.e.b){ctx.beginPath();ctx.moveTo(x,y+h);ctx.lineTo(x+w,y+h);ctx.stroke();}
       if(pt.e.l){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+h);ctx.stroke();}
       if(pt.e.r){ctx.beginPath();ctx.moveTo(x+w,y);ctx.lineTo(x+w,y+h);ctx.stroke();}
-      ctx.fillStyle='#0f172a';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
-      if(w>28&&h>18){ctx.fillText(pt.name,x+w/2,y+h/2-4);ctx.font='8px monospace';ctx.fillStyle='#334155';ctx.fillText(`${pt.w}×${pt.h}${pt.rot?' ↻':''}`,x+w/2,y+h/2+7);}
+      ctx.fillStyle='#0f172a';ctx.font=`bold ${Math.round(10*pxScale)}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';
+      if(w>28*pxScale&&h>18*pxScale){ctx.fillText(pt.name,x+w/2,y+h/2-4*pxScale);ctx.font=`${Math.round(8*pxScale)}px monospace`;ctx.fillStyle='#334155';ctx.fillText(`${pt.w}×${pt.h}${pt.rot?' ↻':''}`,x+w/2,y+h/2+7*pxScale);}
     });
-    wrap.appendChild(cv);
+    wrapEl.appendChild(cv);
+    panels.push({label:lbl.textContent,canvas:cv});
   });
+  return panels;
 }
 
 // ─── Materyal / levha değişiklikleri (menecer yönetir) ───
@@ -1014,7 +1088,21 @@ window.matChanged=function(){
   const custom=document.getElementById('dMatCustom');
   if(sel.value==='__custom__'){custom.style.display='block';custom.focus();return;}
   custom.style.display='none';
-  if(currentOrder){currentOrder.material=sel.value;saveOrder();}
+  if(!currentOrder)return;
+  currentOrder.material=sel.value;
+  // Seçilen malzemenin ayarlarını otomatik uygula
+  const opt=sel.options[sel.selectedIndex];
+  if(opt&&opt.dataset.w){
+    document.getElementById('dSheetW').value=opt.dataset.w;
+    document.getElementById('dSheetH').value=opt.dataset.h;
+    document.getElementById('dKerf').value=opt.dataset.kerf;
+    document.getElementById('dTrim').value=opt.dataset.trim;
+    currentOrder.sheetW=parseInt(opt.dataset.w);
+    currentOrder.sheetH=parseInt(opt.dataset.h);
+    currentOrder.kerf=parseInt(opt.dataset.kerf);
+    currentOrder.trim=parseInt(opt.dataset.trim);
+  }
+  saveOrder();
 };
 window.matCustomChanged=function(){
   const v=document.getElementById('dMatCustom').value.trim();
@@ -1025,7 +1113,105 @@ window.sheetChanged=function(){
   currentOrder.sheetW=parseFloat(document.getElementById('dSheetW').value)||2800;
   currentOrder.sheetH=parseFloat(document.getElementById('dSheetH').value)||2070;
   saveOrder();
-  if(lastLayout)window.calcNest(); // yeniden hesapla
+  if(lastLayout)window.calcNest();
+};
+
+window.kerfTrimChanged=function(){
+  if(!currentOrder)return;
+  currentOrder.kerf=parseFloat(document.getElementById('dKerf').value)||4;
+  currentOrder.trim=parseFloat(document.getElementById('dTrim').value)||10;
+  saveOrder();
+  if(lastLayout)window.calcNest();
+};
+
+// ── MALZEME AYARLARI ─────────────────────────────────────
+let _storeMaterials=[];
+
+window.toggleSettings=async function(){
+  const p=document.getElementById('settingsPanel');
+  if(p.style.display==='none'||!p.style.display){
+    p.style.display='';
+    await loadStoreMaterials();
+  } else {
+    p.style.display='none';
+  }
+};
+
+async function loadStoreMaterials(){
+  try{
+    const { getCurrentStore } = await import('./supabase_client.js');
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    const store=await getCurrentStore();
+    if(!store){document.getElementById('matList').innerHTML='<div style="color:#94a3b8;font-size:12px;text-align:center">Магазин не определён</div>';return;}
+    const {data}=await sb.from('store_materials').select('*').eq('store_id',store.id).eq('is_active',true).order('name');
+    _storeMaterials=data||[];
+    renderMatList();
+    loadMaterialOptions();
+  }catch(e){document.getElementById('matList').innerHTML='<div style="color:#ef4444;font-size:12px">Ошибка загрузки</div>';}
+}
+
+function renderMatList(){
+  const el=document.getElementById('matList');
+  if(!_storeMaterials.length){el.innerHTML='<div style="text-align:center;color:#94a3b8;font-size:12px;padding:10px">Материалы не добавлены</div>';return;}
+  el.innerHTML=_storeMaterials.map(m=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#f8fafc;border-radius:8px;border:1px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700">${m.name}</div>
+        <div style="font-size:10px;color:#64748b">${m.thickness_mm}мм · ${m.sheet_w}×${m.sheet_h} · Кромка ${m.edge_band_mm}мм · Пропил ${m.kerf_mm}мм · Отступ ${m.trim_mm}мм</div>
+      </div>
+      <button onclick="deleteMaterial('${m.id}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px">🗑</button>
+    </div>`).join('');
+}
+
+function loadMaterialOptions(){
+  const sel=document.getElementById('dMatSel');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— выбрать —</option>';
+  _storeMaterials.forEach(m=>{
+    const o=document.createElement('option');
+    o.value=m.name;o.textContent=m.name;
+    o.dataset.w=m.sheet_w;o.dataset.h=m.sheet_h;
+    o.dataset.kerf=m.kerf_mm;o.dataset.trim=m.trim_mm;
+    sel.appendChild(o);
+  });
+  const oc=document.createElement('option');oc.value='__custom__';oc.textContent='✏️ Другое...';sel.appendChild(oc);
+  if(cur)sel.value=cur;
+}
+
+window.saveMaterial=async function(){
+  const name=document.getElementById('matName').value.trim();
+  if(!name){alert('Введите название');return;}
+  try{
+    const { getCurrentStore }=await import('./supabase_client.js');
+    const { createClient }=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    const store=await getCurrentStore();
+    if(!store){alert('Магазин не определён');return;}
+    const {error}=await sb.from('store_materials').insert({
+      store_id:store.id,name,
+      thickness_mm:parseInt(document.getElementById('matThick').value)||16,
+      edge_band_mm:parseFloat(document.getElementById('matEdge').value)||0.4,
+      sheet_w:parseInt(document.getElementById('matW').value)||2800,
+      sheet_h:parseInt(document.getElementById('matH').value)||2070,
+      kerf_mm:parseInt(document.getElementById('matKerf').value)||4,
+      trim_mm:parseInt(document.getElementById('matTrim').value)||10,
+    });
+    if(error)throw error;
+    document.getElementById('matName').value='';
+    await loadStoreMaterials();
+  }catch(e){alert('Ошибка: '+e.message);}
+};
+
+window.deleteMaterial=async function(id){
+  if(!confirm('Удалить материал?'))return;
+  try{
+    const { createClient }=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    await sb.from('store_materials').update({is_active:false}).eq('id',id);
+    await loadStoreMaterials();
+  }catch(e){alert('Ошибка: '+e.message);}
 };
 async function saveOrder(){
   // localStorage (her zaman)
@@ -1101,10 +1287,18 @@ window.exportCuttingPDF=function(){
     const edges=[p.e.t?'В':'',p.e.b?'Н':'',p.e.l?'Л':'',p.e.r?'П':''].filter(Boolean).join('')||'—';
     return `<tr style="${ok?'':'background:#fee2e2'}"><td>${i+1}</td><td style="text-align:left">${p.name||''}</td><td>${p.w}×${p.h}</td><td>${edges}</td><td>${p.qty}</td><td>${pl.n}</td><td>${[...pl.sheets].join(',')||'—'}</td><td>${ok?'✓':'✗ НЕ ХВАТАЕТ'}</td></tr>`;
   }).join('');
-  // levha görselleri
-  const imgs=[...document.querySelectorAll('#canvasWrap canvas')].map((cv,i)=>
-    `<div style="page-break-inside:avoid;margin-top:14px"><div style="font-weight:800;font-size:13px;margin-bottom:4px">Лист ${i+1}/${n} — ${L.SW}×${L.SH}mm</div><img src="${cv.toDataURL('image/png')}" style="width:100%;max-width:760px;border:1px solid #cbd5e1"></div>`
-  ).join('');
+  // Yüksek-çözünürlüklü levha görselleri (offscreen, 3x — baskı kalitesi için)
+  // A4 portrait'e 2 levha sığar: ~138mm yükseklik/levha, alt alta.
+  const hiddenWrap=document.createElement('div');
+  const panels=drawSheets(L,hiddenWrap,3);
+  let imgs='';
+  for(let i=0;i<panels.length;i+=2){
+    imgs+='<div class="sheet-page">'+panels.slice(i,i+2).map(p=>
+      p.canvas
+        ? `<div class="sheet-cap">${p.label}</div><img class="sheet-img" src="${p.canvas.toDataURL('image/png')}">`
+        : `<div class="sheet-cap copy">${p.label}</div>`
+    ).join('')+'</div>';
+  }
   const today=new Date().toLocaleString('ru-RU');
   const html=`<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Раскрой ${currentOrder.id}</title>
   <style>
@@ -1116,7 +1310,14 @@ window.exportCuttingPDF=function(){
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin:10px 0;font-size:13px}
     .grid b{color:#334155}
     .price{font-size:18px;font-weight:800;color:#16a34a;margin:10px 0}
-    @media print{button{display:none}}
+    .sheet-cap{font-weight:800;font-size:12px;margin:10px 0 4px}
+    .sheet-cap.copy{opacity:.6;font-weight:400}
+    .sheet-img{width:100%;max-height:135mm;object-fit:contain;border:1px solid #cbd5e1;display:block}
+    @media print{
+      button{display:none}
+      .sheet-page{page-break-after:always}
+      .sheet-page:last-child{page-break-after:auto}
+    }
   </style></head><body>
   <button onclick="window.print()" style="position:fixed;top:10px;right:10px;padding:10px 18px;background:#f97316;color:#fff;border:none;border-radius:8px;font-weight:800;cursor:pointer">🖨 Печать / PDF</button>
   <h1>BAIBESIK.KZ — Раскрой ${currentOrder.id}</h1>
@@ -1175,6 +1376,50 @@ window.exportKdtCsv=function(){if(!lastLayout){alert('Сначала рассч�
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'_kdt.csv';a.click();
 };
+window.exportKdtXml=function(){
+  if(!parts.length){alert('Сначала откройте заказ');return;}
+  const o=currentOrder||{};
+  const SW=o.sheetW||2800, SH=o.sheetH||2070;
+  const mat=o.material||'ЛДСП';
+  const kerf=o.kerf||4, trim=o.trim||10;
+  const orderDate=o.createdAt?new Date(o.createdAt).toLocaleDateString('ru-RU'):'';
+  const orderId=o.id||'RSK';
+  const customer=o.customer||'';
+  const esc=s=>(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
+
+  let xml='<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml+=`<KDTProject Version="2.0" OrderID="${esc(orderId)}" Customer="${esc(customer)}" Date="${orderDate}">\n`;
+  xml+=`  <Board Width="${SW}" Height="${SH}" Material="${esc(mat)}" Kerf="${kerf}" Trim="${trim}"/>\n`;
+  xml+=`  <Parts Count="${parts.reduce((s,p)=>s+(p.qty||1),0)}">\n`;
+  parts.forEach((p,i)=>{
+    const grain=p.lock?'1':(p.grainMode==='free'?'0':'2');
+    xml+=`    <Part ID="${i+1}" Name="${esc(p.name)}" Length="${p.w}" Width="${p.h}" Quantity="${p.qty||1}" Grain="${grain}">\n`;
+    xml+=`      <EdgeBanding Top="${p.e&&p.e.t?1:0}" Bottom="${p.e&&p.e.b?1:0}" Left="${p.e&&p.e.l?1:0}" Right="${p.e&&p.e.r?1:0}"/>\n`;
+    xml+=`    </Part>\n`;
+  });
+  xml+=`  </Parts>\n`;
+  if(lastLayout){
+    xml+=`  <CuttingPlan Sheets="${lastLayout.sheets.length}">\n`;
+    const groups=lastLayout.groups||{repFor:lastLayout.sheets.map((_,i)=>i),counts:{}};
+    lastLayout.sheets.forEach((sheet,si)=>{
+      const rep=groups.repFor[si];
+      const cnt=groups.counts[si]||1;
+      xml+=`    <Sheet Index="${si+1}" IsUnique="${rep===si?1:0}" Copies="${cnt}">\n`;
+      sheet.parts.forEach((pt,pi)=>{
+        xml+=`      <PlacedPart Index="${pi+1}" Name="${esc(pt.name)}" X="${Math.round(pt.x)}" Y="${Math.round(pt.y)}" W="${Math.round(pt.w)}" H="${Math.round(pt.h)}" Rotated="${pt.rot?1:0}"/>\n`;
+      });
+      xml+=`    </Sheet>\n`;
+    });
+    xml+=`  </CuttingPlan>\n`;
+  }
+  xml+=`</KDTProject>`;
+  const blob=new Blob([xml],{type:'application/xml;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(orderId||'raskroi')+'_kdt.xml';
+  a.click();
+};
+
 window.sendWhatsApp=function(){if(!currentOrder){alert('Выберите заказ');return;}
   const txt=`Раскрой ${currentOrder.id}%0AМатериал: ${currentOrder.material}%0AЛист: ${currentOrder.sheetW}×${currentOrder.sheetH}%0AДеталей: ${parts.reduce((s,p)=>s+p.qty,0)}%0AЛистов: ${lastLayout?lastLayout.sheets.length:'?'}%0AЦена: ${document.getElementById('finalPrice').textContent}`;
   window.open('https://wa.me/?text='+txt,'_blank');
