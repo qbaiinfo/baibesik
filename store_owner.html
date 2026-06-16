@@ -120,7 +120,7 @@ const SUPABASE_KEY_BADGE='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 
 // ── KULLANICI ROZETİ (kim giriş yaptı) ──
 function showUserBadge(name, role){
-  const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'👔 Менеджер',warehouse:'🏭 Деpo чалышаны',wholesale:'Оптовик',customer:'Клиент',raskroi_manager:'✂️ Раскрой менеджер',raskroi_worker:'🪚 Раскрой работник',pvc_worker:'🎀 PVC Уста',cutting_worker:'✂️ Кесу Устасы'};
+  const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'👔 Менеджер магазина',warehouse:'🏭 Складской работник',wholesale:'Оптовик',customer:'Клиент',raskroi_manager:'📋 Раскрой менеджер',raskroi_worker:'🪚 Раскрой работник',pvc_worker:'🖌️ ПВХ покрытие',cutting_worker:'🪚 Пильный центр'};
   const roleColors = {super_admin:'#7c3aed',store_owner:'#f97316',manager:'#3b82f6',warehouse:'#10b981',wholesale:'#0891b2',customer:'#64748b'};
   const rl = roleLabels[role]||role||'';
   const rc = roleColors[role]||'#64748b';
@@ -554,12 +554,11 @@ async function badgeLogout(){
       <div class="fg">
         <label class="fg-lbl" id="lbl-staff-role">Роль</label>
         <select class="fg-sel" id="sel-staff-role">
-          <option value="manager">👔 Менеджер (дүкен)</option>
-          <option value="warehouse">🏭 Деpo чалышаны</option>
-          <option value="raskroi_manager">✂️ Раскрой менеджер</option>
-          <option value="raskroi_worker">🪚 Раскрой работник</option>
-          <option value="cutting_worker">✂️ Кесу Устасы</option>
-          <option value="pvc_worker">🎀 PVC Уста</option>
+          <option value="manager">👔 Менеджер магазина</option>
+          <option value="warehouse">🏭 Складской работник</option>
+          <option value="raskroi_manager">📋 Раскрой менеджер</option>
+          <option value="cutting_worker">🪚 Пильный центр</option>
+          <option value="pvc_worker">🖌️ ПВХ покрытие</option>
         </select>
       </div>
       <div class="fg">
