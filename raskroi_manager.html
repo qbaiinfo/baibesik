@@ -259,6 +259,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <div class="calc-card"><div class="cv" id="cPvc">0м</div><div class="cl">Кромка PVC</div></div>
         </div>
         <div class="canvas-wrap" id="canvasWrap"><div class="empty">Загрузите заказ и нажмите «Рассчитать»</div></div>
+        <div id="cutListWrap" style="display:none;margin-top:12px"></div>
       </div>
 
       <div class="panel">
@@ -1011,6 +1012,7 @@ window.calcNest=async function(){
   const pvcM=currentOrder?.pvc==='0'?0:pvc/1000*1.05;
   document.getElementById('cPvc').textContent=pvcM.toFixed(1)+'м';
   drawSheets(L);
+  renderCutList(L);
   // fiyat: levha sayısı × (levha fiyatı + kesim ücreti/levha) + PVC м × ₸/м
   const priceSheet=parseFloat(document.getElementById('priceSheet').value)||0;
   const priceCut=parseFloat(document.getElementById('priceCut').value)||0;
@@ -1377,6 +1379,145 @@ window.exportKdtCsv=function(){if(!lastLayout){alert('Сначала рассч�
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'_kdt.csv';a.click();
 };
+
+
+function renderCutList(L){
+  const wrap=document.getElementById('cutListWrap');
+  if(!wrap)return;
+  const o=currentOrder||{};
+  const orderNum=o.id||'RSK';
+  const customer=o.customer||'';
+  const orderDate=o.createdAt?new Date(o.createdAt).toLocaleDateString('ru-RU'):'';
+  const hdrEl=document.getElementById('hdr-name');
+  const managerName=hdrEl?hdrEl.textContent.split('—')[1]||'Мастер':'Мастер';
+  const edgeMm=o.pvc||0.4;
+
+  const groups=L.groups||{repFor:L.sheets.map((_,i)=>i),counts:{}};
+  const placed=[];
+  L.sheets.forEach((sheet,si)=>{
+    const rep=groups.repFor[si];
+    if(rep!==si)return;
+    const copies=groups.counts[si]||1;
+    sheet.parts.forEach(pt=>{
+      for(let c=0;c<copies;c++){
+        const orig=parts.find(p=>p.id===pt.pid)||{};
+        placed.push({
+          name:pt.name||orig.name||'—',
+          w:Math.round(pt.rot?pt.h:pt.w),
+          h:Math.round(pt.rot?pt.w:pt.h),
+          e:orig.e||{t:false,b:false,l:false,r:false},
+          sheet:si+1,
+          totalSheets:L.sheets.filter((_,i)=>groups.repFor[i]===i).length,
+          pid:pt.pid
+        });
+      }
+    });
+  });
+
+  function bandText(e){
+    const s=[];if(e.t)s.push('В');if(e.b)s.push('Н');if(e.l)s.push('Л');if(e.r)s.push('П');
+    return s.join('+')||'—';
+  }
+
+  function dimHtml(val,bands){
+    if(bands===0)return `<span style="font-weight:700">${val}</span>`;
+    if(bands===1)return `<span style="font-weight:700;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px;text-decoration-color:#f97316">${val}</span>`;
+    return `<span style="font-weight:700;border-bottom:2.5px solid #f97316;padding-bottom:2px;position:relative;display:inline-block">${val}<span style="position:absolute;bottom:-5px;left:0;right:0;height:2.5px;background:#f97316;display:block"></span></span>`;
+  }
+
+  const rows=placed.map((pt,idx)=>{
+    const wB=(pt.e.t?1:0)+(pt.e.b?1:0);
+    const hB=(pt.e.l?1:0)+(pt.e.r?1:0);
+    return `<tr style="border-bottom:0.5px solid #334155">
+      <td style="padding:6px 4px;color:#94a3b8;font-size:11px;text-align:center">${idx+1}</td>
+      <td style="padding:6px 8px;font-size:12px">${pt.name}</td>
+      <td style="padding:6px 8px;font-size:12px;white-space:nowrap">${dimHtml(pt.w,wB)} × ${dimHtml(pt.h,hB)}</td>
+      <td style="padding:6px 8px;font-size:11px;color:#f97316;font-weight:700">${bandText(pt.e)}</td>
+      <td style="padding:6px 4px;text-align:center;font-size:11px;color:#64748b">Л${pt.sheet}</td>
+      <td style="padding:4px;text-align:center">
+        <button onclick="printOnePart(${JSON.stringify({name:pt.name,w:pt.w,h:pt.h,e:pt.e,sheet:pt.sheet,totalSheets:pt.totalSheets,idx:idx+1,total:placed.length,orderNum:'${orderNum}',customer:'${customer}',orderDate:'${orderDate}',managerName:'${managerName.trim()}',edgeMm:'${edgeMm}'})})"
+          style="padding:4px 8px;background:#059669;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700">🖨️</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.style.display='';
+  wrap.innerHTML=`
+    <div style="background:#0f172a;border-radius:10px;padding:12px;color:#fff">
+      <div style="font-size:12px;font-weight:700;color:#94a3b8;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+        <span>✂️ КЕСУ ТІЗІМІ (${placed.length} бөлшек)</span>
+        <button onclick="printLabels()" style="padding:4px 10px;background:#f97316;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700">🖨️ Барлығы</button>
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="border-bottom:1px solid #334155;color:#64748b;font-size:10px">
+          <th style="padding:4px;text-align:center">№</th>
+          <th style="padding:4px;text-align:left">Атауы</th>
+          <th style="padding:4px;text-align:left">Өлшем</th>
+          <th style="padding:4px;text-align:left">Жиек</th>
+          <th style="padding:4px">Лист</th>
+          <th style="padding:4px">Бас.</th>
+        </tr></thead>
+        <tbody style="color:#e2e8f0">${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+window.printOnePart=function(pt){
+  function dimSpan(val,bands){
+    if(bands===0)return `<span class="dim">${val}</span>`;
+    if(bands===1)return `<span class="dim" style="text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2.5px;text-decoration-color:#f97316">${val}</span>`;
+    return `<span class="dim" style="border-bottom:2.5px solid #f97316;padding-bottom:2px;position:relative">${val}<span style="position:absolute;bottom:-5px;left:0;right:0;height:2.5px;background:#f97316;display:block"></span></span>`;
+  }
+  function bandText(e){
+    const s=[];if(e.t)s.push('Верх');if(e.b)s.push('Низ');if(e.l)s.push('Лево');if(e.r)s.push('Право');
+    return s.length?s.join(' + ')+' '+pt.edgeMm+'мм':'—';
+  }
+  const wB=(pt.e.t?1:0)+(pt.e.b?1:0);
+  const hB=(pt.e.l?1:0)+(pt.e.r?1:0);
+  const hasBand=wB>0||hB>0;
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Этикетка ${pt.orderNum} — ${pt.idx}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:10mm;background:#fff}
+    .label{border:2px solid #333;border-radius:8px;padding:12px 14px;width:90mm}
+    .label-top{display:flex;justify-content:space-between;margin-bottom:6px}
+    .onum{font-size:11px;color:#666}.pidx{font-size:11px;background:#f0f0f0;padding:2px 6px;border-radius:3px;font-weight:700}
+    .pname{font-size:12px;color:#555;margin-bottom:4px}
+    .srow{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+    .dim{font-size:24px;font-weight:700;display:inline-block;position:relative;line-height:1.4}
+    .sep{font-size:22px;color:#bbb}.unit{font-size:12px;color:#999;align-self:flex-end;padding-bottom:3px}
+    .irow{font-size:11px;color:#555;margin-bottom:3px}
+    .div{border:none;border-top:1px solid #eee;margin:8px 0}
+    .prow{display:flex;gap:8px;align-items:center}
+    .plbl{font-size:10px;color:#999;font-weight:700}
+    .pval{font-size:11px;font-weight:700;color:${hasBand?'#f97316':'#999'}}
+    .sbadge{font-size:10px;color:#999;text-align:right;margin-top:6px}
+    .print-btn{display:block;margin:10mm auto 0;padding:10px 24px;background:#f97316;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:700}
+    @media print{.print-btn{display:none}body{padding:5mm}}
+  </style></head><body>
+  <div>
+    <div class="label">
+      <div class="label-top"><span class="onum">${pt.orderNum}</span><span class="pidx">${pt.idx} / ${pt.total}</span></div>
+      <div class="pname">${pt.name}</div>
+      <div class="srow">${dimSpan(pt.w,wB)}<span class="sep">×</span>${dimSpan(pt.h,hB)}<span class="unit">mm</span></div>
+      <div class="irow">&#128100; ${pt.customer}</div>
+      <div class="irow">&#128197; ${pt.orderDate}</div>
+      <div class="irow">&#128295; ${pt.managerName}</div>
+      <hr class="div">
+      <div class="prow"><span class="plbl">PVC КРОМКА</span><span class="pval">${bandText(pt.e)}</span></div>
+      <div class="sbadge">Лист ${pt.sheet}/${pt.totalSheets}</div>
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨️ Распечатать</button>
+  </div>
+  </body></html>`;
+  const w=window.open('','_blank','width=400,height=500');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(()=>w.print(),500);
+};
+
 
 window.printLabels=function(){
   if(!parts.length){alert('Сначала откройте заказ');return;}
