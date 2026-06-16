@@ -1646,7 +1646,14 @@ window.sendToManager=async function(){
     status:'pending',
     createdAt:new Date().toISOString()
   };
-  const selShop=document.getElementById('shopSel'); const storeId=selShop?selShop.value:'';
+  // Subdomain'de o dükkanın ID'sini otomatik al, yoksa dropdown'dan al
+  let storeId='';
+  try{
+    const { getCurrentStore:_gcs2 } = await import('./supabase_client.js');
+    const _cs2 = await _gcs2();
+    if(_cs2) storeId=_cs2.id;
+  }catch(e){}
+  if(!storeId){ const selShop=document.getElementById('shopSel'); storeId=selShop?selShop.value:''; }
   order.storeId=storeId;
   let dbSaved=false, dbErr=null;
   try{
