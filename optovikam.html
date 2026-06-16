@@ -454,7 +454,7 @@ function showUserBadge(name, role){
   const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'Менеджер',warehouse:'Склад',wholesale:'Оптовик',customer:'Клиент'};
   const roleColors = {super_admin:'#7c3aed',store_owner:'#f97316',manager:'#3b82f6',warehouse:'#10b981',wholesale:'#0891b2',customer:'#64748b'};
   const rc = roleColors[role]||'#64748b';
-  const panelRoutes = {super_admin:'admin.html',store_owner:'store_owner.html',manager:'vendor.html',warehouse:'depo_panel.html',wholesale:'toptanci_dashboard.html',customer:'musteri_dashboard.html'};
+  const panelRoutes = {super_admin:'admin.html',store_owner:'store_owner.html',manager:'vendor.html',warehouse:'depo_panel.html',wholesale:'toptanci_dashboard.html',customer:'musteri_dashboard.html',raskroi_manager:'raskroi_manager.html',raskroi_worker:'raskroi_manager.html'};
   const panel = panelRoutes[role]||'musteri_dashboard.html';
   // Header buton alanını bul (sayfaya göre farklı class)
   const cont = document.querySelector('.header-actions, .hr, .lang-btns, .htitle')?.parentElement
