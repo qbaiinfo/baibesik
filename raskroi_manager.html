@@ -311,10 +311,11 @@ async function init(){
 }
 
 async function loadOrders(){
-  let dbOrders=[];
+  let dbOrders=[], currentStore=null;
   try{
-    const { getStoreRaskroiOrders } = await import('./supabase_client.js');
-    const rows = await getStoreRaskroiOrders();
+    const { getStoreRaskroiOrders, getCurrentStore } = await import('./supabase_client.js');
+    currentStore = await getCurrentStore();
+    const rows = await getStoreRaskroiOrders(currentStore?.id);
     // Supabase satırlarını yerel formata çevir
     dbOrders = (rows||[]).map(r=>({
       id:r.order_number, _uuid:r.id, customer:r.customer_name, phone:r.customer_phone,
@@ -323,7 +324,8 @@ async function loadOrders(){
       status:r.status, createdAt:r.created_at, _db:true
     }));
   }catch(e){ console.warn('Supabase yok, localStorage:', e.message); }
-  const local=JSON.parse(localStorage.getItem('raskroiOrders')||'[]');
+  // Subdomain'de localStorage atla — sadece o dükkanın DB siparişleri
+  const local=currentStore?[]:JSON.parse(localStorage.getItem('raskroiOrders')||'[]');
   // DB'de olmayan yerel siparişleri ekle (id'ye göre)
   const ids=new Set(dbOrders.map(o=>o.id));
   const merged=[...dbOrders, ...local.filter(o=>!ids.has(o.id))];
