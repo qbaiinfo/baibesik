@@ -270,7 +270,8 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <input type="number" id="pricePvc" class="full" placeholder="Кромка PVC ₸/м (180-250)" value="200">
         </div>
         <div class="calc-card" style="margin-bottom:10px"><div class="cv" id="finalPrice">0 ₸</div><div class="cl">Итоговая цена</div><div id="priceBreakdown" style="font-size:9px;color:var(--gray);margin-top:4px"></div></div>
-        <button class="btn btn-green btn-block" onclick="startProcess()">✓ Начать резку</button>
+        <button class="btn btn-green btn-block" id="btnStart" onclick="startProcess()">✓ Начать резку</button>
+        <button class="btn btn-green btn-block" id="btnFinish" onclick="openTaskModal()" style="display:none;background:#065f46">✅ Завершить резку</button>
         <button class="btn btn-blue btn-block" style="background:#dc2626" onclick="exportCuttingPDF()">📄 PDF Отчёт (полный)</button>
         <button class="btn btn-blue btn-block" onclick="exportDXF()" style="margin-top:6px">📥 Экспорт DXF</button>
         <button class="btn btn-blue btn-block" onclick="exportKdtCsv()" style="margin-top:6px">🏭 Экспорт CSV (КДТ/ЧПУ раскладка)</button>
@@ -1235,7 +1236,142 @@ async function saveOrder(){
     }catch(e){ console.warn('Supabase update yok:', e.message); }
   }
 }
-window.startProcess=function(){if(!currentOrder){alert('Выберите заказ');return;}currentOrder.status='processing';currentOrder.parts=parts;currentOrder.startedAt=new Date().toISOString();saveOrder();selectOrder(currentOrder.id);alert('✓ Резка началась! Заказ в работе.');};
+window.startProcess=function(){
+  if(!currentOrder){alert('Выберите заказ');return;}
+  currentOrder.status='processing';currentOrder.parts=parts;
+  currentOrder.startedAt=new Date().toISOString();
+  saveOrder();
+  document.getElementById('btnStart').style.display='none';
+  document.getElementById('btnFinish').style.display='';
+  selectOrder(currentOrder.id);
+  alert('✓ Резка началась! Заказ в работе.');
+};
+
+// ── GÖREV DAĞITIMI ─────────────────────────────────────────────────────────
+let _workers=[], _machines=[], _tmTotalSheets=0, _tmTotalPvc=0;
+
+async function loadWorkersAndMachines(){
+  try{
+    const { getCurrentStore, createClient:_ } = await import('./supabase_client.js');
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const store = await getCurrentStore();
+    if(!store) return;
+    const [{data:w},{data:m}] = await Promise.all([
+      sb.from('store_members').select('user_id, role, users(full_name, phone)').eq('store_id', store.id).in('role',['raskroi_manager','raskroi_worker','manager','owner']),
+      sb.from('store_machines').select('*').eq('store_id', store.id).eq('is_active', true)
+    ]);
+    _workers = (w||[]).map(x=>({id:x.user_id, name:x.users?.full_name||x.users?.phone||'—', role:x.role}));
+    _machines = m||[];
+  }catch(e){ console.log('loadWorkersAndMachines:', e.message); }
+}
+
+function workerOpts(type){
+  return _workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
+}
+function machineOpts(type){
+  return _machines.filter(m=>m.machine_type===type).map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+}
+
+function addTaskRow(type){
+  const cont = document.getElementById(type==='cutting'?'tm-cut-rows':'tm-pvc-rows');
+  const idx = cont.children.length;
+  const unit = type==='cutting'?'лист':'м';
+  const maxVal = type==='cutting'?_tmTotalSheets:_tmTotalPvc;
+  const machineSelect = machineOpts(type)
+    ? `<select style="flex:1;padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">${machineOpts(type)}</select>`
+    : '';
+  const row = document.createElement('div');
+  row.style.cssText='display:flex;gap:6px;align-items:center';
+  row.innerHTML=`
+    <select class="tm-worker" style="flex:2;padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">${workerOpts(type)}</select>
+    ${machineSelect}
+    <input type="number" class="tm-qty" min="0" step="${type==='cutting'?1:0.1}" value="${maxVal}" style="width:70px;padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;font-weight:700">
+    <span style="font-size:11px;color:#64748b">${unit}</span>
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px">×</button>`;
+  cont.appendChild(row);
+}
+
+window.openTaskModal=async function(){
+  if(!currentOrder || !lastLayout){ alert('Önce hesaplama yapın'); return; }
+  await loadWorkersAndMachines();
+
+  // Toplam levha ve PVC hesapla
+  _tmTotalSheets = lastLayout.sheets.length;
+  let pvcTotal=0;
+  parts.forEach(p=>{
+    let per=0;
+    if(p.e.t)per+=p.w;if(p.e.b)per+=p.w;if(p.e.l)per+=p.h;if(p.e.r)per+=p.h;
+    pvcTotal+=per*(p.qty||1);
+  });
+  _tmTotalPvc = parseFloat((pvcTotal/1000*1.05).toFixed(1));
+
+  document.getElementById('tm-total-sheets').textContent = _tmTotalSheets + ' лист';
+  document.getElementById('tm-total-pvc').textContent = _tmTotalPvc + ' м';
+  document.getElementById('tm-cut-rows').innerHTML='';
+  document.getElementById('tm-pvc-rows').innerHTML='';
+  document.getElementById('tm-error').style.display='none';
+
+  // İlk satırları otomatik ekle
+  addTaskRow('cutting');
+  if(_tmTotalPvc>0) addTaskRow('pvc');
+
+  document.getElementById('taskModal').style.display='flex';
+};
+
+window.closeTaskModal=function(){
+  document.getElementById('taskModal').style.display='none';
+};
+
+window.saveTasksAndFinish=async function(){
+  const errEl=document.getElementById('tm-error');
+  errEl.style.display='none';
+
+  try{
+    const { getCurrentStore } = await import('./supabase_client.js');
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL, SUPABASE_KEY);
+    const store=await getCurrentStore();
+    if(!store){ errEl.textContent='Магазин не определён'; errEl.style.display=''; return; }
+
+    // Görevleri topla
+    const tasks=[];
+    function collectRows(contId, type, unit){
+      const rows=document.getElementById(contId).children;
+      for(const row of rows){
+        const workerId=row.querySelector('.tm-worker')?.value;
+        const qty=parseFloat(row.querySelector('.tm-qty')?.value)||0;
+        const machineEl=row.querySelector('select:not(.tm-worker)');
+        const machineId=machineEl?machineEl.value:null;
+        if(workerId && qty>0){
+          tasks.push({store_id:store.id, worker_id:workerId, task_type:type,
+            order_ref:currentOrder.id, quantity:qty, unit, unit_price:0,
+            machine_id:machineId||null, task_date:new Date().toISOString().slice(0,10)});
+        }
+      }
+    }
+    collectRows('tm-cut-rows','cutting','лист');
+    collectRows('tm-pvc-rows','pvc','м');
+
+    if(!tasks.length){ errEl.textContent='En az bir görev ekle'; errEl.style.display=''; return; }
+
+    // Kaydet
+    const {error}=await sb.from('worker_tasks').insert(tasks);
+    if(error) throw error;
+
+    // Siparişi tamamlandı olarak işaretle
+    currentOrder.status='done';
+    await saveOrder();
+
+    closeTaskModal();
+    document.getElementById('btnStart').style.display='none';
+    document.getElementById('btnFinish').style.display='none';
+    alert('✅ Görevler kaydedildi, sipariş tamamlandı!');
+    selectOrder(currentOrder.id);
+  }catch(e){ errEl.textContent='Hata: '+e.message; errEl.style.display=''; }
+};
+
+
 window.rejectOrder=function(){if(!currentOrder)return;if(confirm('Отклонить заказ?')){currentOrder.status='rejected';saveOrder();selectOrder(currentOrder.id);}};
 window.exportGCode=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
   // CNC router G-Code: her parçanın dış konturu için kesme yolu
@@ -1342,7 +1478,30 @@ window.exportCuttingPDF=function(){
   <table><thead><tr><th>№</th><th>Название</th><th>Размер</th><th>Кромка</th><th>Заказ</th><th>Размещено</th><th>Лист</th><th>✓</th></tr></thead><tbody>${rows}</tbody></table>
   ${imgs}
   <div style="margin-top:18px;font-size:11px;color:#64748b">Подпись клиента: ______________________ &nbsp;&nbsp;&nbsp; Подпись менеджера: ______________________</div>
-  </body></html>`;
+  
+<!-- GÖREV DAĞITIMI MODALI -->
+<div id="taskModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;padding:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="font-size:16px;font-weight:700">✅ Резку завершить</h3>
+      <button onclick="closeTaskModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#64748b">✕</button>
+    </div>
+    <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:12px;border:1px solid #e2e8f0">
+      <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:10px">✂️ Кесу устасы — барлығы <span id="tm-total-sheets" style="color:#f97316">0 лист</span></div>
+      <div id="tm-cut-rows" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button onclick="addTaskRow('cutting')" style="margin-top:8px;padding:6px 12px;background:none;border:1.5px dashed #94a3b8;border-radius:6px;font-size:12px;cursor:pointer;width:100%;color:#64748b">+ Usta ekle</button>
+    </div>
+    <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:16px;border:1px solid #e2e8f0">
+      <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:10px">🎀 PVC Usta — барлығы <span id="tm-total-pvc" style="color:#f97316">0 м</span></div>
+      <div id="tm-pvc-rows" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button onclick="addTaskRow('pvc')" style="margin-top:8px;padding:6px 12px;background:none;border:1.5px dashed #94a3b8;border-radius:6px;font-size:12px;cursor:pointer;width:100%;color:#64748b">+ Usta ekle</button>
+    </div>
+    <div id="tm-error" style="display:none;color:#ef4444;font-size:12px;margin-bottom:10px;padding:8px;background:#fee2e2;border-radius:6px"></div>
+    <button onclick="saveTasksAndFinish()" style="width:100%;padding:12px;background:#059669;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">💾 Kaydet ve Siparişi Tamamla</button>
+  </div>
+</div>
+
+</body></html>`;
   const w=window.open('','_blank');
   if(!w){alert('Разрешите всплывающие окна');return;}
   w.document.write(html);w.document.close();
