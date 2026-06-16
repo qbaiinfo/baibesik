@@ -9,15 +9,15 @@
 <style>
 :root{--orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--border:#e2e8f0;--light:#f8fafc;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark)}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark);overflow-x:hidden}
 header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
 .hi{max-width:1200px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
 .logo{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);letter-spacing:2px;text-decoration:none}
 .logo span{color:#fff}
-.htitle{flex:1}
+.htitle{flex:1;min-width:0;overflow:hidden}
 .store-name{font-size:11px;color:#94a3b8;font-weight:600}
-.owner-name{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px}
-.hbtns{display:flex;gap:8px;align-items:center}
+.owner-name{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbtns{display:flex;gap:8px;align-items:center;flex-shrink:0}
 .lang-btn{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Noto Sans',sans-serif}
 .lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
 .btn-sm{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:'Noto Sans',sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
@@ -70,6 +70,7 @@ tr:hover td{background:var(--light)}
 .b-manager{background:rgba(59,130,246,.1);color:var(--blue);border-color:rgba(59,130,246,.2)}
 .b-warehouse{background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.2)}
 .b-owner{background:rgba(249,115,22,.1);color:var(--orange);border-color:rgba(249,115,22,.2)}
+.b-raskroi{background:rgba(168,85,247,.1);color:#a855f7;border-color:rgba(168,85,247,.2)}
 
 /* MODAL */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:16px}
@@ -755,8 +756,8 @@ async function loadStaff(){
   const d_=d();
   $('staff-list').innerHTML=(members&&members.length)?members.map(m=>{
     const u=m.users;
-    const roleTxt={manager:d_.role_manager,warehouse:d_.role_warehouse,owner:d_.role_owner}[m.role]||m.role;
-    const roleClass={manager:'b-manager',warehouse:'b-warehouse',owner:'b-owner'}[m.role]||'b-manager';
+    const roleTxt={manager:d_.role_manager,warehouse:d_.role_warehouse,owner:d_.role_owner,raskroi_manager:'✂️ Раскрой менеджер',raskroi_worker:'🪚 Раскрой работник'}[m.role]||m.role;
+    const roleClass={manager:'b-manager',warehouse:'b-warehouse',owner:'b-owner',raskroi_manager:'b-raskroi',raskroi_worker:'b-raskroi'}[m.role]||'b-manager';
     const initial=(u?.full_name||'?').charAt(0).toUpperCase();
     const isOwner=m.role==='owner'&&m.user_id===currentUser?.id;
     return `<div class="staff-card">
@@ -769,7 +770,7 @@ async function loadStaff(){
       ${!isOwner?`<button class="btn-sm btn-red" onclick="removeStaff('${m.user_id}')" style="margin-left:8px">${d_.btn_delete}</button>`:''}
     </div>`;
   }).join('')
-  :`<div style="text-align:center;padding:20px;color:var(--gray)">${d_().empty_staff}</div>`;
+  :`<div style="text-align:center;padding:20px;color:var(--gray)">${d_.empty_staff||'—'}</div>`;
 }
 
 async function addStaff(){
@@ -970,8 +971,22 @@ async function searchClients(q){
   const list = document.getElementById('clients-list');
   if(!list || !currentStore) return;
   try {
-    // Müşteri + toptancıları çek
-    let query = sb.from('users').select('id, full_name, phone, role').in('role',['customer','wholesale']);
+    // Bu dükkana ait müşteri id'lerini topla:
+    // 1) store_members (subdomain'den kayıt olanlar)  2) orders (bu dükkandan sipariş vermiş olanlar)
+    const [{data:members}, {data:ords}] = await Promise.all([
+      sb.from('store_members').select('user_id').eq('store_id', currentStore.id).in('role',['customer','wholesale']),
+      sb.from('orders').select('customer_id').eq('store_id', currentStore.id)
+    ]);
+    const idSet = new Set();
+    (members||[]).forEach(m=>idSet.add(m.user_id));
+    (ords||[]).forEach(o=>{ if(o.customer_id) idSet.add(o.customer_id); });
+    const ids = [...idSet];
+    if(!ids.length){
+      list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray)">Клиенты не найдены</div>';
+      return;
+    }
+    // Müşteri + toptancıları çek (sadece bu dükkana bağlı olanlar)
+    let query = sb.from('users').select('id, full_name, phone, role').in('role',['customer','wholesale']).in('id', ids);
     const {data:users} = await query.limit(100);
     // Bu dükkanın indirimlerini çek
     const {data:discs} = await sb.from('customer_discounts')
