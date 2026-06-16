@@ -21,17 +21,17 @@
   --radius: 12px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Noto Sans', sans-serif; background: var(--light); color: var(--dark); }
+body { font-family: 'Noto Sans', sans-serif; background: var(--light); color: var(--dark); overflow-x: hidden; }
 
 /* ── HEADER ── */
 header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
 .header-inner { max-width: 960px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
 .logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--orange); letter-spacing: 2px; text-decoration: none; flex-shrink: 0; }
 .logo span { color: white; }
-.header-mid { flex: 1; }
+.header-mid { flex: 1; min-width: 0; overflow: hidden; }
 .worker-label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
-.worker-name { font-size: 13px; font-weight: 700; color: white; }
-.header-right { display: flex; gap: 8px; align-items: center; }
+.worker-name { font-size: 13px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-right { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 .lang-btn { background: rgba(255,255,255,0.08); color: #94a3b8; border: 1px solid rgba(255,255,255,0.12); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; font-family: 'Noto Sans', sans-serif; }
 .lang-btn.active { background: var(--orange); color: white; border-color: var(--orange); }
 .pulse-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
@@ -39,7 +39,8 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
 
 /* ── TABS ── */
 .tabs-bar { background: white; border-bottom: 2px solid var(--border); }
-.tabs-inner { max-width: 960px; margin: 0 auto; padding: 0 16px; display: flex; }
+.tabs-inner { max-width: 960px; margin: 0 auto; padding: 0 16px; display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.tabs-inner::-webkit-scrollbar { display: none; }
 .tab-btn { padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--gray); cursor: pointer; border-bottom: 3px solid transparent; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Noto Sans', sans-serif; transition: all 0.2s; position: relative; white-space: nowrap; }
 .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
 .tab-badge { position: absolute; top: 8px; right: 2px; background: var(--red); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
@@ -175,6 +176,8 @@ header { background: var(--dark2); position: sticky; top: 0; z-index: 100; box-s
   .pick-item { gap: 8px; }
   .raf-code { font-size: 18px; min-width: 44px; }
   .qty-num { font-size: 22px; }
+  .header-inner { gap: 8px; padding: 10px 12px; }
+  .lang-btn { display: none; }
 }
 
 @media print {
@@ -761,19 +764,33 @@ async function loadDepoUser() {
     let storeName = lang==='ru' ? 'Байбесик' : 'Байбесік';
     let storeId = null;
     try {
-      const r1 = await fetch(
-        SUPABASE_URL+'/rest/v1/store_members?user_id=eq.'+session.user.id+'&select=store_id&limit=1',
-        {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}}
-      );
-      const m1 = await r1.json();
-      if(m1 && m1.length && m1[0].store_id) {
-        storeId = m1[0].store_id;
-        const r2 = await fetch(
-          SUPABASE_URL+'/rest/v1/stores?id=eq.'+storeId+'&select=name&limit=1',
+      // Subdomain öncelikli store tespiti
+      const { getCurrentStore } = await import('./supabase_client.js');
+      const subdomainStore = await getCurrentStore();
+      if(subdomainStore){
+        // Üyelik kontrolü
+        const {data:membership} = await sb.from('store_members')
+          .select('store_id').eq('user_id',session.user.id).eq('store_id',subdomainStore.id);
+        if(!membership || !membership.length){
+          await sb.auth.signOut(); window.location.href='login.html?staff=1'; return;
+        }
+        storeId = subdomainStore.id;
+        storeName = subdomainStore.name;
+      } else {
+        const r1 = await fetch(
+          SUPABASE_URL+'/rest/v1/store_members?user_id=eq.'+session.user.id+'&select=store_id&limit=1',
           {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}}
         );
-        const m2 = await r2.json();
-        if(m2 && m2.length && m2[0].name) storeName = m2[0].name;
+        const m1 = await r1.json();
+        if(m1 && m1.length && m1[0].store_id) {
+          storeId = m1[0].store_id;
+          const r2 = await fetch(
+            SUPABASE_URL+'/rest/v1/stores?id=eq.'+storeId+'&select=name&limit=1',
+            {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}}
+          );
+          const m2 = await r2.json();
+          if(m2 && m2.length && m2[0].name) storeName = m2[0].name;
+        }
       }
     } catch(e2) { console.log('Store fetch:', e2.message); }
 
@@ -808,11 +825,19 @@ async function loadRealDepoOrders() {
     const {data:{session}} = await sb.auth.getSession();
     if(!session) return;
 
-    // Store ID al
-    const {data:members} = await sb.from('store_members')
-      .select('store_id').eq('user_id', session.user.id);
-    if(!members || !members.length) return;
-    const storeId = members[0].store_id;
+    // Store ID — subdomain öncelikli
+    const { getCurrentStore: _gcs } = await import('./supabase_client.js');
+    const _cs = await _gcs();
+    let storeId = null;
+    if(_cs){
+      storeId = _cs.id;
+    } else {
+      const {data:members} = await sb.from('store_members')
+        .select('store_id').eq('user_id', session.user.id);
+      if(!members || !members.length) return;
+      storeId = members[0].store_id;
+    }
+    if(!storeId) return;
 
     // Hazırlanacak siparişleri çek (new veya preparing)
     const {data:dbOrders} = await sb.from('orders')

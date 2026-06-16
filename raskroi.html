@@ -222,7 +222,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <div class="ig"><label data-i18n="width">Ширина X (mm)</label><input type="number" id="sheetW" value="2800" min="100"></div>
           <div class="ig"><label data-i18n="height">Высота Y (mm)</label><input type="number" id="sheetH" value="2070" min="100"></div>
           <div class="ig"><label data-i18n="material">Материал</label>
-            <select id="matType">
+            <select id="matType" onchange="onMatTypeChange()">
               <option value="ldsp16">ЛДСП 16мм</option>
               <option value="ldsp18">ЛДСП 18мм</option>
               <option value="mdf18">МДФ 18мм</option>
@@ -452,7 +452,7 @@ async function init(){
         }
       }catch(e){}
     }
-    renderTable(); applyLang(); loadShops();
+    renderTable(); applyLang(); loadShops(); loadStoreMaterials();
     pushHistory();
   }catch(e){console.error(e);}
 }
@@ -1614,6 +1614,49 @@ window.shareWhatsApp=function(){
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
 };
 // ─── Kesme cehlerini (has_cutting) yükle ───
+// ── STORE MALZEMELERİ ─────────────────────────────────────────
+let _raskroiMaterials = [];
+
+async function loadStoreMaterials(){
+  try{
+    const { getCurrentStore } = await import('./supabase_client.js');
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const store = await getCurrentStore();
+    if(!store) return; // Ana domain'de sabit liste kalır
+    const {data} = await sb.from('store_materials')
+      .select('*').eq('store_id', store.id).eq('is_active', true).order('name');
+    if(!data || !data.length) return;
+    _raskroiMaterials = data;
+    const sel = document.getElementById('matType');
+    if(!sel) return;
+    sel.innerHTML = '';
+    data.forEach(m => {
+      const o = document.createElement('option');
+      o.value = m.name;
+      o.textContent = m.name;
+      o.dataset.w = m.sheet_w;
+      o.dataset.h = m.sheet_h;
+      o.dataset.kerf = m.kerf_mm;
+      o.dataset.trim = m.trim_mm;
+      sel.appendChild(o);
+    });
+    // İlk malzemeyi otomatik uygula
+    onMatTypeChange();
+  }catch(e){ console.log('loadStoreMaterials:', e.message); }
+}
+
+window.onMatTypeChange = function(){
+  const sel = document.getElementById('matType');
+  if(!sel) return;
+  const opt = sel.options[sel.selectedIndex];
+  if(!opt || !opt.dataset.w) return;
+  document.getElementById('sheetW').value = opt.dataset.w;
+  document.getElementById('sheetH').value = opt.dataset.h;
+  document.getElementById('kerf').value = opt.dataset.kerf;
+  document.getElementById('trim').value = opt.dataset.trim;
+};
+
 async function loadShops(){
   const sel=document.getElementById('shopSel');
   try{
