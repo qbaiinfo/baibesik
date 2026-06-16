@@ -102,7 +102,10 @@ async function loadOrders(){
     const rows=await getMyRaskroiOrders();
     dbO=(rows||[]).map(r=>({id:r.order_number,material:r.material,parts:r.parts||[],sheets:r.sheets_used,status:r.status,createdAt:r.created_at,sheetW:r.sheet_w,sheetH:r.sheet_h}));
   }catch(e){console.warn('Supabase yok:',e.message);}
-  const local=JSON.parse(localStorage.getItem('raskroiOrders')||'[]')
+  // Subdomain'de localStorage atla — sadece DB siparişleri göster
+  const { getCurrentStore:_gcs } = await import('./supabase_client.js');
+  const _cs = await _gcs();
+  const local = _cs ? [] : JSON.parse(localStorage.getItem('raskroiOrders')||'[]')
     .filter(o=>!o.customerId || o.customerId===currentUser.id);
   const ids=new Set(dbO.map(o=>o.id));
   orders=[...dbO,...local.filter(o=>!ids.has(o.id))].reverse();

@@ -1670,7 +1670,7 @@ window.sendToManager=async function(){
     // Bulut'a yazılamadı — sadece bu cihazda saklandı, menecer GÖREMEZ.
     alert(`⚠️ ${order.id}\n${lang==='kk'?'Бұлтқа жіберілмеді (тек осы құрылғыда сақталды). Интернет/кірісті тексеріп қайта көріңіз.':'Не отправлено в облако (сохранено только на этом устройстве). Проверьте интернет/вход и попробуйте снова.'}\n${dbErr?('('+dbErr+')'):''}`);
   }
-  window.location.href=`raskroi_manager.html?orderId=${order.id}`;
+  window.location.href='raskroi_my_orders.html';
 };
 
 init();

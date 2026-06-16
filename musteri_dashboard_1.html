@@ -1139,12 +1139,14 @@ async function loadAIRecommendations() {
   try {
     const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
     const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-    // İndirimli + popüler ürünleri çek
-    const {data:prods} = await sb.from('products')
+    // Subdomain'den store_id al — sadece o dükkanın ürünlerini göster
+    const { getCurrentStore } = await import('./supabase_client.js');
+    const currentStore = await getCurrentStore();
+    let recQuery = sb.from('products')
       .select('id, name_ru, name_kk, price_retail, discount_percent, image_url, category_id')
-      .eq('is_active', true)
-      .order('discount_percent', {ascending:false})
-      .limit(6);
+      .eq('is_active', true);
+    if(currentStore) recQuery = recQuery.eq('store_id', currentStore.id);
+    const {data:prods} = await recQuery.order('discount_percent', {ascending:false}).limit(6);
     if(!prods || !prods.length) {
       body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">'+(lang==='ru'?'Скоро здесь появятся рекомендации':'Жақында ұсыныстар пайда болады')+'</div>';
       return;
