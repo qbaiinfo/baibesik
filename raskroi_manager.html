@@ -104,8 +104,8 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 .hidden{display:none}
 @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 <div id="print-area"></div>
@@ -296,7 +296,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
   </div>
 </div>
 
-<script src="supabase_client.js" type="module"></script>
+
 <script type="module">
 import { getCurrentUser } from './supabase_client.js';
 
