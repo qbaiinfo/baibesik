@@ -274,6 +274,10 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
             <input type="checkbox" id="opt-kerf" checked style="accent-color:var(--orange);width:14px;height:14px">
             ✂️ Kerf Opt
           </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700;color:#7c3aed">
+            <input type="checkbox" id="opt-kdt" checked style="accent-color:#7c3aed;width:14px;height:14px">
+            🏭 KDT Modu
+          </label>
           <label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700">
             🔄 Deneme:
             <select id="opt-tries" style="padding:2px 6px;border:1px solid var(--border);border-radius:5px;font-size:11px;font-weight:700">
@@ -928,8 +932,9 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
   }
 
   // MaxRects-BAF: guillotine'in kaybettigi bos alanlari yakalar.
-  // Buyuk siparislerde free-rect listesi sisip yavaslayabilecegi icin sinirli.
-  if(baseItems.length<=150){
+  // KDT modu aktifse MaxRects KAPALI — makine sadece guillotine kesim yapabilir.
+  const _kdtMode = typeof document!=='undefined' && document.getElementById('opt-kdt')?.checked !== false;
+  if(!_kdtMode && baseItems.length<=150){
     candidates.push({tag:'maxrects-area',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.area)))});
     candidates.push({tag:'maxrects-hgt',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.hgt)))});
     candidates.push({tag:'maxrects-perim',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.perim)))});
@@ -939,6 +944,20 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
       for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
       candidates.push({tag:'maxrects-rnd'+t,sheets:finalize(packMaxRects(arr))});
     }
+  }
+  // KDT Modu: şerit bazlı ek guillotine varyantları
+  if(_kdtMode){
+    // Yüksekliğe göre sıralı şeritler — en iyi KDT layout
+    const byH = baseItems.slice().sort((a,b)=>(b.ph||b.h)-(a.ph||a.h));
+    candidates.push({tag:'kdt-hgt-A',sheets:finalize(packGuillotine(byH,'A'))});
+    candidates.push({tag:'kdt-hgt-B',sheets:finalize(packGuillotine(byH,'B'))});
+    // Genişliğe göre sıralı şeritler
+    const byW = baseItems.slice().sort((a,b)=>(b.pw||b.w)-(a.pw||a.w));
+    candidates.push({tag:'kdt-wid-A',sheets:finalize(packGuillotine(byW,'A'))});
+    candidates.push({tag:'kdt-wid-B',sheets:finalize(packGuillotine(byW,'B'))});
+    // Çevre uzunluğuna göre (büyük parçalar önce)
+    const byPerim = baseItems.slice().sort((a,b)=>((b.pw||b.w)+(b.ph||b.h))-((a.pw||a.w)+(a.ph||a.h)));
+    candidates.push({tag:'kdt-perim-A',sheets:finalize(packGuillotine(byPerim,'A'))});
   }
 
   // skor: az levha → son levha az dolu → en buyuk kalan buyuk
@@ -1003,14 +1022,19 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
   // n<=120: 2 SA kosusu (MaxRects + Guillotine uzerinde), farklı baslangic siralamasi
   if(baseItems.length<=120){
     const seedOff = runIdx * 99991;
-    candidates.push({tag:'sa-maxrects',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),packMaxRects,mulberry32(baseItems.length*104723+Math.round(usableH)+17+seedOff)))});
+    // KDT modunda SA sadece guillotine ile çalışır
+    if(!_kdtMode){
+      candidates.push({tag:'sa-maxrects',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),packMaxRects,mulberry32(baseItems.length*104723+Math.round(usableH)+17+seedOff)))});
+    }
     candidates.push({tag:'sa-guillotine',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.hgt),(arr)=>packGuillotine(arr),mulberry32(baseItems.length*65599+Math.round(usableW)+31+seedOff)))});
-    // Ekstra SA denemesi — farklı başlangıç sırası
+    // Ekstra SA — A/B split denemesi
+    candidates.push({tag:'sa-guil-A'+runIdx,sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),(arr)=>packGuillotine(arr,'A'),mulberry32(baseItems.length*31337+seedOff)))});
     if(runIdx>0){
       const rndStart=mulberry32(baseItems.length*13337+seedOff);
       const arr=baseItems.slice();
       for(let i=arr.length-1;i>0;i--){const j=Math.floor(rndStart()*(i+1));const t=arr[i];arr[i]=arr[j];arr[j]=t;}
-      candidates.push({tag:'sa-rnd'+runIdx,sheets:finalize(simulatedAnnealing(arr,packMaxRects,mulberry32(seedOff+77777)))});
+      const packFn = _kdtMode ? (a)=>packGuillotine(a) : packMaxRects;
+      candidates.push({tag:'sa-rnd'+runIdx,sheets:finalize(simulatedAnnealing(arr,packFn,mulberry32(seedOff+77777)))});
     }
   }
   let best=null,bestS=null;
