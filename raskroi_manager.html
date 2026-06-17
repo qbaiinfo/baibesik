@@ -988,53 +988,93 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
     let current=initialOrder.slice();
     let curSheets=packFn(current), curE=scalarScore(curSheets);
     let best=current.slice(), bestSheets=curSheets, bestE=curE;
-    const iters = n<=20?2500 : n<=50?1000 : n<=100?300 : 60;
-    const T0=1.0, Tmin=0.02;
+    // KDT modu: daha fazla iterasyon → %93-95 hedef
+    const _kdt = typeof document!=='undefined' && document.getElementById('opt-kdt')?.checked!==false;
+    const iters = _kdt
+      ? (n<=20?8000 : n<=50?4000 : n<=100?1500 : 300)
+      : (n<=20?2500 : n<=50?1000 : n<=100?300 : 60);
+    const T0=1.0, Tmin=0.01;
     const cooling=Math.pow(Tmin/T0,1/Math.max(1,iters));
     let T=T0;
+    let noImprove=0;
     for(let it=0;it<iters;it++){
       const cand=current.slice();
       const mv=rnd();
-      if(mv<0.34){ // swap
+      if(mv<0.28){ // swap
         const i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
         const tmp=cand[i];cand[i]=cand[j];cand[j]=tmp;
-      }else if(mv<0.67){ // reinsert (or-opt)
+      }else if(mv<0.52){ // reinsert (or-opt)
         const i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
         const [el]=cand.splice(i,1);
         cand.splice(j,0,el);
-      }else{ // segment reverse (2-opt)
+      }else if(mv<0.73){ // segment reverse (2-opt)
         let i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
         if(i>j){const t=i;i=j;j=t;}
         const seg=cand.slice(i,j+1).reverse();
         for(let k=0;k<seg.length;k++)cand[i+k]=seg[k];
+      }else{ // ★ ROTATION flip — en önemli yeni hareket!
+        const i=Math.floor(rnd()*n);
+        cand[i]={...cand[i]};
+        if(!cand[i].lock){ // kilitli parçaları döndürme
+          const tmp=cand[i].pw||cand[i].w;
+          cand[i].pw=cand[i].ph||cand[i].h;
+          cand[i].ph=tmp;
+          // Orijinal w/h'yi sakla, sadece yerleşim boyutunu değiştir
+          if(cand[i].pw===undefined) cand[i].pw=cand[i].h;
+          if(cand[i].ph===undefined) cand[i].ph=cand[i].w;
+        }
       }
       const candSheets=packFn(cand);
       const candE=scalarScore(candSheets);
       const delta=candE-curE;
       if(delta<0||rnd()<Math.exp(-delta/T)){
         current=cand;curSheets=candSheets;curE=candE;
-        if(curE<bestE-1e-9){best=current.slice();bestSheets=candSheets;bestE=curE;}
-      }
+        if(curE<bestE-1e-9){
+          best=current.slice();bestSheets=candSheets;bestE=curE;
+          noImprove=0;
+        } else { noImprove++; }
+      } else { noImprove++; }
+      // Erken çıkış — uzun süre gelişme yoksa
+      if(noImprove>iters*0.4 && it>iters*0.3) break;
       T*=cooling;
     }
     return bestSheets;
   }
   // n<=120: 2 SA kosusu (MaxRects + Guillotine uzerinde), farklı baslangic siralamasi
-  if(baseItems.length<=120){
+  if(baseItems.length<=150){
     const seedOff = runIdx * 99991;
     // KDT modunda SA sadece guillotine ile çalışır
     if(!_kdtMode){
       candidates.push({tag:'sa-maxrects',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),packMaxRects,mulberry32(baseItems.length*104723+Math.round(usableH)+17+seedOff)))});
     }
-    candidates.push({tag:'sa-guillotine',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.hgt),(arr)=>packGuillotine(arr),mulberry32(baseItems.length*65599+Math.round(usableW)+31+seedOff)))});
-    // Ekstra SA — A/B split denemesi
-    candidates.push({tag:'sa-guil-A'+runIdx,sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),(arr)=>packGuillotine(arr,'A'),mulberry32(baseItems.length*31337+seedOff)))});
-    if(runIdx>0){
-      const rndStart=mulberry32(baseItems.length*13337+seedOff);
+    // SA — farklı sıralama ve split yönleri (KDT için çok daha fazla)
+    const saConfigs=[
+      {sort:sorts.hgt,  split:'A', seed:65599},
+      {sort:sorts.area, split:'B', seed:31337},
+      {sort:sorts.hgt,  split:'B', seed:73141},
+      {sort:sorts.perim,split:'A', seed:51383},
+      {sort:sorts.area, split:'A', seed:104723},
+    ];
+    const maxSA = _kdtMode ? saConfigs.length : 2;
+    for(let s=0;s<maxSA;s++){
+      const cfg=saConfigs[s];
+      candidates.push({
+        tag:'sa-g'+s+'-r'+runIdx,
+        sheets:finalize(simulatedAnnealing(
+          baseItems.slice().sort(cfg.sort),
+          (arr)=>packGuillotine(arr,cfg.split),
+          mulberry32(baseItems.length*cfg.seed+seedOff+s*7331)
+        ))
+      });
+    }
+    // Rastgele başlangıç SA'ları (KDT: 3 tur, normal: 1 tur)
+    const nRndSA = _kdtMode ? 3 : 1;
+    for(let t=0;t<nRndSA;t++){
+      const rndSeed=mulberry32(baseItems.length*13337+seedOff+t*19973);
       const arr=baseItems.slice();
-      for(let i=arr.length-1;i>0;i--){const j=Math.floor(rndStart()*(i+1));const t=arr[i];arr[i]=arr[j];arr[j]=t;}
-      const packFn = _kdtMode ? (a)=>packGuillotine(a) : packMaxRects;
-      candidates.push({tag:'sa-rnd'+runIdx,sheets:finalize(simulatedAnnealing(arr,packFn,mulberry32(seedOff+77777)))});
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(rndSeed()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
+      const packFn=_kdtMode?(a)=>packGuillotine(a):packMaxRects;
+      candidates.push({tag:'sa-rnd'+t+'-r'+runIdx,sheets:finalize(simulatedAnnealing(arr,packFn,mulberry32(seedOff+t*77777+44449)))});
     }
   }
   let best=null,bestS=null;
