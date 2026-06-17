@@ -265,7 +265,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
         <div style="display:flex;gap:6px;margin-top:10px">
           <button class="btn btn-primary" onclick="addPart()">➕ Деталь</button>
           <button class="btn btn-blue" onclick="calcNest()">🧮 Рассчитать раскрой</button>
-        <div style="display:flex;gap:12px;margin-top:8px">
+        <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;align-items:center">
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700">
             <input type="checkbox" id="opt-block" checked style="accent-color:var(--orange);width:14px;height:14px">
             🧱 Block Grouping
@@ -273,6 +273,15 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700">
             <input type="checkbox" id="opt-kerf" checked style="accent-color:var(--orange);width:14px;height:14px">
             ✂️ Kerf Opt
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700">
+            🔄 Deneme:
+            <select id="opt-tries" style="padding:2px 6px;border:1px solid var(--border);border-radius:5px;font-size:11px;font-weight:700">
+              <option value="1">1×</option>
+              <option value="2">2× Daha iyi</option>
+              <option value="3" selected>3× Tavsiye</option>
+              <option value="5">5× Maksimum</option>
+            </select>
           </label>
         </div>
         </div>
@@ -617,7 +626,7 @@ function calcKerfSavings(sheets, kerf) {
 }
 // ══════════════════════════════════════════════════════
 
-function nestCore(parts, SW, SH, kerf, trim, grain){
+function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
   const usableW=SW-2*trim, usableH=SH-2*trim;
   const MIN_REM=100;
   // grainMode: 'auto' (levha doku ayarına uy) | 'lock' (asla döndürme) | 'free' (her zaman döndürülebilir)
@@ -993,8 +1002,16 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
   }
   // n<=120: 2 SA kosusu (MaxRects + Guillotine uzerinde), farklı baslangic siralamasi
   if(baseItems.length<=120){
-    candidates.push({tag:'sa-maxrects',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),packMaxRects,mulberry32(baseItems.length*104723+Math.round(usableH)+17)))});
-    candidates.push({tag:'sa-guillotine',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.hgt),(arr)=>packGuillotine(arr),mulberry32(baseItems.length*65599+Math.round(usableW)+31)))});
+    const seedOff = runIdx * 99991;
+    candidates.push({tag:'sa-maxrects',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),packMaxRects,mulberry32(baseItems.length*104723+Math.round(usableH)+17+seedOff)))});
+    candidates.push({tag:'sa-guillotine',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.hgt),(arr)=>packGuillotine(arr),mulberry32(baseItems.length*65599+Math.round(usableW)+31+seedOff)))});
+    // Ekstra SA denemesi — farklı başlangıç sırası
+    if(runIdx>0){
+      const rndStart=mulberry32(baseItems.length*13337+seedOff);
+      const arr=baseItems.slice();
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(rndStart()*(i+1));const t=arr[i];arr[i]=arr[j];arr[j]=t;}
+      candidates.push({tag:'sa-rnd'+runIdx,sheets:finalize(simulatedAnnealing(arr,packMaxRects,mulberry32(seedOff+77777)))});
+    }
   }
   let best=null,bestS=null;
   candidates.forEach(c=>{
@@ -1081,17 +1098,55 @@ async function nestRemote(SW,SH,kerf,trim,grain){
     grouped.forEach(p=>{if(!seen.has(p.id)){seen.add(p.id);partsToNest.push(byId[p.id]);}});
   }
 
-  try{
-    const { supabase } = await import('./supabase_client.js');
-    const { data, error } = await supabase.functions.invoke('nest-cutting',{
-      body:{ parts:partsToNest, sheetW:SW, sheetH:SH, kerf, trim, grainDir:grain }
-    });
-    if(error||!data||data.error||!Array.isArray(data.sheets)) throw new Error(error?.message||data?.error||'nest-cutting boş yanıt');
-    return data;
-  }catch(e){
-    console.warn('nest-cutting Edge Function başarısız, lokal motora geçiliyor:',e.message);
-    return nestCore(partsToNest, SW, SH, kerf, trim, grain);
+  const tries = parseInt(document.getElementById('opt-tries')?.value)||3;
+  const btn = document.getElementById('cSheets');
+
+  // Skor: [levha sayısı, son levha doluluk, -en büyük kalan]
+  function isBetter(a, b){
+    if(!b) return true;
+    const na=a.sheets.length, nb=b.sheets.length;
+    if(na !== nb) return na < nb;
+    // Aynı levha sayısı → KPD karşılaştır
+    const effA = a.sheets.reduce((s,sh)=>s+sh.parts.reduce((ss,p)=>ss+p.w*p.h,0),0);
+    const effB = b.sheets.reduce((s,sh)=>s+sh.parts.reduce((ss,p)=>ss+p.w*p.h,0),0);
+    return effA > effB;
   }
+
+  let best = null;
+  for(let run=0; run<tries; run++){
+    if(btn) btn.textContent = `${run+1}/${tries}⏳`;
+    // Her iterasyonda JS event loop'una nefes aldır (UI güncellenmesi için)
+    await new Promise(r => setTimeout(r, 0));
+    let result;
+    if(run === 0){
+      // İlk deneme: Edge Function dene
+      try{
+        const { supabase } = await import('./supabase_client.js');
+        const { data, error } = await supabase.functions.invoke('nest-cutting',{
+          body:{ parts:partsToNest, sheetW:SW, sheetH:SH, kerf, trim, grainDir:grain }
+        });
+        if(error||!data||data.error||!Array.isArray(data.sheets)) throw new Error('edge fn fail');
+        result = data;
+      }catch(e){
+        result = nestCore(partsToNest, SW, SH, kerf, trim, grain, run);
+      }
+    } else {
+      // Sonraki denemeler: farklı seed ile lokal
+      result = nestCore(partsToNest, SW, SH, kerf, trim, grain, run);
+    }
+    if(isBetter(result, best)){
+      best = result;
+      best._runIdx = run+1; // hangi denemede bulundu
+    }
+  }
+
+  // Hangi denemede en iyi bulundu?
+  if(tries > 1 && btn){
+    const tag = best._runIdx === 1 ? '🥇' : `🔄${best._runIdx}`;
+    console.log(`Best result from attempt ${best._runIdx}/${tries}`);
+  }
+
+  return best;
 }
 
 window.calcNest=async function(){
