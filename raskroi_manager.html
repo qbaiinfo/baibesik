@@ -61,7 +61,14 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#059669}
 /* ── PRINT AREA ── */
 #print-area{display:none}
-@media print{@page{size:A4;margin:15mm 20mm}}
+@media print{
+  @page{size:A4 portrait;margin:12mm 15mm}
+  body{margin:0;padding:0}
+  body>*:not(#print-area){display:none!important;visibility:hidden!important}
+  #print-area{display:block!important;visibility:visible!important;width:180mm;font-family:Arial,sans-serif;font-size:11px;color:#1e293b;background:#fff}
+  #print-area *{max-width:100%;box-sizing:border-box}
+  #print-area img{max-width:100%;height:auto}
+}
 .btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#2563eb}
 .btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#dc2626}
 .btn-block{width:100%;margin-bottom:8px}
@@ -1482,11 +1489,11 @@ window.exportCuttingPDF=async function(){
     sheetHTML+='<div style="margin:10px 0'+(i+2<panels.length?';page-break-after:always':'')+'">';
     if(p1&&p1.canvas){
       sheetHTML+='<div style="font-weight:800;font-size:11px;margin:6px 0 3px;padding:3px 8px;background:#f1f5f9">'+p1.label+'</div>';
-      sheetHTML+='<img src="'+p1.canvas.toDataURL('image/png')+'" style="width:100%;max-height:130mm;object-fit:contain;border:1px solid #cbd5e1;display:block">';
+      sheetHTML+='<img src="'+p1.canvas.toDataURL('image/png')+'" style="width:100%;max-height:110mm;object-fit:contain;border:1px solid #cbd5e1;display:block">';
     }
     if(p2&&p2.canvas){
       sheetHTML+='<div style="font-weight:800;font-size:11px;margin:6px 0 3px;padding:3px 8px;background:#f1f5f9">'+p2.label+'</div>';
-      sheetHTML+='<img src="'+p2.canvas.toDataURL('image/png')+'" style="width:100%;max-height:130mm;object-fit:contain;border:1px solid #cbd5e1;display:block">';
+      sheetHTML+='<img src="'+p2.canvas.toDataURL('image/png')+'" style="width:100%;max-height:110mm;object-fit:contain;border:1px solid #cbd5e1;display:block">';
     }
     sheetHTML+='</div>';
   }
@@ -1508,8 +1515,11 @@ window.exportCuttingPDF=async function(){
   const printAreaEl=document.getElementById('print-area');
   if(!printAreaEl){alert('print-area bulunamadı');return;}
 
+  // Print alanı stil - A4 sınırları içinde
+  printAreaEl.style.cssText='font-family:Arial,sans-serif;font-size:11px;color:#1e293b;width:100%';
+
   printAreaEl.innerHTML=
-    '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:3px solid #f97316">'+
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #f97316;gap:10px">'+
       '<div><div style="font-size:20px;font-weight:900;color:#f97316">'+storeName+' — '+currentOrder.id+'</div>'+
       '<div style="font-size:11px;color:#64748b;margin-top:2px">'+today+'</div></div>'+
       '<div style="text-align:center">'+
@@ -1519,7 +1529,7 @@ window.exportCuttingPDF=async function(){
         '<div style="font-size:8px;color:#7c3aed;font-weight:700">🖌️ ПВХ покрытие</div>'+
       '</div>'+
     '</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;margin:10px 0;font-size:12px">'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;margin:8px 0;font-size:10px">'+
       '<div><b>Клиент:</b> '+(currentOrder.customer||'—')+'</div>'+
       '<div><b>Телефон:</b> '+(currentOrder.phone||'—')+'</div>'+
       '<div><b>Материал:</b> '+(currentOrder.material||'—')+'</div>'+
@@ -1529,13 +1539,13 @@ window.exportCuttingPDF=async function(){
       '<div><b>КПД:</b> '+eff+'%</div>'+
       '<div><b>PVC:</b> '+pvcM+' м</div>'+
     '</div>'+
-    '<div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:8px;padding:10px 14px;margin:10px 0;display:flex;justify-content:space-between;align-items:center">'+
+    '<div style="background:#f0fdf4;border:1.5px solid #16a34a;border-radius:6px;padding:7px 12px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">'+
       '<div style="font-size:20px;font-weight:900;color:#16a34a">'+finalPrice.toLocaleString('ru-RU')+' ₸</div>'+
     '</div>'+
     '<div style="font-size:12px;font-weight:800;margin:12px 0 4px;border-bottom:1px solid #e2e8f0;padding-bottom:3px">Схема раскроя</div>'+
     sheetHTML+
     '<div style="font-size:12px;font-weight:800;margin:12px 0 4px;border-bottom:1px solid #e2e8f0;padding-bottom:3px">Контроль деталей</div>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:11px">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:9px">'+
       '<thead><tr style="background:#f1f5f9"><th style="border:1px solid #e2e8f0;padding:4px 6px;text-align:left">#</th>'+
       '<th style="border:1px solid #e2e8f0;padding:4px 6px;text-align:left">Деталь</th>'+
       '<th style="border:1px solid #e2e8f0;padding:4px 6px">Размер</th>'+
