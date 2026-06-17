@@ -765,7 +765,16 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
       let useA;
       if(splitMode==='A')useA=true;
       else if(splitMode==='B')useA=false;
-      else useA=Math.max(area(A1),area(A2))>=Math.max(area(B1),area(B2));
+      else{
+        // Dynamic: her iki split'i dene, daha iyi olanı seç
+        // Kriter: daha büyük rectangle üretmek → sonraki parçalara daha fazla alan
+        const maxA=Math.max(area(A1),area(A2));
+        const maxB=Math.max(area(B1),area(B2));
+        const sumA=area(A1)+area(A2);
+        const sumB=area(B1)+area(B2);
+        // Hem en büyük parça hem toplam alan gözetilir
+        useA=(maxA*0.7+sumA*0.3)>=(maxB*0.7+sumB*0.3);
+      }
       const kids=useA?[A1,A2]:[B1,B2];
       s.free.splice(best.ri,1);
       kids.forEach(k=>{if(k.w>5&&k.h>5)s.free.push(k);});
@@ -783,7 +792,98 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
     }));
   }
 
-  // ════ STRATEJI: MAXIMAL RECTANGLES (Best Area Fit) ════
+
+  // ════ STRATEJI: SKYLINE (Ufuk Hattı) ════
+  // Guillotine uyumlu + MaxRects'e yakın KPD.
+  // Ufuk hattının en düşük noktasına parçaları yerleştirir.
+  // KDT makinesi için ideal: yatay şeritler, düz kesimler.
+  function packSkyline(itemsIn){
+    const items=itemsIn.map(it=>Object.assign({},it));
+    const sheets=[];
+    function newSheet(){
+      const s={parts:[],sky:[{x:0,y:0,w:usableW}]};
+      sheets.push(s);return s;
+    }
+    function fitIn(s,it){
+      let best=null;
+      const tryPlace=(pw,ph,rot)=>{
+        if(pw>usableW+0.01||ph>usableH+0.01)return;
+        // Ufuk hattında pw genişliğinde pencere ara
+        for(let si=0;si<s.sky.length;si++){
+          let span=0,maxY=0,startX=s.sky[si].x;
+          for(let sj=si;sj<s.sky.length&&span<pw-0.01;sj++){
+            span+=s.sky[sj].w;
+            maxY=Math.max(maxY,s.sky[sj].y);
+          }
+          if(span<pw-0.01)continue;
+          if(maxY+ph>usableH+0.01)continue;
+          // Boşa giden alan: yerleştirilen yer altında kalan
+          let waste=0;
+          let wspan=0;
+          for(let sj=si;sj<s.sky.length&&wspan<pw-0.01;sj++){
+            const seg=s.sky[sj];
+            const segW=Math.min(seg.w,pw-wspan);
+            waste+=segW*(maxY-seg.y);
+            wspan+=segW;
+          }
+          if(!best||maxY<best.y||(maxY===best.y&&waste<best.waste)){
+            best={si,x:startX,y:maxY,pw,ph,rot,waste};
+          }
+        }
+      };
+      tryPlace(it.pw||it.w,it.ph||it.h,false);
+      if(rotOK(it)&&it.w!==it.h)tryPlace(it.ph||it.h,it.pw||it.w,true);
+      if(!best)return false;
+      // Yerleştir
+      s.parts.push(Object.assign({},it,{
+        w:best.pw,h:best.ph,
+        rot:best.rot?!it.rot:it.rot,
+        px:best.x,py:best.y
+      }));
+      // Ufuk hattını güncelle
+      const newSky=[];
+      let wspan=0,applied=false;
+      for(let sj=0;sj<s.sky.length;sj++){
+        const seg=s.sky[sj];
+        if(seg.x+seg.w<=best.x+0.01||seg.x>=best.x+best.pw-0.01){
+          newSky.push(seg);
+        } else {
+          if(!applied){
+            newSky.push({x:best.x,y:best.y+best.ph,w:best.pw});
+            applied=true;
+          }
+          // Kenar parçaları ekle
+          if(seg.x<best.x-0.01)newSky.push({x:seg.x,y:seg.y,w:best.x-seg.x});
+          if(seg.x+seg.w>best.x+best.pw+0.01)newSky.push({x:best.x+best.pw,y:seg.y,w:(seg.x+seg.w)-(best.x+best.pw)});
+        }
+      }
+      if(!applied)newSky.push({x:best.x,y:best.y+best.ph,w:best.pw});
+      // Aynı Y'deki komşu segmentleri birleştir
+      newSky.sort((a,b)=>a.x-b.x);
+      s.sky=[];
+      for(const seg of newSky){
+        if(s.sky.length&&Math.abs(s.sky[s.sky.length-1].y-seg.y)<0.01&&
+           Math.abs(s.sky[s.sky.length-1].x+s.sky[s.sky.length-1].w-seg.x)<0.01){
+          s.sky[s.sky.length-1].w+=seg.w;
+        } else {
+          s.sky.push({...seg});
+        }
+      }
+      return true;
+    }
+    for(const it of items){
+      let ok=false;
+      for(const s of sheets){if(fitIn(s,it)){ok=true;break;}}
+      if(!ok){const s=newSheet();fitIn(s,it);}
+    }
+    return sheets.map(s=>({
+      parts:s.parts,
+      remnants:s.sky.filter(seg=>seg.w>=MIN_REM&&(usableH-seg.y)>=MIN_REM)
+                    .map(seg=>({px:seg.x,py:seg.y,w:seg.w,h:usableH-seg.y}))
+    }));
+  }
+
+    // ════ STRATEJI: MAXIMAL RECTANGLES (Best Area Fit) ════
   // Guillotine'in aksine free-rect'ler CAKISABILIR — bir kesim sirasinda
   // "kaybedilen" bos alanlar burada korunur, daha sıkı paketleme bulur.
   function packMaxRects(itemsIn){
@@ -945,19 +1045,21 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
       candidates.push({tag:'maxrects-rnd'+t,sheets:finalize(packMaxRects(arr))});
     }
   }
-  // KDT Modu: şerit bazlı ek guillotine varyantları
+  // KDT Modu: Skyline + Guillotine kombinasyonu
   if(_kdtMode){
-    // Yüksekliğe göre sıralı şeritler — en iyi KDT layout
-    const byH = baseItems.slice().sort((a,b)=>(b.ph||b.h)-(a.ph||a.h));
-    candidates.push({tag:'kdt-hgt-A',sheets:finalize(packGuillotine(byH,'A'))});
-    candidates.push({tag:'kdt-hgt-B',sheets:finalize(packGuillotine(byH,'B'))});
-    // Genişliğe göre sıralı şeritler
-    const byW = baseItems.slice().sort((a,b)=>(b.pw||b.w)-(a.pw||a.w));
-    candidates.push({tag:'kdt-wid-A',sheets:finalize(packGuillotine(byW,'A'))});
-    candidates.push({tag:'kdt-wid-B',sheets:finalize(packGuillotine(byW,'B'))});
-    // Çevre uzunluğuna göre (büyük parçalar önce)
-    const byPerim = baseItems.slice().sort((a,b)=>((b.pw||b.w)+(b.ph||b.h))-((a.pw||a.w)+(a.ph||a.h)));
-    candidates.push({tag:'kdt-perim-A',sheets:finalize(packGuillotine(byPerim,'A'))});
+    const byH=baseItems.slice().sort((a,b)=>(b.ph||b.h)-(a.ph||a.h));
+    const byW=baseItems.slice().sort((a,b)=>(b.pw||b.w)-(a.pw||a.w));
+    const byA=baseItems.slice().sort(sorts.area);
+    const byP=baseItems.slice().sort((a,b)=>((b.pw||b.w)+(b.ph||b.h))-((a.pw||a.w)+(a.ph||a.h)));
+    // Guillotine dynamic split
+    candidates.push({tag:'kdt-guil-hA',sheets:finalize(packGuillotine(byH,'auto'))});
+    candidates.push({tag:'kdt-guil-wA',sheets:finalize(packGuillotine(byW,'auto'))});
+    candidates.push({tag:'kdt-guil-aA',sheets:finalize(packGuillotine(byA,'auto'))});
+    // Skyline — guillotine uyumlu yüksek KPD
+    candidates.push({tag:'kdt-sky-hgt', sheets:finalize(packSkyline(byH))});
+    candidates.push({tag:'kdt-sky-wid', sheets:finalize(packSkyline(byW))});
+    candidates.push({tag:'kdt-sky-area',sheets:finalize(packSkyline(byA))});
+    candidates.push({tag:'kdt-sky-peri',sheets:finalize(packSkyline(byP))});
   }
 
   // skor: az levha → son levha az dolu → en buyuk kalan buyuk
