@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baibesik.kz — Жұмыс панелі</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#f97316;--orange-dark:#c2410c;--dark:#0f172a;--dark2:#1e293b;--gray:#64748b;--border:#e2e8f0;--light:#f8fafc;--green:#10b981;--red:#ef4444;--blue:#3b82f6;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',sans-serif;background:var(--light);color:var(--dark);overflow-x:hidden}
+header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.hdr{max-width:680px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);letter-spacing:2px;text-decoration:none;flex-shrink:0}
+.logo span{color:#fff}
+.hdr-mid{flex:1;min-width:0}
+.hdr-lbl{font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:1px}
+.hdr-name{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.content{max-width:680px;margin:0 auto;padding:16px}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;border-left:4px solid var(--orange)}
+.stat-val{font-size:26px;font-weight:900;color:var(--dark)}
+.stat-lbl{font-size:11px;font-weight:700;color:var(--gray);margin-top:2px}
+
+/* Search */
+.search-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:800;color:var(--gray);letter-spacing:.5px;margin-bottom:12px;text-transform:uppercase}
+.search-row{display:flex;gap:8px}
+.search-inp{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans',sans-serif;outline:none}
+.search-inp:focus{border-color:var(--orange)}
+.btn-search{padding:10px 16px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+
+/* Order list */
+.order-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;transition:box-shadow .2s}
+.order-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.order-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.order-num{font-size:14px;font-weight:800;color:var(--orange)}
+.order-date{font-size:11px;color:var(--gray)}
+.order-customer{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px}
+.order-meta{font-size:11px;color:var(--gray);margin-bottom:10px}
+
+/* Progress */
+.progress{display:flex;gap:4px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+.prog-step{flex:1;min-width:60px;text-align:center}
+.prog-dot{width:28px;height:28px;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid var(--border);background:#fff;color:var(--gray)}
+.prog-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.prog-dot.active{background:var(--orange);border-color:var(--orange);color:#fff;animation:pulse 2s infinite}
+.prog-lbl{font-size:9px;font-weight:700;color:var(--gray);white-space:nowrap}
+.prog-lbl.done{color:var(--green)}
+.prog-lbl.active{color:var(--orange)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* Action btn */
+.btn-complete{width:100%;padding:12px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Noto Sans',sans-serif;letter-spacing:.3px}
+.btn-complete:disabled{background:#94a3b8;cursor:not-allowed}
+.btn-complete.pvc{background:#7c3aed}
+.btn-complete.done{background:#94a3b8}
+
+/* Empty */
+.empty{text-align:center;padding:40px 20px;color:var(--gray)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-title{font-size:16px;font-weight:700;margin-bottom:6px}
+.empty-sub{font-size:13px}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--dark2);color:#fff;padding:12px 24px;border-radius:20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+.logout-btn{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Noto Sans',sans-serif}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <a href="index.html" class="logo">BAI<span>BESIK</span></a>
+    <div class="hdr-mid">
+      <div class="hdr-lbl" id="role-label">ЖҰМЫСШЫ</div>
+      <div class="hdr-name" id="worker-name">—</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">🚪 Выйти</button>
+  </div>
+</header>
+
+<div class="content">
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" id="stat-today">0</div>
+      <div class="stat-lbl">Бүгін</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="stat-total">0</div>
+      <div class="stat-lbl">Барлық</div>
+    </div>
+  </div>
+
+  <!-- Sipariş numarası ile ara -->
+  <div class="search-card">
+    <div class="card-title" id="search-title">📋 Тапсырыс нөмірі бойынша</div>
+    <div class="search-row">
+      <input class="search-inp" id="order-num-inp" placeholder="RSK-XXXXXXXX" oninput="this.value=this.value.toUpperCase()">
+      <button class="btn-search" onclick="searchByNum()">🔍 Табу</button>
+    </div>
+    <div id="search-result" style="margin-top:10px"></div>
+  </div>
+
+  <!-- Bekleyen siparişler -->
+  <div class="search-card">
+    <div class="card-title" id="pending-title">⏳ Күтіп тұрған тапсырыстар</div>
+    <div id="order-list">
+      <div class="empty"><div class="empty-icon">⏳</div><div class="empty-title">Жүктелуде...</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const SUPABASE_URL='https://fciofuexujtxxjlamxno.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjaW9mdWV4dWp0eHhqbGFteG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTYwOTcsImV4cCI6MjA5NTczMjA5N30.dDvtfabQ6xHmSd5NDntme2ggJpzNKLtXovFFDW2Kc80';
+
+import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let currentUser=null, currentRole=null, currentStore=null, orders=[];
+
+const ROLE_CONFIG={
+  cutting_worker:{
+    label:'ПИЛЬНЫЙ ЦЕНТР',
+    icon:'🪚',
+    pendingStatus:['processing'],
+    completeStatus:'cutting_done',
+    taskType:'cutting',
+    btnText:'✅ Кесу аяқталды',
+    btnClass:'',
+    pendingTitle:'⏳ Кесуге келген тапсырыстар',
+    searchTitle:'🪚 Тапсырыс нөмірімен іздеу'
+  },
+  pvc_worker:{
+    label:'ПВХ ПОКРЫТИЕ',
+    icon:'🖌️',
+    pendingStatus:['cutting_done'],
+    completeStatus:'pvc_done',
+    taskType:'pvc',
+    btnText:'✅ ПВХ аяқталды',
+    btnClass:'pvc',
+    pendingTitle:'⏳ ПВХ-ға келген тапсырыстар',
+    searchTitle:'🖌️ Тапсырыс нөмірімен іздеу'
+  }
+};
+
+const STATUSES=[
+  {key:'pending',   label:'Жаңа',    icon:'📥'},
+  {key:'processing',label:'Кесуде',  icon:'🪚'},
+  {key:'cutting_done',label:'ПВХ',   icon:'🖌️'},
+  {key:'pvc_done',  label:'Дайын',   icon:'✅'},
+  {key:'done',      label:'Берілді', icon:'🎉'},
+];
+
+function showToast(msg,duration=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),duration);
+}
+
+function progressHtml(currentStatus){
+  return '<div class="progress">'+STATUSES.map(s=>{
+    const idx=STATUSES.findIndex(x=>x.key===currentStatus);
+    const myIdx=STATUSES.findIndex(x=>x.key===s.key);
+    const isDone=myIdx<idx;
+    const isActive=s.key===currentStatus;
+    return `<div class="prog-step">
+      <div class="prog-dot ${isDone?'done':isActive?'active':''}">${isDone?'✓':s.icon}</div>
+      <div class="prog-lbl ${isDone?'done':isActive?'active':''}">${s.label}</div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function orderCardHtml(o, cfg, fromSearch=false){
+  const statusIdx=STATUSES.findIndex(s=>s.key===o.status);
+  const myCompleteIdx=STATUSES.findIndex(s=>s.key===cfg.completeStatus);
+  const alreadyDone=statusIdx>=myCompleteIdx;
+  const canAct=cfg.pendingStatus.includes(o.status);
+
+  const pvcM=o.pvc_meters?parseFloat(o.pvc_meters).toFixed(1):'?';
+  const sheets=o.sheets_used||'?';
+
+  return `<div class="order-card" id="oc-${o.order_number}">
+    <div class="order-top">
+      <span class="order-num">${o.order_number}</span>
+      <span class="order-date">${new Date(o.created_at).toLocaleDateString('ru-RU')}</span>
+    </div>
+    <div class="order-customer">${o.customer_name||'—'} · ${o.customer_phone||''}</div>
+    <div class="order-meta">${o.material||'ЛДСП'} · ${sheets} лист · ${(o.parts||[]).length} дет. ${cfg.taskType==='pvc'?'· PVC: '+pvcM+' м':''}</div>
+    ${progressHtml(o.status)}
+    <button class="btn-complete ${cfg.btnClass} ${alreadyDone?'done':''}"
+      onclick="completeTask('${o.order_number}','${cfg.completeStatus}','${cfg.taskType}',${o.sheets_used||0},${o.pvc_meters||0})"
+      ${!canAct?'disabled':''}>
+      ${alreadyDone?'✅ Жасалған':canAct?cfg.btnText:'⏳ Күту...'}
+    </button>
+  </div>`;
+}
+
+async function completeTask(orderNum, newStatus, taskType, sheets, pvcM){
+  const btn=document.querySelector(`#oc-${orderNum} .btn-complete`);
+  if(btn){btn.disabled=true;btn.textContent='⏳ Сақталуда...';}
+  try{
+    // Status güncelle
+    const {error}=await sb.from('raskroi_orders')
+      .update({status:newStatus}).eq('order_number',orderNum);
+    if(error) throw error;
+
+    // worker_tasks'a kaydet
+    if(currentStore){
+      const qty=taskType==='cutting'?parseFloat(sheets)||0:parseFloat(pvcM)||0;
+      await sb.from('worker_tasks').insert({
+        store_id:currentStore.id,
+        worker_id:currentUser.id,
+        task_type:taskType,
+        order_ref:orderNum,
+        quantity:qty,
+        unit:taskType==='cutting'?'лист':'м',
+        unit_price:0,
+        task_date:new Date().toISOString().slice(0,10)
+      });
+    }
+
+    showToast('✅ Тасымалданды!');
+    await loadOrders();
+    // Stat güncelle
+    loadStats();
+  }catch(e){
+    showToast('❌ '+e.message,4000);
+    if(btn){btn.disabled=false;btn.textContent='Қайталап көру';}
+  }
+}
+
+window.completeTask=completeTask;
+
+async function searchByNum(){
+  const num=document.getElementById('order-num-inp').value.trim();
+  const res=document.getElementById('search-result');
+  if(!num){res.innerHTML='';return;}
+  res.innerHTML='<div style="color:var(--gray);font-size:13px">⏳ Іздеу...</div>';
+  try{
+    const cfg=ROLE_CONFIG[currentRole]||ROLE_CONFIG.cutting_worker;
+    const {data:o}=await sb.from('raskroi_orders')
+      .select('*').eq('order_number',num)
+      .eq('store_id',currentStore?.id).single();
+    if(!o){res.innerHTML='<div style="color:var(--red);font-size:13px">❌ Тапсырыс табылмады</div>';return;}
+    res.innerHTML=orderCardHtml(o,cfg,true);
+  }catch(e){res.innerHTML='<div style="color:var(--red);font-size:13px">❌ '+e.message+'</div>';}
+}
+window.searchByNum=searchByNum;
+
+async function loadOrders(){
+  const cfg=ROLE_CONFIG[currentRole]||ROLE_CONFIG.cutting_worker;
+  const listEl=document.getElementById('order-list');
+  if(!currentStore){listEl.innerHTML='<div class="empty"><div class="empty-title">Магазин анықталмады</div></div>';return;}
+  try{
+    const {data}=await sb.from('raskroi_orders')
+      .select('*').eq('store_id',currentStore.id)
+      .in('status',cfg.pendingStatus)
+      .order('created_at',{ascending:true});
+    orders=data||[];
+    if(!orders.length){
+      listEl.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-title">Тапсырыс жоқ</div><div class="empty-sub">Барлығы орындалды</div></div>';
+      return;
+    }
+    listEl.innerHTML=orders.map(o=>orderCardHtml(o,cfg)).join('');
+  }catch(e){listEl.innerHTML='<div class="empty"><div class="empty-title">Қате: '+e.message+'</div></div>';}
+}
+
+async function loadStats(){
+  if(!currentStore||!currentUser) return;
+  try{
+    const today=new Date().toISOString().slice(0,10);
+    const [{data:todayT},{data:allT}]=await Promise.all([
+      sb.from('worker_tasks').select('id',{count:'exact'})
+        .eq('worker_id',currentUser.id).eq('task_date',today),
+      sb.from('worker_tasks').select('id',{count:'exact'})
+        .eq('worker_id',currentUser.id)
+    ]);
+    document.getElementById('stat-today').textContent=todayT?.length||0;
+    document.getElementById('stat-total').textContent=allT?.length||0;
+  }catch(e){}
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  window.location.href='login.html?staff=1';
+}
+window.doLogout=doLogout;
+
+// Init
+(async()=>{
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='login.html?staff=1';return;}
+
+    const {data:user}=await sb.from('users').select('*').eq('id',session.user.id).single();
+    if(!user||!['cutting_worker','pvc_worker'].includes(user.role)){
+      window.location.href='login.html?staff=1';return;
+    }
+    currentUser=user;
+    currentRole=user.role;
+
+    const cfg=ROLE_CONFIG[currentRole];
+    document.getElementById('role-label').textContent=cfg.icon+' '+cfg.label;
+    document.getElementById('worker-name').textContent=user.full_name||user.phone||'—';
+    document.getElementById('pending-title').textContent=cfg.pendingTitle;
+    document.getElementById('search-title').textContent=cfg.searchTitle;
+
+    // Store
+    const {getCurrentStore}=await import('./supabase_client.js');
+    currentStore=await getCurrentStore();
+    if(!currentStore){
+      const {data:m}=await sb.from('store_members').select('store_id,stores(*)').eq('user_id',user.id).limit(1);
+      if(m&&m.length) currentStore=m[0].stores;
+    }
+
+    // applyStoreTheme
+    const {applyStoreTheme}=await import('./supabase_client.js');
+    await applyStoreTheme();
+
+    await loadOrders();
+    await loadStats();
+
+    // Realtime — yeni sipariş gelince yenile
+    sb.channel('worker-orders')
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'raskroi_orders'},()=>loadOrders())
+      .subscribe();
+  }catch(e){
+    console.error(e);
+    window.location.href='login.html?staff=1';
+  }
+})();
+</script>
+</body>
+</html>

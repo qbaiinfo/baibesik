@@ -45,6 +45,9 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .st-processing{background:rgba(59,130,246,.15);color:#1e40af}
 .st-ready{background:rgba(16,185,129,.15);color:#065f46}
 .st-rejected{background:rgba(239,68,68,.15);color:#991b1b}
+.st-cutting_done{background:rgba(124,58,237,.15);color:#5b21b6}
+.st-pvc_done{background:rgba(16,185,129,.15);color:#065f46}
+.st-done{background:rgba(16,185,129,.3);color:#065f46}
 .info-row{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:12px}
 .info-row .l{font-weight:700;color:var(--gray);text-transform:uppercase;font-size:10px}
 .info-row .v{font-weight:600}
@@ -434,7 +437,7 @@ window.selectOrder=function(oid){
   // Malzeme listesini yükle (henüz yüklenmemişse)
   if(!_storeMaterials.length) loadStoreMaterials();
   else loadMaterialOptions();
-  renderParts();renderOrders(orders);calcNest();
+  renderParts();renderOrders(orders);calcNest();updateActionBtns();
 };
 
 // ─── File upload ───
@@ -1241,11 +1244,17 @@ window.startProcess=function(){
   currentOrder.status='processing';currentOrder.parts=parts;
   currentOrder.startedAt=new Date().toISOString();
   saveOrder();
-  document.getElementById('btnStart').style.display='none';
-  document.getElementById('btnFinish').style.display='';
+  updateActionBtns();
   selectOrder(currentOrder.id);
   alert('✓ Резка началась! Заказ в работе.');
 };
+
+function updateActionBtns(){
+  if(!currentOrder) return;
+  const s=currentOrder.status;
+  document.getElementById('btnStart').style.display=(!s||s==='pending')?'':'none';
+  document.getElementById('btnFinish').style.display=(s==='processing')?'':'none';
+}
 
 // ── GÖREV DAĞITIMI ─────────────────────────────────────────────────────────
 let _workers=[], _machines=[], _tmTotalSheets=0, _tmTotalPvc=0;

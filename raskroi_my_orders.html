@@ -45,6 +45,9 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .step{flex:1;text-align:center;padding:5px 2px;border-radius:6px;background:var(--light);color:var(--gray);font-weight:700}
 .step.active{background:var(--orange);color:#fff}
 .step.done{background:var(--green);color:#fff}
+.st-cutting_done{background:rgba(124,58,237,.15);color:#5b21b6;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.st-pvc_done{background:rgba(16,185,129,.15);color:#065f46;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.st-done{background:rgba(16,185,129,.3);color:#065f46;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
 </style>
 </head>
 <body>
@@ -75,11 +78,11 @@ import { getCurrentUser } from './supabase_client.js';
 let currentUser=null, lang='kk', orders=[];
 const T={
   kk:{title:'📋 Менің раскройларым',sub:'Тапсырыстарыңыздың күйін қадағалаңыз',neww:'➕ Жаңа раскрой жасау',empty:'Әзірге раскрой жоқ',emptySub:'Жаңа раскрой жасап, шеберханаға жіберіңіз',parts:'бөлшек',sheets:'парақ',resend:'🔄 Қайта жіберу',detail:'👁 Толық',
-    s_pending:'Күтуде',s_processing:'Өңделуде',s_ready:'Дайын',s_done:'Аяқталды',s_rejected:'Қабылданбады',
-    steps:['Жіберілді','Қабылданды','Кесілуде','Дайын']},
+    s_pending:'Күтуде',s_processing:'Кесілуде',s_cutting_done:'ПВХ жабылуда',s_pvc_done:'Дайын',s_done:'Аяқталды',s_rejected:'Қабылданбады',
+    steps:['Жіберілді','Қабылданды','Кесілді','ПВХ','Дайын']},
   ru:{title:'📋 Мои раскрои',sub:'Отслеживайте статус ваших заказов',neww:'➕ Создать новый раскрой',empty:'Раскроев пока нет',emptySub:'Создайте новый раскрой и отправьте в мастерскую',parts:'деталей',sheets:'листов',resend:'🔄 Повторить',detail:'👁 Детали',
     s_pending:'Ожидает',s_processing:'В работе',s_ready:'Готов',s_done:'Завершён',s_rejected:'Отклонён',
-    steps:['Отправлен','Принят','Резка','Готов']}
+    steps:['Отправлен','Принят','Резка','ПВХ','Готов']}
 };
 window.setL=function(l){lang=l;document.getElementById('lkk').classList.toggle('on',l==='kk');document.getElementById('lru').classList.toggle('on',l==='ru');render();
   document.getElementById('tTitle').textContent=T[l].title;document.getElementById('tSub').textContent=T[l].sub;document.getElementById('tNew').textContent=T[l].neww;};
@@ -118,7 +121,7 @@ function render(){
   el.innerHTML='';
   orders.forEach(o=>{
     const np=(o.parts||[]).reduce((s,p)=>s+(p.qty||1),0);
-    const stepIdx={pending:1,processing:2,ready:3,done:3,rejected:0}[o.status]??1;
+    const stepIdx={pending:0,processing:1,cutting_done:2,pvc_done:3,done:4,rejected:0}[o.status]??0;
     const stepsHtml=t.steps.map((s,i)=>{
       let cls='step';if(o.status==='rejected'){cls='step';}else if(i<stepIdx)cls='step done';else if(i===stepIdx)cls='step active';
       return `<div class="${cls}">${s}</div>`;
