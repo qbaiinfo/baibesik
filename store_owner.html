@@ -466,11 +466,19 @@ async function badgeLogout(){
       <div class="sc-body">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="fg">
-            <label class="fg-lbl">✂️ Кесу (₸/лист)</label>
+            <label class="fg-lbl">🪚 ЛДСП кесу (₸/лист)</label>
             <input class="fg-inp" id="rate-cutting" type="number" placeholder="500" min="0">
           </div>
           <div class="fg">
-            <label class="fg-lbl">🎀 PVC (₸/м)</label>
+            <label class="fg-lbl">🪚 HDF кесу (₸/лист)</label>
+            <input class="fg-inp" id="rate-cutting-hdf" type="number" placeholder="300" min="0">
+          </div>
+          <div class="fg">
+            <label class="fg-lbl">🪚 MDF кесу (₸/лист)</label>
+            <input class="fg-inp" id="rate-cutting-mdf" type="number" placeholder="400" min="0">
+          </div>
+          <div class="fg">
+            <label class="fg-lbl">🖌️ PVC (₸/м)</label>
             <input class="fg-inp" id="rate-pvc" type="number" placeholder="200" min="0" step="0.5">
           </div>
         </div>
@@ -1173,16 +1181,23 @@ window.saveRates=async function(){
   if(!currentStore) return;
   const msg = document.getElementById('rates-msg');
   try{
-    const tasks = Object.keys(TASK_TYPES);
-    for(const type of tasks){
-      const price = parseFloat(document.getElementById('rate-'+type)?.value)||0;
+    // ЛДСП, HDF, MDF kesim + PVC
+    const rateItems=[
+      {task_type:'cutting',     material_type:'ldsp', unit:'лист', elId:'rate-cutting'},
+      {task_type:'cutting',     material_type:'hdf',  unit:'лист', elId:'rate-cutting-hdf'},
+      {task_type:'cutting',     material_type:'mdf',  unit:'лист', elId:'rate-cutting-mdf'},
+      {task_type:'pvc',         material_type:'all',  unit:'м',    elId:'rate-pvc'},
+    ];
+    for(const r of rateItems){
+      const price=parseFloat(document.getElementById(r.elId)?.value)||0;
       await sb.from('worker_rates').upsert({
-        store_id: currentStore.id,
-        task_type: type,
-        unit: TASK_TYPES[type].unit,
-        unit_price: price,
-        worker_id: currentUser.id
-      }, {onConflict:'store_id,worker_id,task_type'});
+        store_id:currentStore.id,
+        task_type:r.task_type,
+        material_type:r.material_type,
+        unit:r.unit,
+        unit_price:price,
+        worker_id:currentUser.id
+      },{onConflict:'store_id,worker_id,task_type,material_type'});
     }
     msg.style.display='';
     setTimeout(()=>msg.style.display='none', 2000);
