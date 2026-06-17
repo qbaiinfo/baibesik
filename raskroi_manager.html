@@ -363,10 +363,12 @@ async function init(){
     const oid=new URLSearchParams(location.search).get('orderId');
     if(oid) setTimeout(()=>selectOrder(oid),200);
   }catch(e){
-    console.error(e);
-    const g=document.getElementById('guardReason');
-    if(g)g.textContent='Ошибка: '+e.message;
-    document.getElementById('authGuard').classList.add('show');
+    console.error('INIT ERROR:', e);
+    try{
+      document.getElementById('authGuard').style.cssText='display:flex!important;background:rgba(0,0,0,.95)';
+      const g=document.getElementById('guardReason');
+      if(g)g.textContent='Ошибка: '+e.message+' | '+e.stack?.split('\n')[1];
+    }catch(e2){document.body.innerHTML='<h1 style="color:red">HATA: '+e.message+'</h1>';}
   }
 }
 
@@ -1425,9 +1427,8 @@ window.exportGCode=function(){if(!lastLayout){alert('Сначала рассчи
 window.exportCuttingPDF=async function(){
   if(!currentOrder){alert('Выберите заказ');return;}
   if(!lastLayout){alert('Сначала нажмите «Рассчитать»');return;}
-  // Dükkan adını al
   let storeName='BAIBESIK.KZ';
-  try{ const { getCurrentStore } = await import('./supabase_client.js'); const _cs = await getCurrentStore(); if(_cs) storeName=_cs.name; }catch(e){}
+  try{const{getCurrentStore}=await import('./supabase_client.js');const _cs=await getCurrentStore();if(_cs)storeName=_cs.name;}catch(e){}
   const L=lastLayout;
   const n=L.sheets.length;
   const sheetM2=(L.SW*L.SH/1e6);
@@ -1437,8 +1438,41 @@ window.exportCuttingPDF=async function(){
   const usedM2=(sheetM2*n).toFixed(2);
   const eff=n?(pa/(L.SW*L.SH*n)*100).toFixed(1):0;
   const pvcM=currentOrder?.pvc==='0'?0:(pvc/1000*1.05).toFixed(1);
-  const price=document.getElementById('finalPrice').textContent||'—';
-  // yerleşim kontrolü
+  const today=new Date().toLocaleString('ru-RU');
+
+  const priceSheet=parseFloat(document.getElementById('priceSheet')?.value)||0;
+  const priceCut=parseFloat(document.getElementById('priceCut')?.value)||0;
+  const pricePvc=parseFloat(document.getElementById('pricePvc')?.value)||0;
+  const finalPrice=n*(priceSheet+priceCut)+pvcM*pricePvc;
+
+  // QR URL
+  const qrBase=window.location.origin+window.location.pathname.replace(/[^/]*$/,'');
+  const qrUrl=qrBase+'worker_task.html?order='+currentOrder.id;
+  const qrImg='https://api.qrserver.com/v1/create-qr-code/?size=90x90&data='+encodeURIComponent(qrUrl);
+
+  // Levha görsellerini yüksek çözünürlükte render et
+  const hiddenWrap=document.createElement('div');
+  hiddenWrap.style.cssText='position:absolute;left:-9999px;top:0';
+  document.body.appendChild(hiddenWrap);
+  let panels;
+  try{ panels=drawSheets(L,hiddenWrap,3); }catch(e){ panels=[]; }
+  document.body.removeChild(hiddenWrap);
+
+  const groups=L.groups||{repFor:L.sheets.map((_,i)=>i),counts:{}};
+  let sheetPages='';
+  for(let i=0;i<panels.length;i+=2){
+    const p1=panels[i],p2=panels[i+1];
+    const img1=p1?.canvas?'<img class="sheet-img" src="'+p1.canvas.toDataURL('image/png')+'">':'';
+    const img2=p2?.canvas?'<img class="sheet-img" src="'+p2.canvas.toDataURL('image/png')+'">':'';
+    sheetPages+=
+      '<div class="sheet-page"'+
+      (i+2<panels.length?' style="page-break-after:always"':'')+'>' +
+      '<div class="sheet-cap'+(p1?.canvas?'':' copy')+'">'+p1?.label+'</div>'+img1+
+      (p2?'<div class="sheet-cap'+(p2?.canvas?'':' copy')+'">'+p2?.label+'</div>'+img2:'')+
+      '</div>';
+  }
+
+  // Parça kontrol tablosu
   const placed={};
   L.sheets.forEach((sh,si)=>sh.parts.forEach(pt=>{
     if(!placed[pt.pid])placed[pt.pid]={n:0,sheets:new Set()};
@@ -1446,109 +1480,65 @@ window.exportCuttingPDF=async function(){
   }));
   const rows=parts.map((p,i)=>{
     const pl=placed[p.id]||{n:0,sheets:new Set()};
-    const ok=pl.n>=p.qty;
-    const edges=[p.e.t?'В':'',p.e.b?'Н':'',p.e.l?'Л':'',p.e.r?'П':''].filter(Boolean).join('')||'—';
-    return `<tr style="${ok?'':'background:#fee2e2'}"><td>${i+1}</td><td style="text-align:left">${p.name||''}</td><td>${p.w}×${p.h}</td><td>${edges}</td><td>${p.qty}</td><td>${pl.n}</td><td>${[...pl.sheets].join(',')||'—'}</td><td>${ok?'✓':'✗ НЕ ХВАТАЕТ'}</td></tr>`;
+    const ok=pl.n>=(p.qty||1);
+    return '<tr>'+'<td>'+i+'</td>'+'<td>'+p.name+'</td>'+'<td>'+p.w+'x'+p.h+'</td>'+
+      '<td>'+(p.qty||1)+'</td>'+'<td>'+(ok?'✓':'✗ НЕ ХВАТАЕТ')+'</td>'+'</tr>';
   }).join('');
-  // Yüksek-çözünürlüklü levha görselleri (offscreen, 3x — baskı kalitesi için)
-  // A4 portrait'e 2 levha sığar: ~138mm yükseklik/levha, alt alta.
-  const hiddenWrap=document.createElement('div');
-  const panels=drawSheets(L,hiddenWrap,3);
-  let imgs='';
-  for(let i=0;i<panels.length;i+=2){
-    imgs+='<div class="sheet-page">'+panels.slice(i,i+2).map(p=>
-      p.canvas
-        ? `<div class="sheet-cap">${p.label}</div><img class="sheet-img" src="${p.canvas.toDataURL('image/png')}">`
-        : `<div class="sheet-cap copy">${p.label}</div>`
-    ).join('')+'</div>';
-  }
-  const today=new Date().toLocaleString('ru-RU');
-  const html=`<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Раскрой ${currentOrder.id}</title>
-  <style>
-    body{font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;margin:24px;font-size:13px}
-    h1{font-size:20px;margin:0 0 2px}.sub{color:#64748b;font-size:11px;margin-bottom:14px}
-    table{width:100%;border-collapse:collapse;margin-top:6px}
-    th,td{border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:12px}
-    th{background:#f1f5f9}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin:10px 0;font-size:13px}
-    .grid b{color:#334155}
-    .price{font-size:18px;font-weight:800;color:#16a34a;margin:10px 0}
-    .sheet-cap{font-weight:800;font-size:12px;margin:10px 0 4px}
-    .sheet-cap.copy{opacity:.6;font-weight:400}
-    .sheet-img{width:100%;max-height:135mm;object-fit:contain;border:1px solid #cbd5e1;display:block}
-    @media print{
-      button{display:none}
-      .sheet-page{page-break-after:always}
-      .sheet-page:last-child{page-break-after:auto}
-    }
-  </style></head><body>
-  <button onclick="window.print()" style="position:fixed;top:10px;right:10px;padding:10px 18px;background:#f97316;color:#fff;border:none;border-radius:8px;font-weight:800;cursor:pointer">🖨 Печать / PDF</button>
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
-    <div>
-      <h1>${storeName} — Раскрой ${currentOrder.id}</h1>
-      <div class="sub">Отчёт сформирован: ${today}</div>
-    </div>
-    <div style="text-align:center;flex-shrink:0">
-      <img id="pdf-qr" src="" width="90" height="90" style="display:block;margin:0 auto" alt="QR">
-      <div style="font-size:9px;color:#0f172a;margin-top:4px;font-weight:800">${currentOrder.id}</div>
-      <div style="font-size:8px;color:#ea580c;font-weight:700;margin-top:3px">🪚 Пильный центр</div>
-      <div style="font-size:8px;color:#7c3aed;font-weight:700">🖌️ ПВХ покрытие</div>
-      <div style="font-size:7px;color:#94a3b8;margin-top:2px">Сканируйте QR для обработки</div>
-    </div>
-  </div>
-  <div class="grid">
-    <div><b>Клиент:</b> ${currentOrder.customer||'—'}</div>
-    <div><b>Телефон:</b> ${currentOrder.phone||'—'}</div>
-    <div><b>Менеджер:</b> ${currentUser?.full_name||'—'}</div>
-    <div><b>Дата заказа:</b> ${new Date(currentOrder.createdAt).toLocaleString('ru-RU')}</div>
-    <div><b>Материал:</b> ${currentOrder.material||'—'}</div>
-    <div><b>Лист:</b> ${L.SW}×${L.SH} mm (${sheetM2.toFixed(2)} м²)</div>
-    <div><b>Листов нужно:</b> ${n} шт (${usedM2} м²)</div>
-    <div><b>Площадь деталей:</b> ${paM2} м²</div>
-    <div><b>КПД:</b> ${eff}%</div>
-    <div><b>Кромка PVC:</b> ${pvcM} м</div>
-  </div>
-  <div class="price">💰 Цена: ${price}</div>
-  <div style="font-weight:800;font-size:14px;margin-top:12px">📋 Контроль деталей (${tp} шт)</div>
-  <table><thead><tr><th>№</th><th>Название</th><th>Размер</th><th>Кромка</th><th>Заказ</th><th>Размещено</th><th>Лист</th><th>✓</th></tr></thead><tbody>${rows}</tbody></table>
-  ${imgs}
-  <div style="margin-top:18px;font-size:11px;color:#64748b">Подпись клиента: ______________________ &nbsp;&nbsp;&nbsp; Подпись менеджера: ______________________</div>
-  
-<!-- GÖREV DAĞITIMI MODALI -->
-<div id="taskModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:16px">
-  <div style="background:#fff;border-radius:16px;padding:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <h3 style="font-size:16px;font-weight:700">✅ Резку завершить</h3>
-      <button onclick="closeTaskModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#64748b">✕</button>
-    </div>
-    <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:12px;border:1px solid #e2e8f0">
-      <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:10px">✂️ Кесу устасы — барлығы <span id="tm-total-sheets" style="color:#f97316">0 лист</span></div>
-      <div id="tm-cut-rows" style="display:flex;flex-direction:column;gap:8px"></div>
-      <button onclick="addTaskRow('cutting')" style="margin-top:8px;padding:6px 12px;background:none;border:1.5px dashed #94a3b8;border-radius:6px;font-size:12px;cursor:pointer;width:100%;color:#64748b">+ Usta ekle</button>
-    </div>
-    <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:16px;border:1px solid #e2e8f0">
-      <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:10px">🎀 PVC Usta — барлығы <span id="tm-total-pvc" style="color:#f97316">0 м</span></div>
-      <div id="tm-pvc-rows" style="display:flex;flex-direction:column;gap:8px"></div>
-      <button onclick="addTaskRow('pvc')" style="margin-top:8px;padding:6px 12px;background:none;border:1.5px dashed #94a3b8;border-radius:6px;font-size:12px;cursor:pointer;width:100%;color:#64748b">+ Usta ekle</button>
-    </div>
-    <div id="tm-error" style="display:none;color:#ef4444;font-size:12px;margin-bottom:10px;padding:8px;background:#fee2e2;border-radius:6px"></div>
-    <button onclick="saveTasksAndFinish()" style="width:100%;padding:12px;background:#059669;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">💾 Kaydet ve Siparişi Tamamla</button>
-  </div>
-</div>
 
-</body></html>\`;
-  // QR URL — subdomain + sipariş numarası
-  const qrBase=window.location.origin+window.location.pathname.replace(/[^/]*$/,'');
-  const qrUrl=`${qrBase}worker_task.html?order=${currentOrder.id}`;
-
-  // QR URL'sini HTML içine göm (script yüklenmeden önce)
-  // QR kodu API ile resim olarak göm (JS gereksiz, yazdırmada çalışır)
-  const qrApiUrl='https://api.qrserver.com/v1/create-qr-code/?size=90x90&data='+encodeURIComponent(qrUrl);
-  const htmlWithQr=html.replace('src="" width="90" height="90"','src="'+qrApiUrl+'" width="90" height="90"');
+  const html='<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8">'+
+    '<title>Раскрой '+currentOrder.id+'</title>'+
+    '<style>'+
+    '@page{size:A4;margin:10mm}'+
+    '*{box-sizing:border-box;margin:0;padding:0}'+
+    'body{font-family:Arial,sans-serif;font-size:13px}'+
+    '.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #f97316}'+
+    '.title{font-size:20px;font-weight:900;color:#f97316}'+
+    '.sub{font-size:11px;color:#64748b;margin-top:2px}'+
+    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin:10px 0;font-size:13px}'+
+    '.grid b{color:#334155}'+
+    '.price{font-size:18px;font-weight:800;color:#16a34a;margin:10px 0}'+
+    'table{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px}'+
+    'th{background:#f1f5f9}'+
+    'td,th{border:1px solid #e2e8f0;padding:4px 6px}'+
+    '.sheet-page{margin:16px 0}'+
+    '.sheet-cap{font-weight:800;font-size:12px;margin:10px 0 4px}'+
+    '.sheet-cap.copy{opacity:.6;font-weight:400}'+
+    '.sheet-img{width:100%;max-height:135mm;object-fit:contain;border:1px solid #cbd5e1;display:block}'+
+    '@media print{button{display:none}}'+
+    '</style></head><body>'+
+    '<button onclick="window.print()" style="position:fixed;top:10px;right:10px;padding:10px 18px;background:#f97316;color:#fff;border:none;border-radius:8px;font-weight:800;cursor:pointer">Печать / PDF</button>'+
+    '<div class="header">'+
+    '<div>'+
+    '<div class="title">'+storeName+' — Раскрой '+currentOrder.id+'</div>'+
+    '<div class="sub">'+today+'</div>'+
+    '</div>'+
+    '<div style="text-align:center">'+
+    '<img src="'+qrImg+'" width="90" height="90" style="display:block;margin:0 auto" alt="QR">'+
+    '<div style="font-size:9px;color:#0f172a;margin-top:2px;font-weight:800">'+currentOrder.id+'</div>'+
+    '<div style="font-size:8px;color:#ea580c;font-weight:700">🪚 Пильный центр</div>'+
+    '<div style="font-size:8px;color:#7c3aed;font-weight:700">🖌️ ПВХ покрытие</div>'+
+    '</div>'+
+    '</div>'+
+    '<div class="grid">'+
+    '<div><b>Клиент:</b> '+(currentOrder.customer||'—')+'</div>'+
+    '<div><b>Телефон:</b> '+(currentOrder.phone||'—')+'</div>'+
+    '<div><b>Материал:</b> '+(currentOrder.material||'—')+'</div>'+
+    '<div><b>Лист:</b> '+L.SW+'x'+L.SH+' ('+sheetM2.toFixed(2)+' м²)</div>'+
+    '<div><b>Листов:</b> '+n+'</div>'+
+    '<div><b>Деталей:</b> '+tp+'</div>'+
+    '<div><b>Площадь дет.:</b> '+paM2+' м²</div>'+
+    '<div><b>КПД:</b> '+eff+'%</div>'+
+    '</div>'+
+    '<div class="price">'+finalPrice.toLocaleString('ru-RU')+' ₸</div>'+
+    sheetPages+
+    '<h3 style="margin:16px 0 8px">Контроль деталей</h3>'+
+    '<table><thead><tr><th>#</th><th>Деталь</th><th>Размер</th><th>Кол-во</th><th>Статус</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table>'+
+    '</body></html>';
 
   const w=window.open('','_blank');
   if(!w){alert('Разрешите всплывающие окна');return;}
-  w.document.write(htmlWithQr);w.document.close();
+  w.document.write(html);w.document.close();
 };
 
 window.exportDXF=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
