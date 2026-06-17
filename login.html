@@ -176,8 +176,8 @@ const ROUTES = {
   customer:'musteri_dashboard.html',
   raskroi_manager:'raskroi_manager.html',
   raskroi_worker:'raskroi_manager.html',
-  cutting_worker:'raskroi_manager.html',
-  pvc_worker:'raskroi_manager.html',
+  cutting_worker:'worker_task.html',
+  pvc_worker:'worker_task.html',
 };
 
 const T = {
@@ -295,7 +295,7 @@ async function doLogin(){
     const role=user?.role||'customer';
 
     // Rol kontrolü
-    const staffRoles=['super_admin','store_owner','manager','warehouse','raskroi_worker','raskroi_manager'];
+    const staffRoles=['super_admin','store_owner','manager','warehouse','raskroi_worker','raskroi_manager','cutting_worker','pvc_worker'];
     const customerRoles=['customer','wholesale'];
 
     if(mode==='staff' && customerRoles.includes(role)){
