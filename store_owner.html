@@ -406,7 +406,7 @@ async function badgeLogout(){
       </div>
       <div class="sc-body" style="overflow-x:auto">
         <table>
-          <thead><tr><th>№</th><th>Дата</th><th>Клиент</th><th>Телефон</th><th>Деталей</th><th>Цена ₸</th><th>Статус</th></tr></thead>
+          <thead><tr><th>№</th><th>Дата</th><th>Клиент</th><th>Дет/Лист</th><th>Барысы</th><th>Статус</th></tr></thead>
           <tbody id="rk-orders"><tr><td colspan="7" style="text-align:center;color:var(--gray);padding:18px">⏳</td></tr></tbody>
         </table>
       </div>
@@ -661,43 +661,60 @@ function setLang(l){
 async function loadRaskroiDash(){
   if(!currentStore){return;}
   try{
-    // Siparişler
     const {data:rows,error}=await sb.from('raskroi_orders')
-      .select('id, order_number, status, parts, total_price, created_at, users!raskroi_orders_customer_id_fkey(full_name, phone)')
-      .eq('store_id', currentStore.id)
-      .order('created_at',{ascending:false})
-      .limit(100);
+      .select('id,order_number,status,parts,total_price,created_at,sheets_used,users!raskroi_orders_customer_id_fkey(full_name,phone)')
+      .eq('store_id',currentStore.id)
+      .order('created_at',{ascending:false}).limit(100);
     if(error) throw error;
     const all=rows||[];
-    const active=all.filter(o=>['pending','processing'].includes(o.status)).length;
-    const done=all.filter(o=>['ready','done'].includes(o.status)).length;
-    const revenue=all.filter(o=>['ready','done'].includes(o.status)).reduce((s,o)=>s+(parseFloat(o.total_price)||0),0);
+
+    // Stats
+    const active=all.filter(o=>['pending','processing','cutting_done','pvc_done'].includes(o.status)).length;
+    const done=all.filter(o=>o.status==='done').length;
+    const revenue=all.filter(o=>o.status==='done').reduce((s,o)=>s+(parseFloat(o.total_price)||0),0);
     $('rk-total').textContent=all.length;
     $('rk-active').textContent=active;
     $('rk-done').textContent=done;
     $('rk-revenue').textContent=revenue.toLocaleString('ru-RU');
-    const stMap={pending:['#3b82f6','Новый'],processing:['#f59e0b','В работе'],ready:['#16a34a','Готов'],done:['#16a34a','Выдан'],rejected:['#dc2626','Отклонён']};
-    $('rk-orders').innerHTML=all.length?all.slice(0,30).map(o=>{
-      const st=stMap[o.status]||stMap.pending;
-      const np=Array.isArray(o.parts)?o.parts.reduce((s,p)=>s+(parseInt(p.qty)||1),0):'—';
-      const u=o.users||{};
-      return `<tr>
-        <td style="font-weight:800">${o.order_number||o.id.substring(0,6)}</td>
-        <td>${new Date(o.created_at).toLocaleDateString('ru-RU')}</td>
-        <td>${u.full_name||'—'}</td>
-        <td>${u.phone||'—'}</td>
-        <td>${np}</td>
-        <td style="font-weight:800">${o.total_price?parseFloat(o.total_price).toLocaleString('ru-RU'):'—'}</td>
-        <td><span style="color:${st[0]};font-weight:800">● ${st[1]}</span></td>
-      </tr>`;
-    }).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:18px">Заказов раскроя пока нет</td></tr>';
 
-    // Personel
+    // Status config
+    const STEPS=[
+      {key:'pending',    label:'Жаңа',   color:'#3b82f6', icon:'📥'},
+      {key:'processing', label:'Кесуде', color:'#f59e0b', icon:'🪚'},
+      {key:'cutting_done',label:'ПВХ',  color:'#7c3aed', icon:'🖌️'},
+      {key:'pvc_done',   label:'Дайын', color:'#10b981', icon:'✅'},
+      {key:'done',       label:'Берілді',color:'#16a34a', icon:'🎉'},
+    ];
+    function progressMini(status){
+      const idx=STEPS.findIndex(s=>s.key===status);
+      return STEPS.map((s,i)=>`<span style="font-size:11px;${i<=idx?'color:'+s.color+';font-weight:800':'color:#cbd5e1'}">${s.icon}</span>`).join('');
+    }
+
+    // Sipariş satırları
+    if(!all.length){
+      $('rk-orders').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:18px">Раскрой тапсырысы жоқ</td></tr>';
+    } else {
+      $('rk-orders').innerHTML=all.slice(0,50).map(o=>{
+        const u=o.users||{};
+        const np=Array.isArray(o.parts)?o.parts.reduce((s,p)=>s+(parseInt(p.qty)||1),0):'—';
+        const cur=STEPS.find(s=>s.key===o.status)||STEPS[0];
+        return `<tr onclick="showRaskroiDetail('${o.order_number}')" style="cursor:pointer">
+          <td style="font-weight:800;color:#f97316">${o.order_number}</td>
+          <td>${new Date(o.created_at).toLocaleDateString('ru-RU')}</td>
+          <td>${u.full_name||'—'}</td>
+          <td>${np} дет · ${o.sheets_used||'?'} лист</td>
+          <td>${progressMini(o.status)}</td>
+          <td><span style="color:${cur.color};font-weight:800;font-size:11px">${cur.icon} ${cur.label}</span></td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Personel - tüm üretim rolleri
     const {data:staff}=await sb.from('store_members')
-      .select('role, users(full_name, phone)')
-      .eq('store_id', currentStore.id)
-      .in('role',['raskroi_manager','raskroi_worker']);
-    const labels={raskroi_manager:'✂️ Менеджер раскроя',raskroi_worker:'🪚 Работник'};
+      .select('role,users(full_name,phone)')
+      .eq('store_id',currentStore.id)
+      .in('role',['raskroi_manager','raskroi_worker','cutting_worker','pvc_worker']);
+    const labels={raskroi_manager:'📋 Раскрой менеджер',raskroi_worker:'🪚 Раскрой работник',cutting_worker:'🪚 Пильный центр',pvc_worker:'🖌️ ПВХ покрытие'};
     $('rk-staff').innerHTML=(staff&&staff.length)?staff.map(s=>`
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
         <div>
@@ -706,12 +723,68 @@ async function loadRaskroiDash(){
         </div>
         <span style="font-size:11px;font-weight:800;color:#3b82f6">${labels[s.role]||s.role}</span>
       </div>`).join('')
-      :'<div style="text-align:center;padding:14px;color:var(--gray)">Персонал раскроя не назначен — нажмите «+ Назначить»</div>';
+      :'<div style="text-align:center;padding:14px;color:var(--gray)">Персонал назначен емес</div>';
   }catch(e){
     console.warn('raskroi dash:',e.message);
-    $('rk-orders').innerHTML='<tr><td colspan="7" style="text-align:center;color:#dc2626;padding:18px">Ошибка: '+e.message+'</td></tr>';
+    $('rk-orders').innerHTML='<tr><td colspan="6" style="color:#dc2626;padding:18px">Қате: '+e.message+'</td></tr>';
   }
 }
+
+window.showRaskroiDetail=async function(orderNum){
+  try{
+    const {data:o}=await sb.from('raskroi_orders')
+      .select('*,users!raskroi_orders_customer_id_fkey(full_name,phone)')
+      .eq('order_number',orderNum).single();
+    const {data:tasks}=await sb.from('worker_tasks')
+      .select('task_type,quantity,unit,task_date,users:worker_id(full_name,phone)')
+      .eq('order_ref',orderNum);
+
+    const STEPS=[
+      {key:'pending',label:'📥 Жаңа тапсырыс'},
+      {key:'processing',label:'🪚 Кесуде / В резке'},
+      {key:'cutting_done',label:'🖌️ ПВХ жабылуда'},
+      {key:'pvc_done',label:'✅ Дайын'},
+      {key:'done',label:'🎉 Берілді / Выдан'},
+    ];
+    const statusIdx=STEPS.findIndex(s=>s.key===o.status);
+    const stepsHtml=STEPS.map((s,i)=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;${i<=statusIdx?'background:#f97316':'background:#e2e8f0'}">${i<=statusIdx?'✓':'○'}</div>
+        <span style="font-size:13px;font-weight:${i===statusIdx?'800':'500'};color:${i===statusIdx?'#f97316':i<statusIdx?'#10b981':'#94a3b8'}">${s.label}</span>
+      </div>`).join('');
+
+    const tasksHtml=(tasks&&tasks.length)?tasks.map(t=>`
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <span>${t.task_type==='cutting'?'🪚 Кесу':'🖌️ ПВХ'} · ${t.users?.full_name||'—'}</span>
+        <span style="font-weight:700">${t.quantity} ${t.unit}</span>
+        <span style="color:var(--gray)">${t.task_date}</span>
+      </div>`).join('')
+      :'<div style="color:var(--gray);font-size:12px;padding:8px 0">Тіркелген жұмыс жоқ</div>';
+
+    // Modal яrat
+    let modal=document.getElementById('rk-detail-modal');
+    if(modal) modal.remove();
+    modal=document.createElement('div');
+    modal.id='rk-detail-modal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    modal.innerHTML=`<div style="background:#fff;border-radius:16px;padding:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div>
+          <div style="font-size:18px;font-weight:900;color:#f97316">${o.order_number}</div>
+          <div style="font-size:13px;color:var(--gray)">${o.users?.full_name||'—'} · ${o.users?.phone||''}</div>
+        </div>
+        <button onclick="document.getElementById('rk-detail-modal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--gray);margin-bottom:14px">${o.material||'—'} · ${o.sheets_used||'?'} лист · ${(o.parts||[]).length} дет.</div>
+      <div style="font-size:12px;font-weight:800;color:var(--gray);margin-bottom:8px;letter-spacing:.5px">АЯҚТАЛУ БАРЫСЫ / ХОД ВЫПОЛНЕНИЯ</div>
+      ${stepsHtml}
+      <div style="font-size:12px;font-weight:800;color:var(--gray);margin:14px 0 8px;letter-spacing:.5px">ОРЫНДАҒАН ЖҰМЫСТАР / ВЫПОЛНЕННЫЕ РАБОТЫ</div>
+      ${tasksHtml}
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+  }catch(e){alert('Қате: '+e.message);}
+};
 
 function showTab(id, btn){
   document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
