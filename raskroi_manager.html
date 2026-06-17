@@ -1187,7 +1187,16 @@ window.calcNest=async function(){
   const cut=L.cutLen||0;
   const n=L.sheets.length,eff=n?pa/(sheetArea*n)*100:0;
   document.getElementById('cSheets').textContent=n;
-  document.getElementById('cEff').textContent=eff.toFixed(0)+'%';
+  document.getElementById('cEff').textContent=eff.toFixed(1)+'%';
+  // KDT modu aktif mi göster
+  const kdtActive = document.getElementById('opt-kdt')?.checked !== false;
+  const effEl = document.getElementById('cEff');
+  if(effEl){
+    effEl.title = kdtActive
+      ? '🏭 KDT Modu: Guillotine-only (makine uyumlu)'
+      : '📐 Standart: MaxRects+Guillotine (yüksek KPD)';
+    effEl.style.color = eff >= 85 ? '#16a34a' : eff >= 75 ? '#f97316' : '#dc2626';
+  }
   document.getElementById('cCut').textContent=(cut/1000).toFixed(1)+'м';
   const pvcM=currentOrder?.pvc==='0'?0:pvc/1000*1.05;
   document.getElementById('cPvc').textContent=pvcM.toFixed(1)+'м';
