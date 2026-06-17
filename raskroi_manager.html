@@ -59,6 +59,27 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .btn{padding:10px 16px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;transition:.2s;font-family:'Noto Sans'}
 .btn-primary{background:var(--orange);color:#fff}.btn-primary:hover{background:var(--orange-dark)}
 .btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#059669}
+/* ── PRINT AREA ── */
+#print-area{display:none}
+@media print{
+  body>*:not(#print-area){display:none!important}
+  #print-area{display:block!important;font-family:Arial,sans-serif;font-size:12px;color:#1e293b}
+  #print-area .noprint{display:none}
+  #print-area .hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:3px solid #f97316}
+  #print-area .htitle{font-size:20px;font-weight:900;color:#f97316}
+  #print-area .hsub{font-size:11px;color:#64748b;margin-top:2px}
+  #print-area .grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;margin:10px 0;font-size:12px}
+  #print-area .pricebox{background:#f0fdf4;border:2px solid #16a34a;border-radius:8px;padding:10px 14px;margin:10px 0;display:flex;justify-content:space-between;align-items:center}
+  #print-area .pricetotal{font-size:20px;font-weight:900;color:#16a34a}
+  #print-area .spage{margin:10px 0;page-break-inside:avoid}
+  #print-area .scap{font-weight:800;font-size:11px;margin:6px 0 2px;padding:3px 6px;background:#f1f5f9}
+  #print-area .simg{width:100%;max-height:130mm;object-fit:contain;border:1px solid #cbd5e1;display:block}
+  #print-area table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}
+  #print-area th{background:#f1f5f9;padding:4px 5px;border:1px solid #e2e8f0;text-align:left}
+  #print-area td{border:1px solid #e2e8f0;padding:3px 5px}
+  #print-area h3{font-size:12px;font-weight:800;margin:12px 0 4px;border-bottom:1px solid #e2e8f0;padding-bottom:3px}
+  @page{size:A4;margin:15mm 20mm}
+}
 .btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#2563eb}
 .btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#dc2626}
 .btn-block{width:100%;margin-bottom:8px}
@@ -106,6 +127,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
+<div id="print-area"></div>
 <div class="auth-guard" id="authGuard">
   <h2>🔐 Тек раскрой шебері кіре алады</h2>
   <p style="margin-top:8px;color:#94a3b8;font-size:13px">Доступ только для мастера раскроя (raskroi_worker / manager)</p>
@@ -1565,50 +1587,48 @@ window.exportCuttingPDF=async function(){
     '</body></html>';
 
   // PDF için ayrı div oluştur - full HTML doc değil, sadece body content
-  const pdfWrap=document.createElement('div');
-  pdfWrap.id='pdf-export-wrap';
-  pdfWrap.style.cssText='position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:20px 30px;font-family:Arial,sans-serif;font-size:12px;color:#1e293b';
+  // Print area'ya yaz ve bas
+  const pa=document.getElementById('print-area');
+  pa.innerHTML=
+    '<div class="hdr">'+
+    '<div><div class="htitle">'+storeName+' — '+currentOrder.id+'</div>'+
+    '<div class="hsub">'+today+'</div></div>'+
+    '<div style="text-align:center">'+
+    '<img src="'+qrImg+'" width="90" height="90" style="display:block;margin:0 auto">'+
+    '<div style="font-size:9px;font-weight:800;margin-top:2px">'+currentOrder.id+'</div>'+
+    '<div style="font-size:8px;color:#ea580c;font-weight:700">🪚 Пильный центр</div>'+
+    '<div style="font-size:8px;color:#7c3aed;font-weight:700">🖌️ ПВХ покрытие</div>'+
+    '</div></div>'+
+    '<div class="grid2">'+
+    '<div><b>Клиент:</b> '+(currentOrder.customer||'—')+'</div>'+
+    '<div><b>Телефон:</b> '+(currentOrder.phone||'—')+'</div>'+
+    '<div><b>Материал:</b> '+(currentOrder.material||'—')+'</div>'+
+    '<div><b>Лист:</b> '+L.SW+'x'+L.SH+' мм</div>'+
+    '<div><b>Листов:</b> '+n+'</div>'+
+    '<div><b>Деталей:</b> '+tp+'</div>'+
+    '<div><b>КПД:</b> '+eff+'%</div>'+
+    '<div><b>PVC:</b> '+pvcM+' м</div>'+
+    '</div>'+
+    '<div class="pricebox">'+
+    '<div><div class="pricetotal">'+finalPrice.toLocaleString('ru-RU')+' ₸</div>'+
+    '<div style="font-size:11px;color:#64748b">'+breakdown+'</div></div>'+
+    '</div>'+
+    '<h3>Схема раскроя</h3>'+
+    sheetHTML+
+    '<h3>Контроль деталей</h3>'+
+    '<table><thead><tr><th>#</th><th>Деталь</th><th>Размер</th><th>Кол-во</th><th>Кромка</th><th>✓</th></tr></thead>'+
+    '<tbody>'+partRows+'</tbody></table>';
 
-  // CSS stil tag ekle
-  const styleEl=document.createElement('style');
-  styleEl.textContent=css;
-  pdfWrap.appendChild(styleEl);
-
-  // Body content ekle (html'den body kısmını çıkar)
-  const bodyMatch=html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  const bodyContent=bodyMatch?bodyMatch[1]:html;
-  const bodyDiv=document.createElement('div');
-  bodyDiv.innerHTML=bodyContent;
-  // Print butonunu kaldır
-  const noprint=bodyDiv.querySelector('.noprint');
-  if(noprint)noprint.remove();
-  pdfWrap.appendChild(bodyDiv);
-  document.body.appendChild(pdfWrap);
-
-  const filename=(currentOrder.id||'raskroi')+'_'+storeName.replace(/[^a-zA-Z0-9]/g,'_')+'.pdf';
-  const opt={
-    margin:0,
-    filename:filename,
-    image:{type:'jpeg',quality:0.92},
-    html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff'},
-    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-    pagebreak:{mode:'css',before:'.spage'}
-  };
-
-  const pdfBtn=document.querySelector('[onclick="exportCuttingPDF()"]');
-  const origTxt=pdfBtn?pdfBtn.textContent:'';
-  if(pdfBtn){pdfBtn.textContent='⏳ PDF hazırlanıyor...';pdfBtn.disabled=true;}
-
-  html2pdf().set(opt).from(pdfWrap).save()
-    .then(()=>{
-      document.body.removeChild(pdfWrap);
-      if(pdfBtn){pdfBtn.textContent=origTxt;pdfBtn.disabled=false;}
-    })
-    .catch(e=>{
-      document.body.removeChild(pdfWrap);
-      if(pdfBtn){pdfBtn.textContent=origTxt;pdfBtn.disabled=false;}
-      alert('PDF hatası: '+e.message);
-    });
+  // QR resmi yüklenince print et
+  const qrImgEl=pa.querySelector('img');
+  const doPrint=()=>{window.print();setTimeout(()=>{pa.innerHTML='';},1000);};
+  if(qrImgEl){
+    qrImgEl.onload=doPrint;
+    qrImgEl.onerror=doPrint;
+    setTimeout(doPrint,2000); // max 2sn bekle
+  } else {
+    doPrint();
+  }
 };
 
 window.exportDXF=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
