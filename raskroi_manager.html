@@ -1536,23 +1536,26 @@ window.exportCuttingPDF=async function(){
   </div>
 </div>
 
-</body></html>`;
+</body></html>\`;
   // QR URL — subdomain + sipariş numarası
   const qrBase=window.location.origin+window.location.pathname.replace(/[^/]*$/,'');
   const qrUrl=`${qrBase}worker_task.html?order=${currentOrder.id}`;
+
+  // QR URL'sini HTML içine göm (script yüklenmeden önce)
+  const htmlWithQr=html.replace('</body>',
+    `<script>
+      window.addEventListener('load',function(){
+        var el=document.getElementById('pdf-qr');
+        if(el&&typeof QRCode!=='undefined'){
+          new QRCode(el,{text:'${qrUrl.replace(/'/g,"\'")}',width:90,height:90,colorDark:'#0f172a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+        }
+      });
+    </\`+'script>'+'</body>'
+  );
+
   const w=window.open('','_blank');
   if(!w){alert('Разрешите всплывающие окна');return;}
-  w.document.write(html);w.document.close();
-  // QR kodunu üret
-  setTimeout(()=>{
-    try{
-      if(w.QRCode){
-        w._qrUrl=qrUrl;
-        const qrEl=w.document.getElementById('pdf-qr');
-        if(qrEl) new w.QRCode(qrEl,{text:qrUrl,width:90,height:90,colorDark:'#0f172a',colorLight:'#ffffff',correctLevel:w.QRCode.CorrectLevel.M});
-      }
-    }catch(e){}
-  },800);
+  w.document.write(htmlWithQr);w.document.close();
 };
 
 window.exportDXF=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
@@ -1736,6 +1739,7 @@ window.printOnePart=function(pt){
 
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Этикетка ${pt.orderNum} — ${pt.idx}</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:10mm;background:#fff}
