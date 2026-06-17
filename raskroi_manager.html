@@ -102,6 +102,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 <div class="auth-guard" id="authGuard">
@@ -183,9 +184,12 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <button onclick="toggleSettings()" id="settingsBtn" style="padding:5px 10px;background:#f1f5f9;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:#475569">⚙️ Материалы</button>
         </div>
         <h3 class="panel-title" style="display:none">🔍 Поиск заказов / клиента</h3>
-        <div class="search-box">
-          <input type="text" id="searchInp" placeholder="Имя, телефон или № заказа..." oninput="filterOrders()">
+        <div class="search-box" style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="searchInp" placeholder="Имя, телефон или № заказа..." oninput="filterOrders()" style="flex:1">
+          <button onclick="toggleRMScanner()" id="rm-qr-btn" title="QR сканнер" style="padding:7px 10px;background:var(--dark);color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:16px;flex-shrink:0">📷</button>
         </div>
+        <div id="rm-qr-reader" style="width:100%;border-radius:8px;overflow:hidden;margin-top:6px;display:none"></div>
+        <div id="rm-qr-status" style="text-align:center;font-size:11px;color:var(--gray);padding:4px;display:none">QR кодты нұсқаңыз...</div>
         <div style="font-size:12px;font-weight:700;color:var(--dark);margin:10px 0 6px;display:flex;align-items:center;gap:6px">🆕 Новые заказы <span id="newCount" style="background:var(--orange);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px"></span></div>
         <div class="order-list" id="orderListNew"></div>
         <div style="font-size:12px;font-weight:700;color:var(--dark);margin:14px 0 6px;display:flex;align-items:center;gap:6px">🪚 Готово к резке (мастеру) <span id="readyCount" style="background:#1e40af;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px"></span></div>
@@ -1575,6 +1579,57 @@ window.exportKdtCsv=function(){if(!lastLayout){alert('Сначала рассч�
   a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'_kdt.csv';a.click();
 };
 
+
+// ── QR SCANNER (Раскрой менеджер) ─────────────────────────────
+let _rmQr=null, _rmQrActive=false;
+
+window.toggleRMScanner=async function(){
+  const btn=document.getElementById('rm-qr-btn');
+  const reader=document.getElementById('rm-qr-reader');
+  const status=document.getElementById('rm-qr-status');
+  if(_rmQrActive){
+    if(_rmQr) await _rmQr.stop().catch(()=>{});
+    _rmQr=null; _rmQrActive=false;
+    reader.style.display='none'; status.style.display='none';
+    btn.textContent='📷'; btn.style.background='var(--dark)';
+    return;
+  }
+  _rmQrActive=true;
+  btn.textContent='⏹'; btn.style.background='var(--red)';
+  reader.style.display='block'; status.style.display='block';
+  _rmQr=new Html5Qrcode('rm-qr-reader');
+  try{
+    await _rmQr.start(
+      {facingMode:'environment'},
+      {fps:10,qrbox:{width:200,height:200}},
+      async(text)=>{
+        let orderNum='';
+        if(text.includes('worker_task.html')){
+          const u=new URL(text); orderNum=u.searchParams.get('order')||'';
+        } else if(/RSK-[A-Z0-9]+/.test(text)){
+          orderNum=text.match(/RSK-[A-Z0-9]+/)[0];
+        }
+        if(!orderNum) return;
+        // Scanner kapat
+        await toggleRMScanner();
+        // Arama kutusuna yaz ve filtrele
+        const inp=document.getElementById('searchInp');
+        inp.value=orderNum;
+        filterOrders();
+        // Direkt sipariş varsa aç
+        const found=orders.find(o=>o.id===orderNum);
+        if(found) selectOrder(found.id);
+        if(navigator.vibrate) navigator.vibrate([100,50,100]);
+      },
+      ()=>{}
+    );
+  }catch(e){
+    _rmQrActive=false;
+    reader.style.display='none'; status.style.display='none';
+    btn.textContent='📷'; btn.style.background='var(--dark)';
+    if(e.toString().includes('permission')) alert('Камераға рұқсат беріңіз!');
+  }
+};
 
 function renderCutList(L){
   const wrap=document.getElementById('cutListWrap');
