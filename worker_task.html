@@ -326,6 +326,18 @@ window.doLogout=doLogout;
     const {applyStoreTheme}=await import('./supabase_client.js');
     await applyStoreTheme();
 
+    // URL'den sipariş numarası varsa otomatik yükle (QR okutma)
+    const urlOrder = new URLSearchParams(window.location.search).get('order');
+    if(urlOrder){
+      document.getElementById('order-num-inp').value=urlOrder.toUpperCase();
+      await searchByNum();
+      // Scroll to result
+      setTimeout(()=>{
+        const r=document.getElementById('search-result');
+        if(r) r.scrollIntoView({behavior:'smooth',block:'center'});
+      },300);
+    }
+
     await loadOrders();
     await loadStats();
 

@@ -1471,8 +1471,19 @@ window.exportCuttingPDF=async function(){
     }
   </style></head><body>
   <button onclick="window.print()" style="position:fixed;top:10px;right:10px;padding:10px 18px;background:#f97316;color:#fff;border:none;border-radius:8px;font-weight:800;cursor:pointer">🖨 Печать / PDF</button>
-  <h1>${storeName} — Раскрой ${currentOrder.id}</h1>
-  <div class="sub">Отчёт сформирован: ${today}</div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
+    <div>
+      <h1>${storeName} — Раскрой ${currentOrder.id}</h1>
+      <div class="sub">Отчёт сформирован: ${today}</div>
+    </div>
+    <div style="text-align:center;flex-shrink:0">
+      <div id="pdf-qr" style="width:90px;height:90px;margin:0 auto"></div>
+      <div style="font-size:9px;color:#0f172a;margin-top:4px;font-weight:800">${currentOrder.id}</div>
+      <div style="font-size:8px;color:#ea580c;font-weight:700;margin-top:3px">🪚 Пильный центр</div>
+      <div style="font-size:8px;color:#7c3aed;font-weight:700">🖌️ ПВХ покрытие</div>
+      <div style="font-size:7px;color:#94a3b8;margin-top:2px">Сканируйте QR для обработки</div>
+    </div>
+  </div>
   <div class="grid">
     <div><b>Клиент:</b> ${currentOrder.customer||'—'}</div>
     <div><b>Телефон:</b> ${currentOrder.phone||'—'}</div>
@@ -1514,9 +1525,22 @@ window.exportCuttingPDF=async function(){
 </div>
 
 </body></html>`;
+  // QR URL — subdomain + sipariş numarası
+  const qrBase=window.location.origin+window.location.pathname.replace(/[^/]*$/,'');
+  const qrUrl=`${qrBase}worker_task.html?order=${currentOrder.id}`;
   const w=window.open('','_blank');
   if(!w){alert('Разрешите всплывающие окна');return;}
   w.document.write(html);w.document.close();
+  // QR kodunu üret
+  setTimeout(()=>{
+    try{
+      if(w.QRCode){
+        w._qrUrl=qrUrl;
+        const qrEl=w.document.getElementById('pdf-qr');
+        if(qrEl) new w.QRCode(qrEl,{text:qrUrl,width:90,height:90,colorDark:'#0f172a',colorLight:'#ffffff',correctLevel:w.QRCode.CorrectLevel.M});
+      }
+    }catch(e){}
+  },800);
 };
 
 window.exportDXF=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
