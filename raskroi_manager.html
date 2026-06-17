@@ -102,6 +102,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
@@ -1563,9 +1564,31 @@ window.exportCuttingPDF=async function(){
     '<tbody>'+partRows+'</tbody></table>'+
     '</body></html>';
 
-  const w=window.open('','_blank');
-  if(!w){alert('Разрешите всплывающие окна');return;}
-  w.document.write(html);w.document.close();
+  // html2pdf ile direkt PDF download
+  const container=document.createElement('div');
+  container.innerHTML=html;
+  container.style.cssText='position:absolute;left:-9999px;top:0;width:794px;background:#fff';
+  document.body.appendChild(container);
+
+  const filename=(currentOrder.id||'raskroi')+'_'+storeName.replace(/\s+/g,'_')+'.pdf';
+  const opt={
+    margin:[15,20],
+    filename:filename,
+    image:{type:'jpeg',quality:0.95},
+    html2canvas:{scale:2,useCORS:true,allowTaint:true},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+    pagebreak:{mode:['css','legacy']}
+  };
+
+  const btn=document.querySelector('[onclick="exportCuttingPDF()"]');
+  if(btn){const orig=btn.textContent;btn.textContent='⏳ PDF...';btn.disabled=true;
+    html2pdf().set(opt).from(container.firstChild).save().then(()=>{
+      document.body.removeChild(container);
+      btn.textContent=orig;btn.disabled=false;
+    }).catch(e=>{document.body.removeChild(container);btn.textContent=orig;btn.disabled=false;alert('Hata: '+e.message);});
+  } else {
+    html2pdf().set(opt).from(container.firstChild).save().then(()=>document.body.removeChild(container));
+  }
 };
 
 window.exportDXF=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
