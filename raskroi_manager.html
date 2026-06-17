@@ -298,7 +298,10 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 
 
 <script type="module">
-import { getCurrentUser } from './supabase_client.js';
+window.addEventListener('error',function(e){document.body.style.cssText='background:#fff;padding:20px';document.body.innerHTML='<h2 style="color:red">HATA: '+e.message+'</h2><small>'+e.filename+':'+e.lineno+'</small>';});
+window.addEventListener('unhandledrejection',function(e){document.body.style.cssText='background:#fff;padding:20px';document.body.innerHTML='<h2 style="color:red">PROMISE: '+(e.reason?.message||e.reason)+'</h2>';});
+
+// supabase_client dinamik yükleniyor (lazy)
 
 let currentUser=null, orders=[], currentOrder=null, parts=[], files=[], lastLayout=null;
 const COLORS=['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2','#F8A5B8','#A8E6CF','#FDCB6E','#74B9FF'];
@@ -314,7 +317,8 @@ window.doLogout=function(e){
 
 async function init(){
   try{
-    currentUser=await getCurrentUser();
+    const { getCurrentUser: _gcu } = await import('./supabase_client.js');
+    currentUser = await _gcu();
     // raskroi_worker veya manager veya store_owner erişebilir
     const allowed=['raskroi_worker','raskroi_manager','manager','store_owner','super_admin','owner'];
     if(!currentUser || !allowed.includes(currentUser.role)){
@@ -1501,10 +1505,10 @@ window.exportCuttingPDF=async function(){
   }).join('');
 
   // PDF print area'ya yaz
-  const pa=document.getElementById('print-area');
-  if(!pa){alert('print-area bulunamadı');return;}
+  const printAreaEl=document.getElementById('print-area');
+  if(!printAreaEl){alert('print-area bulunamadı');return;}
 
-  pa.innerHTML=
+  printAreaEl.innerHTML=
     '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:3px solid #f97316">'+
       '<div><div style="font-size:20px;font-weight:900;color:#f97316">'+storeName+' — '+currentOrder.id+'</div>'+
       '<div style="font-size:11px;color:#64748b;margin-top:2px">'+today+'</div></div>'+
@@ -1542,7 +1546,7 @@ window.exportCuttingPDF=async function(){
 
   // QR yüklenince ya da 2sn sonra print et
   const qrEl=document.getElementById('pdf-qr-img');
-  const doPrint=()=>{window.print();setTimeout(()=>{pa.innerHTML='';},1500);};
+  const doPrint=()=>{window.print();setTimeout(()=>{printAreaEl.innerHTML='';},1500);};
   if(qrEl){
     let printed=false;
     qrEl.onload=()=>{if(!printed){printed=true;doPrint();}};
