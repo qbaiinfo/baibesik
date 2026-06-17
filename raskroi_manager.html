@@ -1564,31 +1564,51 @@ window.exportCuttingPDF=async function(){
     '<tbody>'+partRows+'</tbody></table>'+
     '</body></html>';
 
-  // html2pdf ile direkt PDF download
-  const container=document.createElement('div');
-  container.innerHTML=html;
-  container.style.cssText='position:absolute;left:-9999px;top:0;width:794px;background:#fff';
-  document.body.appendChild(container);
+  // PDF için ayrı div oluştur - full HTML doc değil, sadece body content
+  const pdfWrap=document.createElement('div');
+  pdfWrap.id='pdf-export-wrap';
+  pdfWrap.style.cssText='position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:20px 30px;font-family:Arial,sans-serif;font-size:12px;color:#1e293b';
 
-  const filename=(currentOrder.id||'raskroi')+'_'+storeName.replace(/\s+/g,'_')+'.pdf';
+  // CSS stil tag ekle
+  const styleEl=document.createElement('style');
+  styleEl.textContent=css;
+  pdfWrap.appendChild(styleEl);
+
+  // Body content ekle (html'den body kısmını çıkar)
+  const bodyMatch=html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  const bodyContent=bodyMatch?bodyMatch[1]:html;
+  const bodyDiv=document.createElement('div');
+  bodyDiv.innerHTML=bodyContent;
+  // Print butonunu kaldır
+  const noprint=bodyDiv.querySelector('.noprint');
+  if(noprint)noprint.remove();
+  pdfWrap.appendChild(bodyDiv);
+  document.body.appendChild(pdfWrap);
+
+  const filename=(currentOrder.id||'raskroi')+'_'+storeName.replace(/[^a-zA-Z0-9]/g,'_')+'.pdf';
   const opt={
-    margin:[15,20],
+    margin:0,
     filename:filename,
-    image:{type:'jpeg',quality:0.95},
-    html2canvas:{scale:2,useCORS:true,allowTaint:true},
+    image:{type:'jpeg',quality:0.92},
+    html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff'},
     jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-    pagebreak:{mode:['css','legacy']}
+    pagebreak:{mode:'css',before:'.spage'}
   };
 
-  const btn=document.querySelector('[onclick="exportCuttingPDF()"]');
-  if(btn){const orig=btn.textContent;btn.textContent='⏳ PDF...';btn.disabled=true;
-    html2pdf().set(opt).from(container.firstChild).save().then(()=>{
-      document.body.removeChild(container);
-      btn.textContent=orig;btn.disabled=false;
-    }).catch(e=>{document.body.removeChild(container);btn.textContent=orig;btn.disabled=false;alert('Hata: '+e.message);});
-  } else {
-    html2pdf().set(opt).from(container.firstChild).save().then(()=>document.body.removeChild(container));
-  }
+  const pdfBtn=document.querySelector('[onclick="exportCuttingPDF()"]');
+  const origTxt=pdfBtn?pdfBtn.textContent:'';
+  if(pdfBtn){pdfBtn.textContent='⏳ PDF hazırlanıyor...';pdfBtn.disabled=true;}
+
+  html2pdf().set(opt).from(pdfWrap).save()
+    .then(()=>{
+      document.body.removeChild(pdfWrap);
+      if(pdfBtn){pdfBtn.textContent=origTxt;pdfBtn.disabled=false;}
+    })
+    .catch(e=>{
+      document.body.removeChild(pdfWrap);
+      if(pdfBtn){pdfBtn.textContent=origTxt;pdfBtn.disabled=false;}
+      alert('PDF hatası: '+e.message);
+    });
 };
 
 window.exportDXF=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
