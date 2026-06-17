@@ -1265,10 +1265,18 @@ let _workers=[], _machines=[], _tmTotalSheets=0, _tmTotalPvc=0;
 
 async function loadWorkersAndMachines(){
   try{
-    const { getCurrentStore, createClient:_ } = await import('./supabase_client.js');
+    const { getCurrentStore } = await import('./supabase_client.js');
     const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
     const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-    const store = await getCurrentStore();
+    let store = await getCurrentStore();
+    // Subdomain yoksa session kullanıcısının dükkanını al
+    if(!store){
+      const {data:{session}} = await sb.auth.getSession();
+      if(session){
+        const {data:m} = await sb.from('store_members').select('store_id,stores(*)').eq('user_id',session.user.id).limit(1);
+        if(m&&m.length) store = m[0].stores;
+      }
+    }
     if(!store) return;
     const [{data:w},{data:m}] = await Promise.all([
       sb.from('store_members').select('user_id, role, users(full_name, phone)').eq('store_id', store.id).in('role',['raskroi_manager','raskroi_worker','manager','owner']),
@@ -1306,15 +1314,15 @@ function addTaskRow(type){
 }
 
 window.openTaskModal=async function(){
-  if(!currentOrder || !lastLayout){ alert('Önce hesaplama yapın'); return; }
+  if(!currentOrder){ alert('Выберите заказ'); return; }
   await loadWorkersAndMachines();
 
-  // Toplam levha ve PVC hesapla
-  _tmTotalSheets = lastLayout.sheets.length;
+  // Toplam levha ve PVC hesapla - lastLayout yoksa tahmini
+  _tmTotalSheets = lastLayout ? lastLayout.sheets.length : (currentOrder.sheets||1);
   let pvcTotal=0;
   parts.forEach(p=>{
     let per=0;
-    if(p.e.t)per+=p.w;if(p.e.b)per+=p.w;if(p.e.l)per+=p.h;if(p.e.r)per+=p.h;
+    if(p.e&&p.e.t)per+=p.w;if(p.e&&p.e.b)per+=p.w;if(p.e&&p.e.l)per+=p.h;if(p.e&&p.e.r)per+=p.h;
     pvcTotal+=per*(p.qty||1);
   });
   _tmTotalPvc = parseFloat((pvcTotal/1000*1.05).toFixed(1));
