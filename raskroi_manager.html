@@ -1489,7 +1489,7 @@ window.exportCuttingPDF=async function(){
       <div class="sub">Отчёт сформирован: ${today}</div>
     </div>
     <div style="text-align:center;flex-shrink:0">
-      <div id="pdf-qr" style="width:90px;height:90px;margin:0 auto"></div>
+      <img id="pdf-qr" src="" width="90" height="90" style="display:block;margin:0 auto" alt="QR">
       <div style="font-size:9px;color:#0f172a;margin-top:4px;font-weight:800">${currentOrder.id}</div>
       <div style="font-size:8px;color:#ea580c;font-weight:700;margin-top:3px">🪚 Пильный центр</div>
       <div style="font-size:8px;color:#7c3aed;font-weight:700">🖌️ ПВХ покрытие</div>
@@ -1542,16 +1542,9 @@ window.exportCuttingPDF=async function(){
   const qrUrl=`${qrBase}worker_task.html?order=${currentOrder.id}`;
 
   // QR URL'sini HTML içine göm (script yüklenmeden önce)
-  const htmlWithQr=html.replace('</body>',
-    `<script>
-      window.addEventListener('load',function(){
-        var el=document.getElementById('pdf-qr');
-        if(el&&typeof QRCode!=='undefined'){
-          new QRCode(el,{text:'${qrUrl.replace(/'/g,"\'")}',width:90,height:90,colorDark:'#0f172a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
-        }
-      });
-    </\`+'script>'+'</body>'
-  );
+  // QR kodu API ile resim olarak göm (JS gereksiz, yazdırmada çalışır)
+  const qrApiUrl='https://api.qrserver.com/v1/create-qr-code/?size=90x90&data='+encodeURIComponent(qrUrl);
+  const htmlWithQr=html.replace('src="" width="90" height="90"','src="'+qrApiUrl+'" width="90" height="90"');
 
   const w=window.open('','_blank');
   if(!w){alert('Разрешите всплывающие окна');return;}
