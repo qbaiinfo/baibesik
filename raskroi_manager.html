@@ -265,6 +265,16 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
         <div style="display:flex;gap:6px;margin-top:10px">
           <button class="btn btn-primary" onclick="addPart()">➕ Деталь</button>
           <button class="btn btn-blue" onclick="calcNest()">🧮 Рассчитать раскрой</button>
+        <div style="display:flex;gap:12px;margin-top:8px">
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700">
+            <input type="checkbox" id="opt-block" checked style="accent-color:var(--orange);width:14px;height:14px">
+            🧱 Block Grouping
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700">
+            <input type="checkbox" id="opt-kerf" checked style="accent-color:var(--orange);width:14px;height:14px">
+            ✂️ Kerf Opt
+          </label>
+        </div>
         </div>
       </div>
 
@@ -275,6 +285,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <div class="calc-card"><div class="cv" id="cEff">0%</div><div class="cl">КПД</div></div>
           <div class="calc-card"><div class="cv" id="cCut">0м</div><div class="cl">Длина реза</div></div>
           <div class="calc-card"><div class="cv" id="cPvc">0м</div><div class="cl">Кромка PVC</div></div>
+          <div class="calc-card" id="cKerfCard" style="display:none;background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.3)"><div class="cv" id="cKerfSaved" style="color:#16a34a;font-size:14px">—</div><div class="cl">✂️ Kerf Saved</div></div>
         </div>
         <div class="canvas-wrap" id="canvasWrap"><div class="empty">Загрузите заказ и нажмите «Рассчитать»</div></div>
         <div id="cutListWrap" style="display:none;margin-top:12px"></div>
@@ -560,6 +571,52 @@ window.delPart=id=>{parts=parts.filter(p=>p.id!==id);renderParts();};
 window.addPart=function(){const id=Math.max(0,...parts.map(p=>p.id))+1;parts.push({id,name:'P'+id,w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false});renderParts();};
 
 // ─── Nesting (same algo as raskroi) ───
+
+// ══════════════════════════════════════════════════════
+// BLOCK GROUPING: Aynı boyuttaki parçaları gruplayıp
+// sıralı yerleştirerek gang cut (blok kesim) oluşturur.
+function applyBlockGrouping(items) {
+  const groups = {};
+  items.forEach(it => {
+    const eKey = it.e ? `${it.e.t?1:0}${it.e.b?1:0}${it.e.l?1:0}${it.e.r?1:0}` : '0000';
+    const key = `${it.w}x${it.h}:${it.lock?1:0}:${eKey}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(it);
+  });
+  // Büyük gruplar önce → blok oluşumu daha iyi
+  const sorted = Object.values(groups).sort((a,b) => b.length - a.length);
+  return sorted.flat();
+}
+
+// KERF OPTIMIZATION: Gang cut (paylaşımlı kesim) tespiti
+// ve tasarruf hesabı.
+function calcKerfSavings(sheets, kerf) {
+  let savedMm = 0, gangCuts = 0;
+  sheets.forEach(sheet => {
+    const ps = sheet.parts || [];
+    // Aynı X'te birden fazla parça → paylaşımlı dikey kesim
+    const xMap = {};
+    ps.forEach(p => {
+      const k = Math.round(p.x);
+      xMap[k] = (xMap[k]||0) + 1;
+    });
+    Object.values(xMap).forEach(n => {
+      if(n > 1){ savedMm += (n-1)*kerf; gangCuts++; }
+    });
+    // Aynı Y'de birden fazla parça → paylaşımlı yatay kesim
+    const yMap = {};
+    ps.forEach(p => {
+      const k = Math.round(p.y);
+      yMap[k] = (yMap[k]||0) + 1;
+    });
+    Object.values(yMap).forEach(n => {
+      if(n > 1){ savedMm += (n-1)*kerf; gangCuts++; }
+    });
+  });
+  return { savedMm: Math.round(savedMm), gangCuts };
+}
+// ══════════════════════════════════════════════════════
+
 function nestCore(parts, SW, SH, kerf, trim, grain){
   const usableW=SW-2*trim, usableH=SH-2*trim;
   const MIN_REM=100;
@@ -1005,16 +1062,35 @@ function nest(){
 // Edge Function üzerinden hesapla; başarısız olursa lokal nestCore'a düş
 // (raskroi.html ile birebir aynı algoritma/davranış)
 async function nestRemote(SW,SH,kerf,trim,grain){
+  // Block Grouping: aynı boyutları grupla
+  const useBlock = document.getElementById('opt-block')?.checked !== false;
+  let partsToNest = parts;
+  if(useBlock && parts.length > 1){
+    // flat açarak block grouping uygula, sonra qty ile topla
+    const flat=[];
+    parts.forEach(p=>{for(let i=0;i<(p.qty||1);i++)flat.push({...p,qty:1});});
+    const grouped = applyBlockGrouping(flat);
+    const byId={};
+    grouped.forEach(p=>{
+      if(!byId[p.id]){byId[p.id]={...p,qty:0};}
+      byId[p.id].qty++;
+    });
+    // Sırayı koru (grouped sırasına göre)
+    const seen=new Set();
+    partsToNest=[];
+    grouped.forEach(p=>{if(!seen.has(p.id)){seen.add(p.id);partsToNest.push(byId[p.id]);}});
+  }
+
   try{
     const { supabase } = await import('./supabase_client.js');
     const { data, error } = await supabase.functions.invoke('nest-cutting',{
-      body:{ parts, sheetW:SW, sheetH:SH, kerf, trim, grainDir:grain }
+      body:{ parts:partsToNest, sheetW:SW, sheetH:SH, kerf, trim, grainDir:grain }
     });
     if(error||!data||data.error||!Array.isArray(data.sheets)) throw new Error(error?.message||data?.error||'nest-cutting boş yanıt');
     return data;
   }catch(e){
     console.warn('nest-cutting Edge Function başarısız, lokal motora geçiliyor:',e.message);
-    return nestCore(parts, SW, SH, kerf, trim, grain);
+    return nestCore(partsToNest, SW, SH, kerf, trim, grain);
   }
 }
 
@@ -1036,6 +1112,13 @@ window.calcNest=async function(){
   document.getElementById('cCut').textContent=(cut/1000).toFixed(1)+'м';
   const pvcM=currentOrder?.pvc==='0'?0:pvc/1000*1.05;
   document.getElementById('cPvc').textContent=pvcM.toFixed(1)+'м';
+  // Kerf Optimization sonuçları
+  const useKerfOpt = document.getElementById('opt-kerf')?.checked !== false;
+  if(useKerfOpt && L.sheets){
+    const ks = calcKerfSavings(L.sheets, kerf);
+    L.kerfSavedMm = ks.savedMm;
+    L.gangCuts = ks.gangCuts;
+  }
   drawSheets(L);
   renderCutList(L);
   // fiyat: levha sayısı × (levha fiyatı + kesim ücreti/levha) + PVC м × ₸/м
