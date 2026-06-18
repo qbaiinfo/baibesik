@@ -45,6 +45,9 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .st-processing{background:rgba(59,130,246,.15);color:#1e40af}
 .st-ready{background:rgba(16,185,129,.15);color:#065f46}
 .st-rejected{background:rgba(239,68,68,.15);color:#991b1b}
+.st-cutting_done{background:rgba(124,58,237,.15);color:#5b21b6}
+.st-pvc_done{background:rgba(16,185,129,.15);color:#065f46}
+.st-done{background:rgba(16,185,129,.3);color:#065f46}
 .info-row{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:12px}
 .info-row .l{font-weight:700;color:var(--gray);text-transform:uppercase;font-size:10px}
 .info-row .v{font-weight:600}
@@ -56,6 +59,16 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .btn{padding:10px 16px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;transition:.2s;font-family:'Noto Sans'}
 .btn-primary{background:var(--orange);color:#fff}.btn-primary:hover{background:var(--orange-dark)}
 .btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#059669}
+/* ── PRINT AREA ── */
+#print-area{display:none}
+@media print{
+  @page{size:A4 portrait;margin:12mm 15mm}
+  body{margin:0;padding:0}
+  body>*:not(#print-area){display:none!important;visibility:hidden!important}
+  #print-area{display:block!important;visibility:visible!important;width:180mm;font-family:Arial,sans-serif;font-size:11px;color:#1e293b;background:#fff}
+  #print-area *{max-width:100%;box-sizing:border-box}
+  #print-area img{max-width:100%;height:auto}
+}
 .btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#2563eb}
 .btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#dc2626}
 .btn-block{width:100%;margin-bottom:8px}
@@ -99,8 +112,10 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
+<div id="print-area"></div>
 <div class="auth-guard" id="authGuard">
   <h2>🔐 Тек раскрой шебері кіре алады</h2>
   <p style="margin-top:8px;color:#94a3b8;font-size:13px">Доступ только для мастера раскроя (raskroi_worker / manager)</p>
@@ -180,9 +195,12 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <button onclick="toggleSettings()" id="settingsBtn" style="padding:5px 10px;background:#f1f5f9;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:#475569">⚙️ Материалы</button>
         </div>
         <h3 class="panel-title" style="display:none">🔍 Поиск заказов / клиента</h3>
-        <div class="search-box">
-          <input type="text" id="searchInp" placeholder="Имя, телефон или № заказа..." oninput="filterOrders()">
+        <div class="search-box" style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="searchInp" placeholder="Имя, телефон или № заказа..." oninput="filterOrders()" style="flex:1">
+          <button onclick="toggleRMScanner()" id="rm-qr-btn" title="QR сканнер" style="padding:7px 10px;background:var(--dark);color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:16px;flex-shrink:0">📷</button>
         </div>
+        <div id="rm-qr-reader" style="width:100%;border-radius:8px;overflow:hidden;margin-top:6px;display:none"></div>
+        <div id="rm-qr-status" style="text-align:center;font-size:11px;color:var(--gray);padding:4px;display:none">QR кодты нұсқаңыз...</div>
         <div style="font-size:12px;font-weight:700;color:var(--dark);margin:10px 0 6px;display:flex;align-items:center;gap:6px">🆕 Новые заказы <span id="newCount" style="background:var(--orange);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px"></span></div>
         <div class="order-list" id="orderListNew"></div>
         <div style="font-size:12px;font-weight:700;color:var(--dark);margin:14px 0 6px;display:flex;align-items:center;gap:6px">🪚 Готово к резке (мастеру) <span id="readyCount" style="background:#1e40af;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px"></span></div>
@@ -247,6 +265,29 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
         <div style="display:flex;gap:6px;margin-top:10px">
           <button class="btn btn-primary" onclick="addPart()">➕ Деталь</button>
           <button class="btn btn-blue" onclick="calcNest()">🧮 Рассчитать раскрой</button>
+        <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;align-items:center">
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700">
+            <input type="checkbox" id="opt-block" checked style="accent-color:var(--orange);width:14px;height:14px">
+            🧱 Block Grouping
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700">
+            <input type="checkbox" id="opt-kerf" checked style="accent-color:var(--orange);width:14px;height:14px">
+            ✂️ Kerf Opt
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700;color:#7c3aed">
+            <input type="checkbox" id="opt-kdt" checked style="accent-color:#7c3aed;width:14px;height:14px">
+            🏭 KDT Modu
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700">
+            🔄 Deneme:
+            <select id="opt-tries" style="padding:2px 6px;border:1px solid var(--border);border-radius:5px;font-size:11px;font-weight:700">
+              <option value="1">1×</option>
+              <option value="2">2× Daha iyi</option>
+              <option value="3" selected>3× Tavsiye</option>
+              <option value="5">5× Maksimum</option>
+            </select>
+          </label>
+        </div>
         </div>
       </div>
 
@@ -257,8 +298,10 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <div class="calc-card"><div class="cv" id="cEff">0%</div><div class="cl">КПД</div></div>
           <div class="calc-card"><div class="cv" id="cCut">0м</div><div class="cl">Длина реза</div></div>
           <div class="calc-card"><div class="cv" id="cPvc">0м</div><div class="cl">Кромка PVC</div></div>
+          <div class="calc-card" id="cKerfCard" style="display:none;background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.3)"><div class="cv" id="cKerfSaved" style="color:#16a34a;font-size:14px">—</div><div class="cl">✂️ Kerf Saved</div></div>
         </div>
         <div class="canvas-wrap" id="canvasWrap"><div class="empty">Загрузите заказ и нажмите «Рассчитать»</div></div>
+        <div id="cutListWrap" style="display:none;margin-top:12px"></div>
       </div>
 
       <div class="panel">
@@ -269,12 +312,14 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <input type="number" id="pricePvc" class="full" placeholder="Кромка PVC ₸/м (180-250)" value="200">
         </div>
         <div class="calc-card" style="margin-bottom:10px"><div class="cv" id="finalPrice">0 ₸</div><div class="cl">Итоговая цена</div><div id="priceBreakdown" style="font-size:9px;color:var(--gray);margin-top:4px"></div></div>
-        <button class="btn btn-green btn-block" onclick="startProcess()">✓ Начать резку</button>
+        <button class="btn btn-green btn-block" id="btnStart" onclick="startProcess()">✓ Начать резку</button>
+        <button class="btn btn-green btn-block" id="btnFinish" onclick="openTaskModal()" style="display:none;background:#065f46">✅ Завершить резку</button>
         <button class="btn btn-blue btn-block" style="background:#dc2626" onclick="exportCuttingPDF()">📄 PDF Отчёт (полный)</button>
         <button class="btn btn-blue btn-block" onclick="exportDXF()" style="margin-top:6px">📥 Экспорт DXF</button>
         <button class="btn btn-blue btn-block" onclick="exportKdtCsv()" style="margin-top:6px">🏭 Экспорт CSV (КДТ/ЧПУ раскладка)</button>
         <button class="btn btn-blue btn-block" onclick="exportKdtXml()" style="margin-top:6px;background:#7c3aed">📋 Экспорт XML (КДТ машина)</button>
         <button class="btn btn-blue btn-block" onclick="exportGCode()" style="margin-top:6px">⚙️ Экспорт G-Code (ЧПУ)</button>
+        <button class="btn btn-blue btn-block" onclick="printLabels()" style="margin-top:6px;background:#059669">🏷️ Этикетки (наклейки на детали)</button>
         <button class="btn btn-blue btn-block" onclick="sendWhatsApp()">💬 Отправить в WhatsApp</button>
         <button class="btn btn-red btn-block" onclick="rejectOrder()">✗ Отклонить</button>
       </div>
@@ -282,9 +327,12 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
   </div>
 </div>
 
-<script src="supabase_client.js" type="module"></script>
+
 <script type="module">
-import { getCurrentUser } from './supabase_client.js';
+window.addEventListener('error',function(e){document.body.style.cssText='background:#fff;padding:20px';document.body.innerHTML='<h2 style="color:red">HATA: '+e.message+'</h2><small>'+e.filename+':'+e.lineno+'</small>';});
+window.addEventListener('unhandledrejection',function(e){document.body.style.cssText='background:#fff;padding:20px';document.body.innerHTML='<h2 style="color:red">PROMISE: '+(e.reason?.message||e.reason)+'</h2>';});
+
+// supabase_client dinamik yükleniyor (lazy)
 
 let currentUser=null, orders=[], currentOrder=null, parts=[], files=[], lastLayout=null;
 const COLORS=['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2','#F8A5B8','#A8E6CF','#FDCB6E','#74B9FF'];
@@ -300,7 +348,8 @@ window.doLogout=function(e){
 
 async function init(){
   try{
-    currentUser=await getCurrentUser();
+    const { getCurrentUser: _gcu } = await import('./supabase_client.js');
+    currentUser = await _gcu();
     // raskroi_worker veya manager veya store_owner erişebilir
     const allowed=['raskroi_worker','raskroi_manager','manager','store_owner','super_admin','owner'];
     if(!currentUser || !allowed.includes(currentUser.role)){
@@ -353,10 +402,12 @@ async function init(){
     const oid=new URLSearchParams(location.search).get('orderId');
     if(oid) setTimeout(()=>selectOrder(oid),200);
   }catch(e){
-    console.error(e);
-    const g=document.getElementById('guardReason');
-    if(g)g.textContent='Ошибка: '+e.message;
-    document.getElementById('authGuard').classList.add('show');
+    console.error('INIT ERROR:', e);
+    try{
+      document.getElementById('authGuard').style.cssText='display:flex!important;background:rgba(0,0,0,.95)';
+      const g=document.getElementById('guardReason');
+      if(g)g.textContent='Ошибка: '+e.message+' | '+e.stack?.split('\n')[1];
+    }catch(e2){document.body.innerHTML='<h1 style="color:red">HATA: '+e.message+'</h1>';}
   }
 }
 
@@ -431,7 +482,7 @@ window.selectOrder=function(oid){
   // Malzeme listesini yükle (henüz yüklenmemişse)
   if(!_storeMaterials.length) loadStoreMaterials();
   else loadMaterialOptions();
-  renderParts();renderOrders(orders);calcNest();
+  renderParts();renderOrders(orders);calcNest();updateActionBtns();
 };
 
 // ─── File upload ───
@@ -533,7 +584,53 @@ window.delPart=id=>{parts=parts.filter(p=>p.id!==id);renderParts();};
 window.addPart=function(){const id=Math.max(0,...parts.map(p=>p.id))+1;parts.push({id,name:'P'+id,w:400,h:300,qty:1,e:{t:true,r:false,b:true,l:false},lock:false});renderParts();};
 
 // ─── Nesting (same algo as raskroi) ───
-function nestCore(parts, SW, SH, kerf, trim, grain){
+
+// ══════════════════════════════════════════════════════
+// BLOCK GROUPING: Aynı boyuttaki parçaları gruplayıp
+// sıralı yerleştirerek gang cut (blok kesim) oluşturur.
+function applyBlockGrouping(items) {
+  const groups = {};
+  items.forEach(it => {
+    const eKey = it.e ? `${it.e.t?1:0}${it.e.b?1:0}${it.e.l?1:0}${it.e.r?1:0}` : '0000';
+    const key = `${it.w}x${it.h}:${it.lock?1:0}:${eKey}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(it);
+  });
+  // Büyük gruplar önce → blok oluşumu daha iyi
+  const sorted = Object.values(groups).sort((a,b) => b.length - a.length);
+  return sorted.flat();
+}
+
+// KERF OPTIMIZATION: Gang cut (paylaşımlı kesim) tespiti
+// ve tasarruf hesabı.
+function calcKerfSavings(sheets, kerf) {
+  let savedMm = 0, gangCuts = 0;
+  sheets.forEach(sheet => {
+    const ps = sheet.parts || [];
+    // Aynı X'te birden fazla parça → paylaşımlı dikey kesim
+    const xMap = {};
+    ps.forEach(p => {
+      const k = Math.round(p.x);
+      xMap[k] = (xMap[k]||0) + 1;
+    });
+    Object.values(xMap).forEach(n => {
+      if(n > 1){ savedMm += (n-1)*kerf; gangCuts++; }
+    });
+    // Aynı Y'de birden fazla parça → paylaşımlı yatay kesim
+    const yMap = {};
+    ps.forEach(p => {
+      const k = Math.round(p.y);
+      yMap[k] = (yMap[k]||0) + 1;
+    });
+    Object.values(yMap).forEach(n => {
+      if(n > 1){ savedMm += (n-1)*kerf; gangCuts++; }
+    });
+  });
+  return { savedMm: Math.round(savedMm), gangCuts };
+}
+// ══════════════════════════════════════════════════════
+
+function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
   const usableW=SW-2*trim, usableH=SH-2*trim;
   const MIN_REM=100;
   // grainMode: 'auto' (levha doku ayarına uy) | 'lock' (asla döndürme) | 'free' (her zaman döndürülebilir)
@@ -686,6 +783,7 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     }));
   }
 
+
   // ════ STRATEJI: MAXIMAL RECTANGLES (Best Area Fit) ════
   // Guillotine'in aksine free-rect'ler CAKISABILIR — bir kesim sirasinda
   // "kaybedilen" bos alanlar burada korunur, daha sıkı paketleme bulur.
@@ -835,8 +933,9 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
   }
 
   // MaxRects-BAF: guillotine'in kaybettigi bos alanlari yakalar.
-  // Buyuk siparislerde free-rect listesi sisip yavaslayabilecegi icin sinirli.
-  if(baseItems.length<=150){
+  // KDT modu aktifse MaxRects KAPALI — makine sadece guillotine kesim yapabilir.
+  const _kdtMode = typeof document!=='undefined' && document.getElementById('opt-kdt')?.checked !== false;
+  if(!_kdtMode && baseItems.length<=150){
     candidates.push({tag:'maxrects-area',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.area)))});
     candidates.push({tag:'maxrects-hgt',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.hgt)))});
     candidates.push({tag:'maxrects-perim',sheets:finalize(packMaxRects(baseItems.slice().sort(sorts.perim)))});
@@ -846,6 +945,17 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
       for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
       candidates.push({tag:'maxrects-rnd'+t,sheets:finalize(packMaxRects(arr))});
     }
+  }
+  // KDT Modu: şerit bazlı ek guillotine varyantları
+  if(_kdtMode){
+    const byH = baseItems.slice().sort((a,b)=>(b.ph||b.h)-(a.ph||a.h));
+    const byW = baseItems.slice().sort((a,b)=>(b.pw||b.w)-(a.pw||a.w));
+    const byP = baseItems.slice().sort((a,b)=>((b.pw||b.w)+(b.ph||b.h))-((a.pw||a.w)+(a.ph||a.h)));
+    candidates.push({tag:'kdt-hgt-A',sheets:finalize(packGuillotine(byH,'A'))});
+    candidates.push({tag:'kdt-hgt-B',sheets:finalize(packGuillotine(byH,'B'))});
+    candidates.push({tag:'kdt-wid-A',sheets:finalize(packGuillotine(byW,'A'))});
+    candidates.push({tag:'kdt-wid-B',sheets:finalize(packGuillotine(byW,'B'))});
+    candidates.push({tag:'kdt-perim-A',sheets:finalize(packGuillotine(byP,'A'))});
   }
 
   // skor: az levha → son levha az dolu → en buyuk kalan buyuk
@@ -876,41 +986,109 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
     let current=initialOrder.slice();
     let curSheets=packFn(current), curE=scalarScore(curSheets);
     let best=current.slice(), bestSheets=curSheets, bestE=curE;
-    const iters = n<=20?2500 : n<=50?1000 : n<=100?300 : 60;
-    const T0=1.0, Tmin=0.02;
+    // KDT modu: daha fazla iterasyon → %93-95 hedef
+    const _kdt = typeof document!=='undefined' && document.getElementById('opt-kdt')?.checked!==false;
+    const iters = _kdt
+      ? (n<=20?8000 : n<=50?4000 : n<=100?1500 : 300)
+      : (n<=20?2500 : n<=50?1000 : n<=100?300 : 60);
+    const T0=1.0, Tmin=0.01;
     const cooling=Math.pow(Tmin/T0,1/Math.max(1,iters));
     let T=T0;
+    let noImprove=0;
     for(let it=0;it<iters;it++){
       const cand=current.slice();
       const mv=rnd();
-      if(mv<0.34){ // swap
+      if(mv<0.28){ // swap
         const i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
         const tmp=cand[i];cand[i]=cand[j];cand[j]=tmp;
-      }else if(mv<0.67){ // reinsert (or-opt)
+      }else if(mv<0.52){ // reinsert (or-opt)
         const i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
         const [el]=cand.splice(i,1);
         cand.splice(j,0,el);
-      }else{ // segment reverse (2-opt)
+      }else if(mv<0.73){ // segment reverse (2-opt)
         let i=Math.floor(rnd()*n),j=Math.floor(rnd()*n);
         if(i>j){const t=i;i=j;j=t;}
         const seg=cand.slice(i,j+1).reverse();
         for(let k=0;k<seg.length;k++)cand[i+k]=seg[k];
+      }else{ // ★ ROTATION flip — en önemli yeni hareket!
+        const i=Math.floor(rnd()*n);
+        cand[i]={...cand[i]};
+        if(!cand[i].lock){ // kilitli parçaları döndürme
+          const tmp=cand[i].pw||cand[i].w;
+          cand[i].pw=cand[i].ph||cand[i].h;
+          cand[i].ph=tmp;
+          // Orijinal w/h'yi sakla, sadece yerleşim boyutunu değiştir
+          if(cand[i].pw===undefined) cand[i].pw=cand[i].h;
+          if(cand[i].ph===undefined) cand[i].ph=cand[i].w;
+        }
       }
       const candSheets=packFn(cand);
       const candE=scalarScore(candSheets);
       const delta=candE-curE;
       if(delta<0||rnd()<Math.exp(-delta/T)){
         current=cand;curSheets=candSheets;curE=candE;
-        if(curE<bestE-1e-9){best=current.slice();bestSheets=candSheets;bestE=curE;}
-      }
+        if(curE<bestE-1e-9){
+          best=current.slice();bestSheets=candSheets;bestE=curE;
+          noImprove=0;
+        } else { noImprove++; }
+      } else { noImprove++; }
+      // Erken çıkış — uzun süre gelişme yoksa
+      if(noImprove>iters*0.4 && it>iters*0.3) break;
       T*=cooling;
     }
     return bestSheets;
   }
   // n<=120: 2 SA kosusu (MaxRects + Guillotine uzerinde), farklı baslangic siralamasi
-  if(baseItems.length<=120){
-    candidates.push({tag:'sa-maxrects',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),packMaxRects,mulberry32(baseItems.length*104723+Math.round(usableH)+17)))});
-    candidates.push({tag:'sa-guillotine',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.hgt),(arr)=>packGuillotine(arr),mulberry32(baseItems.length*65599+Math.round(usableW)+31)))});
+  if(baseItems.length<=150){
+    const seedOff = runIdx * 99991;
+    // KDT modunda SA sadece guillotine ile çalışır
+    if(!_kdtMode){
+      candidates.push({tag:'sa-maxrects',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),packMaxRects,mulberry32(baseItems.length*104723+Math.round(usableH)+17+seedOff)))});
+    }
+    if(_kdtMode){
+      // KDT: SA sadece packStrips üzerinde çalışır → tam makine uyumlu
+      const stripsPackFn=(arr)=>packStrips(arr,usableW,usableH);
+      const saSeeds=[65599,31337,73141,51383,104723];
+      const saSorts=[sorts.hgt,sorts.area,sorts.perim,sorts.hgt,sorts.area];
+      for(let s=0;s<saSeeds.length;s++){
+        candidates.push({
+          tag:'kdt-sa-strips'+s+'-r'+runIdx,
+          sheets:finalize(simulatedAnnealing(
+            baseItems.slice().sort(saSorts[s]),
+            stripsPackFn,
+            mulberry32(baseItems.length*saSeeds[s]+seedOff+s*7331)
+          ))
+        });
+      }
+      // Rastgele başlangıçlı SA — strips
+      for(let t=0;t<3;t++){
+        const rndSeed=mulberry32(baseItems.length*13337+seedOff+t*19973);
+        const arr=baseItems.slice();
+        for(let i=arr.length-1;i>0;i--){const j=Math.floor(rndSeed()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
+        candidates.push({tag:'kdt-sa-rnd'+t+'-r'+runIdx,sheets:finalize(simulatedAnnealing(arr,stripsPackFn,mulberry32(seedOff+t*77777+44449)))});
+      }
+    } else {
+      // Normal mod: guillotine + maxrects
+      const saConfigs=[
+        {sort:sorts.hgt, split:'A', seed:65599},
+        {sort:sorts.area,split:'B', seed:31337},
+      ];
+      for(let s=0;s<saConfigs.length;s++){
+        const cfg=saConfigs[s];
+        candidates.push({
+          tag:'sa-g'+s+'-r'+runIdx,
+          sheets:finalize(simulatedAnnealing(
+            baseItems.slice().sort(cfg.sort),
+            (arr)=>packGuillotine(arr,cfg.split),
+            mulberry32(baseItems.length*cfg.seed+seedOff+s*7331)
+          ))
+        });
+      }
+      const rndSeed=mulberry32(baseItems.length*13337+seedOff);
+      const arr=baseItems.slice();
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(rndSeed()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
+      candidates.push({tag:'sa-rnd-r'+runIdx,sheets:finalize(simulatedAnnealing(arr,packMaxRects,mulberry32(seedOff+77777)))});
+    }
   }
   let best=null,bestS=null;
   candidates.forEach(c=>{
@@ -978,17 +1156,74 @@ function nest(){
 // Edge Function üzerinden hesapla; başarısız olursa lokal nestCore'a düş
 // (raskroi.html ile birebir aynı algoritma/davranış)
 async function nestRemote(SW,SH,kerf,trim,grain){
-  try{
-    const { supabase } = await import('./supabase_client.js');
-    const { data, error } = await supabase.functions.invoke('nest-cutting',{
-      body:{ parts, sheetW:SW, sheetH:SH, kerf, trim, grainDir:grain }
+  // Block Grouping: aynı boyutları grupla
+  const useBlock = document.getElementById('opt-block')?.checked !== false;
+  let partsToNest = parts;
+  if(useBlock && parts.length > 1){
+    // flat açarak block grouping uygula, sonra qty ile topla
+    const flat=[];
+    parts.forEach(p=>{for(let i=0;i<(p.qty||1);i++)flat.push({...p,qty:1});});
+    const grouped = applyBlockGrouping(flat);
+    const byId={};
+    grouped.forEach(p=>{
+      if(!byId[p.id]){byId[p.id]={...p,qty:0};}
+      byId[p.id].qty++;
     });
-    if(error||!data||data.error||!Array.isArray(data.sheets)) throw new Error(error?.message||data?.error||'nest-cutting boş yanıt');
-    return data;
-  }catch(e){
-    console.warn('nest-cutting Edge Function başarısız, lokal motora geçiliyor:',e.message);
-    return nestCore(parts, SW, SH, kerf, trim, grain);
+    // Sırayı koru (grouped sırasına göre)
+    const seen=new Set();
+    partsToNest=[];
+    grouped.forEach(p=>{if(!seen.has(p.id)){seen.add(p.id);partsToNest.push(byId[p.id]);}});
   }
+
+  const tries = parseInt(document.getElementById('opt-tries')?.value)||3;
+  const btn = document.getElementById('cSheets');
+
+  // Skor: [levha sayısı, son levha doluluk, -en büyük kalan]
+  function isBetter(a, b){
+    if(!b) return true;
+    const na=a.sheets.length, nb=b.sheets.length;
+    if(na !== nb) return na < nb;
+    // Aynı levha sayısı → KPD karşılaştır
+    const effA = a.sheets.reduce((s,sh)=>s+sh.parts.reduce((ss,p)=>ss+p.w*p.h,0),0);
+    const effB = b.sheets.reduce((s,sh)=>s+sh.parts.reduce((ss,p)=>ss+p.w*p.h,0),0);
+    return effA > effB;
+  }
+
+  let best = null;
+  for(let run=0; run<tries; run++){
+    if(btn) btn.textContent = `${run+1}/${tries}⏳`;
+    // Her iterasyonda JS event loop'una nefes aldır (UI güncellenmesi için)
+    await new Promise(r => setTimeout(r, 0));
+    let result;
+    if(run === 0){
+      // İlk deneme: Edge Function dene
+      try{
+        const { supabase } = await import('./supabase_client.js');
+        const { data, error } = await supabase.functions.invoke('nest-cutting',{
+          body:{ parts:partsToNest, sheetW:SW, sheetH:SH, kerf, trim, grainDir:grain }
+        });
+        if(error||!data||data.error||!Array.isArray(data.sheets)) throw new Error('edge fn fail');
+        result = data;
+      }catch(e){
+        result = nestCore(partsToNest, SW, SH, kerf, trim, grain, run);
+      }
+    } else {
+      // Sonraki denemeler: farklı seed ile lokal
+      result = nestCore(partsToNest, SW, SH, kerf, trim, grain, run);
+    }
+    if(isBetter(result, best)){
+      best = result;
+      best._runIdx = run+1; // hangi denemede bulundu
+    }
+  }
+
+  // Hangi denemede en iyi bulundu?
+  if(tries > 1 && btn){
+    const tag = best._runIdx === 1 ? '🥇' : `🔄${best._runIdx}`;
+    console.log(`Best result from attempt ${best._runIdx}/${tries}`);
+  }
+
+  return best;
 }
 
 window.calcNest=async function(){
@@ -1005,11 +1240,28 @@ window.calcNest=async function(){
   const cut=L.cutLen||0;
   const n=L.sheets.length,eff=n?pa/(sheetArea*n)*100:0;
   document.getElementById('cSheets').textContent=n;
-  document.getElementById('cEff').textContent=eff.toFixed(0)+'%';
+  document.getElementById('cEff').textContent=eff.toFixed(1)+'%';
+  // KDT modu aktif mi göster
+  const kdtActive = document.getElementById('opt-kdt')?.checked !== false;
+  const effEl = document.getElementById('cEff');
+  if(effEl){
+    effEl.title = kdtActive
+      ? '🏭 KDT Modu: Guillotine-only (makine uyumlu)'
+      : '📐 Standart: MaxRects+Guillotine (yüksek KPD)';
+    effEl.style.color = eff >= 85 ? '#16a34a' : eff >= 75 ? '#f97316' : '#dc2626';
+  }
   document.getElementById('cCut').textContent=(cut/1000).toFixed(1)+'м';
   const pvcM=currentOrder?.pvc==='0'?0:pvc/1000*1.05;
   document.getElementById('cPvc').textContent=pvcM.toFixed(1)+'м';
+  // Kerf Optimization sonuçları
+  const useKerfOpt = document.getElementById('opt-kerf')?.checked !== false;
+  if(useKerfOpt && L.sheets){
+    const ks = calcKerfSavings(L.sheets, kerf);
+    L.kerfSavedMm = ks.savedMm;
+    L.gangCuts = ks.gangCuts;
+  }
   drawSheets(L);
+  renderCutList(L);
   // fiyat: levha sayısı × (levha fiyatı + kesim ücreti/levha) + PVC м × ₸/м
   const priceSheet=parseFloat(document.getElementById('priceSheet').value)||0;
   const priceCut=parseFloat(document.getElementById('priceCut').value)||0;
@@ -1232,7 +1484,156 @@ async function saveOrder(){
     }catch(e){ console.warn('Supabase update yok:', e.message); }
   }
 }
-window.startProcess=function(){if(!currentOrder){alert('Выберите заказ');return;}currentOrder.status='processing';currentOrder.parts=parts;currentOrder.startedAt=new Date().toISOString();saveOrder();selectOrder(currentOrder.id);alert('✓ Резка началась! Заказ в работе.');};
+window.startProcess=function(){
+  if(!currentOrder){alert('Выберите заказ');return;}
+  currentOrder.status='processing';currentOrder.parts=parts;
+  currentOrder.startedAt=new Date().toISOString();
+  saveOrder();
+  updateActionBtns();
+  selectOrder(currentOrder.id);
+  alert('✓ Резка началась! Заказ в работе.');
+};
+
+function updateActionBtns(){
+  if(!currentOrder) return;
+  const s=currentOrder.status;
+  document.getElementById('btnStart').style.display=(!s||s==='pending')?'':'none';
+  document.getElementById('btnFinish').style.display=(s==='processing')?'':'none';
+}
+
+// ── GÖREV DAĞITIMI ─────────────────────────────────────────────────────────
+let _workers=[], _machines=[], _tmTotalSheets=0, _tmTotalPvc=0;
+
+async function loadWorkersAndMachines(){
+  try{
+    const { getCurrentStore } = await import('./supabase_client.js');
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    let store = await getCurrentStore();
+    // Subdomain yoksa session kullanıcısının dükkanını al
+    if(!store){
+      const {data:{session}} = await sb.auth.getSession();
+      if(session){
+        const {data:m} = await sb.from('store_members').select('store_id,stores(*)').eq('user_id',session.user.id).limit(1);
+        if(m&&m.length) store = m[0].stores;
+      }
+    }
+    if(!store) return;
+    const [{data:w},{data:m}] = await Promise.all([
+      sb.from('store_members').select('user_id, role, users(full_name, phone)').eq('store_id', store.id).in('role',['raskroi_manager','raskroi_worker','manager','owner']),
+      sb.from('store_machines').select('*').eq('store_id', store.id).eq('is_active', true)
+    ]);
+    _workers = (w||[]).map(x=>({id:x.user_id, name:x.users?.full_name||x.users?.phone||'—', role:x.role}));
+    _machines = m||[];
+  }catch(e){ console.log('loadWorkersAndMachines:', e.message); }
+}
+
+function workerOpts(type){
+  return _workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
+}
+function machineOpts(type){
+  return _machines.filter(m=>m.machine_type===type).map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+}
+
+function addTaskRow(type){
+  const cont = document.getElementById(type==='cutting'?'tm-cut-rows':'tm-pvc-rows');
+  const idx = cont.children.length;
+  const unit = type==='cutting'?'лист':'м';
+  const maxVal = type==='cutting'?_tmTotalSheets:_tmTotalPvc;
+  const machineSelect = machineOpts(type)
+    ? `<select style="flex:1;padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">${machineOpts(type)}</select>`
+    : '';
+  const row = document.createElement('div');
+  row.style.cssText='display:flex;gap:6px;align-items:center';
+  row.innerHTML=`
+    <select class="tm-worker" style="flex:2;padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">${workerOpts(type)}</select>
+    ${machineSelect}
+    <input type="number" class="tm-qty" min="0" step="${type==='cutting'?1:0.1}" value="${maxVal}" style="width:70px;padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;font-weight:700">
+    <span style="font-size:11px;color:#64748b">${unit}</span>
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px">×</button>`;
+  cont.appendChild(row);
+}
+
+window.openTaskModal=async function(){
+  if(!currentOrder){ alert('Выберите заказ'); return; }
+  await loadWorkersAndMachines();
+
+  // Toplam levha ve PVC hesapla - lastLayout yoksa tahmini
+  _tmTotalSheets = lastLayout ? lastLayout.sheets.length : (currentOrder.sheets||1);
+  let pvcTotal=0;
+  parts.forEach(p=>{
+    let per=0;
+    if(p.e&&p.e.t)per+=p.w;if(p.e&&p.e.b)per+=p.w;if(p.e&&p.e.l)per+=p.h;if(p.e&&p.e.r)per+=p.h;
+    pvcTotal+=per*(p.qty||1);
+  });
+  _tmTotalPvc = parseFloat((pvcTotal/1000*1.05).toFixed(1));
+
+  document.getElementById('tm-total-sheets').textContent = _tmTotalSheets + ' лист';
+  document.getElementById('tm-total-pvc').textContent = _tmTotalPvc + ' м';
+  document.getElementById('tm-cut-rows').innerHTML='';
+  document.getElementById('tm-pvc-rows').innerHTML='';
+  document.getElementById('tm-error').style.display='none';
+
+  // İlk satırları otomatik ekle
+  addTaskRow('cutting');
+  if(_tmTotalPvc>0) addTaskRow('pvc');
+
+  document.getElementById('taskModal').style.display='flex';
+};
+
+window.closeTaskModal=function(){
+  document.getElementById('taskModal').style.display='none';
+};
+
+window.saveTasksAndFinish=async function(){
+  const errEl=document.getElementById('tm-error');
+  errEl.style.display='none';
+
+  try{
+    const { getCurrentStore } = await import('./supabase_client.js');
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb=createClient(SUPABASE_URL, SUPABASE_KEY);
+    const store=await getCurrentStore();
+    if(!store){ errEl.textContent='Магазин не определён'; errEl.style.display=''; return; }
+
+    // Görevleri topla
+    const tasks=[];
+    function collectRows(contId, type, unit){
+      const rows=document.getElementById(contId).children;
+      for(const row of rows){
+        const workerId=row.querySelector('.tm-worker')?.value;
+        const qty=parseFloat(row.querySelector('.tm-qty')?.value)||0;
+        const machineEl=row.querySelector('select:not(.tm-worker)');
+        const machineId=machineEl?machineEl.value:null;
+        if(workerId && qty>0){
+          tasks.push({store_id:store.id, worker_id:workerId, task_type:type,
+            order_ref:currentOrder.id, quantity:qty, unit, unit_price:0,
+            machine_id:machineId||null, task_date:new Date().toISOString().slice(0,10)});
+        }
+      }
+    }
+    collectRows('tm-cut-rows','cutting','лист');
+    collectRows('tm-pvc-rows','pvc','м');
+
+    if(!tasks.length){ errEl.textContent='En az bir görev ekle'; errEl.style.display=''; return; }
+
+    // Kaydet
+    const {error}=await sb.from('worker_tasks').insert(tasks);
+    if(error) throw error;
+
+    // Siparişi tamamlandı olarak işaretle
+    currentOrder.status='done';
+    await saveOrder();
+
+    closeTaskModal();
+    document.getElementById('btnStart').style.display='none';
+    document.getElementById('btnFinish').style.display='none';
+    alert('✅ Görevler kaydedildi, sipariş tamamlandı!');
+    selectOrder(currentOrder.id);
+  }catch(e){ errEl.textContent='Hata: '+e.message; errEl.style.display=''; }
+};
+
+
 window.rejectOrder=function(){if(!currentOrder)return;if(confirm('Отклонить заказ?')){currentOrder.status='rejected';saveOrder();selectOrder(currentOrder.id);}};
 window.exportGCode=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
   // CNC router G-Code: her parçanın dış konturu için kesme yolu
@@ -1262,87 +1663,132 @@ window.exportGCode=function(){if(!lastLayout){alert('Сначала рассчи
   a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'.nc';a.click();
 };
 // ─── TAM PDF RAPORU (yazdır → PDF kaydet; Kiril tam destek) ───
-window.exportCuttingPDF=function(){
+window.exportCuttingPDF=async function(){
   if(!currentOrder){alert('Выберите заказ');return;}
-  if(!lastLayout){alert('Сначала нажмите «Рассчитать»');return;}
+  if(!lastLayout){alert('Сначала нажмите Рассчитать');return;}
+
+  let storeName='BAIBESIK.KZ';
+  try{
+    const{getCurrentStore}=await import('./supabase_client.js');
+    const _cs=await getCurrentStore();
+    if(_cs)storeName=_cs.name;
+  }catch(e){}
+
   const L=lastLayout;
   const n=L.sheets.length;
   const sheetM2=(L.SW*L.SH/1e6);
   let pa=0,tp=0,pvc=0;
-  parts.forEach(p=>{pa+=p.w*p.h*p.qty;tp+=p.qty;let per=0;if(p.e.t)per+=p.w;if(p.e.b)per+=p.w;if(p.e.l)per+=p.h;if(p.e.r)per+=p.h;pvc+=per*p.qty;});
+  parts.forEach(p=>{
+    pa+=p.w*p.h*(p.qty||1);
+    tp+=(p.qty||1);
+    let per=0;
+    if(p.e&&p.e.t)per+=p.w;if(p.e&&p.e.b)per+=p.w;
+    if(p.e&&p.e.l)per+=p.h;if(p.e&&p.e.r)per+=p.h;
+    pvc+=per*(p.qty||1);
+  });
   const paM2=(pa/1e6).toFixed(2);
-  const usedM2=(sheetM2*n).toFixed(2);
   const eff=n?(pa/(L.SW*L.SH*n)*100).toFixed(1):0;
-  const pvcM=currentOrder?.pvc==='0'?0:(pvc/1000*1.05).toFixed(1);
-  const price=document.getElementById('finalPrice').textContent||'—';
-  // yerleşim kontrolü
-  const placed={};
-  L.sheets.forEach((sh,si)=>sh.parts.forEach(pt=>{
-    if(!placed[pt.pid])placed[pt.pid]={n:0,sheets:new Set()};
-    placed[pt.pid].n++;placed[pt.pid].sheets.add(si+1);
-  }));
-  const rows=parts.map((p,i)=>{
-    const pl=placed[p.id]||{n:0,sheets:new Set()};
-    const ok=pl.n>=p.qty;
-    const edges=[p.e.t?'В':'',p.e.b?'Н':'',p.e.l?'Л':'',p.e.r?'П':''].filter(Boolean).join('')||'—';
-    return `<tr style="${ok?'':'background:#fee2e2'}"><td>${i+1}</td><td style="text-align:left">${p.name||''}</td><td>${p.w}×${p.h}</td><td>${edges}</td><td>${p.qty}</td><td>${pl.n}</td><td>${[...pl.sheets].join(',')||'—'}</td><td>${ok?'✓':'✗ НЕ ХВАТАЕТ'}</td></tr>`;
-  }).join('');
-  // Yüksek-çözünürlüklü levha görselleri (offscreen, 3x — baskı kalitesi için)
-  // A4 portrait'e 2 levha sığar: ~138mm yükseklik/levha, alt alta.
-  const hiddenWrap=document.createElement('div');
-  const panels=drawSheets(L,hiddenWrap,3);
-  let imgs='';
-  for(let i=0;i<panels.length;i+=2){
-    imgs+='<div class="sheet-page">'+panels.slice(i,i+2).map(p=>
-      p.canvas
-        ? `<div class="sheet-cap">${p.label}</div><img class="sheet-img" src="${p.canvas.toDataURL('image/png')}">`
-        : `<div class="sheet-cap copy">${p.label}</div>`
-    ).join('')+'</div>';
-  }
+  const pvcM=currentOrder&&currentOrder.pvc==='0'?0:(pvc/1000*1.05).toFixed(1);
   const today=new Date().toLocaleString('ru-RU');
-  const html=`<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Раскрой ${currentOrder.id}</title>
-  <style>
-    body{font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;margin:24px;font-size:13px}
-    h1{font-size:20px;margin:0 0 2px}.sub{color:#64748b;font-size:11px;margin-bottom:14px}
-    table{width:100%;border-collapse:collapse;margin-top:6px}
-    th,td{border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:12px}
-    th{background:#f1f5f9}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin:10px 0;font-size:13px}
-    .grid b{color:#334155}
-    .price{font-size:18px;font-weight:800;color:#16a34a;margin:10px 0}
-    .sheet-cap{font-weight:800;font-size:12px;margin:10px 0 4px}
-    .sheet-cap.copy{opacity:.6;font-weight:400}
-    .sheet-img{width:100%;max-height:135mm;object-fit:contain;border:1px solid #cbd5e1;display:block}
-    @media print{
-      button{display:none}
-      .sheet-page{page-break-after:always}
-      .sheet-page:last-child{page-break-after:auto}
+  const priceSheet=parseFloat(document.getElementById('priceSheet')&&document.getElementById('priceSheet').value)||0;
+  const priceCut=parseFloat(document.getElementById('priceCut')&&document.getElementById('priceCut').value)||0;
+  const pricePvc=parseFloat(document.getElementById('pricePvc')&&document.getElementById('pricePvc').value)||0;
+  const finalPrice=n*(priceSheet+priceCut)+parseFloat(pvcM)*pricePvc;
+  const qrBase=window.location.origin+window.location.pathname.replace(/[^/]*$/,'');
+  const qrUrl=qrBase+'worker_task.html?order='+currentOrder.id;
+  const qrImg='https://api.qrserver.com/v1/create-qr-code/?size=90x90&data='+encodeURIComponent(qrUrl);
+
+  // Levha görselleri
+  const hiddenWrap=document.createElement('div');
+  hiddenWrap.style.cssText='position:absolute;left:-9999px;top:0;width:800px';
+  document.body.appendChild(hiddenWrap);
+  let panels=[];
+  try{panels=drawSheets(L,hiddenWrap,3);}catch(e){}
+  document.body.removeChild(hiddenWrap);
+
+  const groups=L.groups||{repFor:L.sheets.map((_,i)=>i),counts:{}};
+  let sheetHTML='';
+  for(let i=0;i<panels.length;i+=2){
+    const p1=panels[i],p2=panels[i+1];
+    sheetHTML+='<div style="margin:10px 0'+(i+2<panels.length?';page-break-after:always':'')+'">';
+    if(p1&&p1.canvas){
+      sheetHTML+='<div style="font-weight:800;font-size:11px;margin:6px 0 3px;padding:3px 8px;background:#f1f5f9">'+p1.label+'</div>';
+      sheetHTML+='<img src="'+p1.canvas.toDataURL('image/png')+'" style="width:100%;max-height:110mm;object-fit:contain;border:1px solid #cbd5e1;display:block">';
     }
-  </style></head><body>
-  <button onclick="window.print()" style="position:fixed;top:10px;right:10px;padding:10px 18px;background:#f97316;color:#fff;border:none;border-radius:8px;font-weight:800;cursor:pointer">🖨 Печать / PDF</button>
-  <h1>BAIBESIK.KZ — Раскрой ${currentOrder.id}</h1>
-  <div class="sub">Отчёт сформирован: ${today}</div>
-  <div class="grid">
-    <div><b>Клиент:</b> ${currentOrder.customer||'—'}</div>
-    <div><b>Телефон:</b> ${currentOrder.phone||'—'}</div>
-    <div><b>Менеджер:</b> ${currentUser?.full_name||'—'}</div>
-    <div><b>Дата заказа:</b> ${new Date(currentOrder.createdAt).toLocaleString('ru-RU')}</div>
-    <div><b>Материал:</b> ${currentOrder.material||'—'}</div>
-    <div><b>Лист:</b> ${L.SW}×${L.SH} mm (${sheetM2.toFixed(2)} м²)</div>
-    <div><b>Листов нужно:</b> ${n} шт (${usedM2} м²)</div>
-    <div><b>Площадь деталей:</b> ${paM2} м²</div>
-    <div><b>КПД:</b> ${eff}%</div>
-    <div><b>Кромка PVC:</b> ${pvcM} м</div>
-  </div>
-  <div class="price">💰 Цена: ${price}</div>
-  <div style="font-weight:800;font-size:14px;margin-top:12px">📋 Контроль деталей (${tp} шт)</div>
-  <table><thead><tr><th>№</th><th>Название</th><th>Размер</th><th>Кромка</th><th>Заказ</th><th>Размещено</th><th>Лист</th><th>✓</th></tr></thead><tbody>${rows}</tbody></table>
-  ${imgs}
-  <div style="margin-top:18px;font-size:11px;color:#64748b">Подпись клиента: ______________________ &nbsp;&nbsp;&nbsp; Подпись менеджера: ______________________</div>
-  </body></html>`;
-  const w=window.open('','_blank');
-  if(!w){alert('Разрешите всплывающие окна');return;}
-  w.document.write(html);w.document.close();
+    if(p2&&p2.canvas){
+      sheetHTML+='<div style="font-weight:800;font-size:11px;margin:6px 0 3px;padding:3px 8px;background:#f1f5f9">'+p2.label+'</div>';
+      sheetHTML+='<img src="'+p2.canvas.toDataURL('image/png')+'" style="width:100%;max-height:110mm;object-fit:contain;border:1px solid #cbd5e1;display:block">';
+    }
+    sheetHTML+='</div>';
+  }
+
+  // Parça tablosu
+  const placed={};
+  L.sheets.forEach(sh=>sh.parts.forEach(pt=>{placed[pt.pid]=(placed[pt.pid]||0)+1;}));
+  const partRows=parts.map((p,i)=>{
+    const ok=(placed[p.id]||0)>=(p.qty||1);
+    const e=p.e||{};
+    const bands=[e.t?'В':'',e.b?'Н':'',e.l?'Л':'',e.r?'П':''].filter(Boolean).join('+');
+    return '<tr><td>'+(i+1)+'</td><td>'+(p.name||'—')+'</td><td>'+p.w+'x'+p.h+'</td>'+
+      '<td style="text-align:center">'+(p.qty||1)+'</td>'+
+      '<td style="text-align:center">'+(bands||'—')+'</td>'+
+      '<td style="text-align:center;color:'+(ok?'#16a34a':'#dc2626')+';font-weight:700">'+(ok?'✓':'✗')+'</td></tr>';
+  }).join('');
+
+  // PDF print area'ya yaz
+  const printAreaEl=document.getElementById('print-area');
+  if(!printAreaEl){alert('print-area bulunamadı');return;}
+
+  // Print alanı stil - A4 sınırları içinde
+  printAreaEl.style.cssText='font-family:Arial,sans-serif;font-size:11px;color:#1e293b;width:100%';
+
+  printAreaEl.innerHTML=
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #f97316;gap:10px">'+
+      '<div><div style="font-size:20px;font-weight:900;color:#f97316">'+storeName+' — '+currentOrder.id+'</div>'+
+      '<div style="font-size:11px;color:#64748b;margin-top:2px">'+today+'</div></div>'+
+      '<div style="text-align:center">'+
+        '<img src="'+qrImg+'" width="90" height="90" style="display:block;margin:0 auto" id="pdf-qr-img">'+
+        '<div style="font-size:9px;font-weight:800;margin-top:2px">'+currentOrder.id+'</div>'+
+        '<div style="font-size:8px;color:#ea580c;font-weight:700">🪚 Пильный центр</div>'+
+        '<div style="font-size:8px;color:#7c3aed;font-weight:700">🖌️ ПВХ покрытие</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;margin:8px 0;font-size:10px">'+
+      '<div><b>Клиент:</b> '+(currentOrder.customer||'—')+'</div>'+
+      '<div><b>Телефон:</b> '+(currentOrder.phone||'—')+'</div>'+
+      '<div><b>Материал:</b> '+(currentOrder.material||'—')+'</div>'+
+      '<div><b>Лист:</b> '+L.SW+'x'+L.SH+' мм</div>'+
+      '<div><b>Листов:</b> '+n+'</div>'+
+      '<div><b>Деталей:</b> tp</div>'+
+      '<div><b>КПД:</b> '+eff+'%</div>'+
+      '<div><b>PVC:</b> '+pvcM+' м</div>'+
+    '</div>'+
+    '<div style="background:#f0fdf4;border:1.5px solid #16a34a;border-radius:6px;padding:7px 12px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">'+
+      '<div style="font-size:20px;font-weight:900;color:#16a34a">'+finalPrice.toLocaleString('ru-RU')+' ₸</div>'+
+    '</div>'+
+    '<div style="font-size:12px;font-weight:800;margin:12px 0 4px;border-bottom:1px solid #e2e8f0;padding-bottom:3px">Схема раскроя</div>'+
+    sheetHTML+
+    '<div style="font-size:12px;font-weight:800;margin:12px 0 4px;border-bottom:1px solid #e2e8f0;padding-bottom:3px">Контроль деталей</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:9px">'+
+      '<thead><tr style="background:#f1f5f9"><th style="border:1px solid #e2e8f0;padding:4px 6px;text-align:left">#</th>'+
+      '<th style="border:1px solid #e2e8f0;padding:4px 6px;text-align:left">Деталь</th>'+
+      '<th style="border:1px solid #e2e8f0;padding:4px 6px">Размер</th>'+
+      '<th style="border:1px solid #e2e8f0;padding:4px 6px">Кол</th>'+
+      '<th style="border:1px solid #e2e8f0;padding:4px 6px">Кромка</th>'+
+      '<th style="border:1px solid #e2e8f0;padding:4px 6px">✓</th></tr></thead>'+
+      '<tbody>'+partRows+'</tbody></table>';
+
+  // QR yüklenince ya da 2sn sonra print et
+  const qrEl=document.getElementById('pdf-qr-img');
+  const doPrint=()=>{window.print();setTimeout(()=>{printAreaEl.innerHTML='';},1500);};
+  if(qrEl){
+    let printed=false;
+    qrEl.onload=()=>{if(!printed){printed=true;doPrint();}};
+    qrEl.onerror=()=>{if(!printed){printed=true;doPrint();}};
+    setTimeout(()=>{if(!printed){printed=true;doPrint();}},2500);
+  }else{
+    doPrint();
+  }
 };
 
 window.exportDXF=function(){if(!lastLayout){alert('Сначала рассчитайте');return;}
@@ -1376,6 +1822,305 @@ window.exportKdtCsv=function(){if(!lastLayout){alert('Сначала рассч�
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=(currentOrder?.id||'raskroi')+'_kdt.csv';a.click();
 };
+
+
+// ── QR SCANNER (Раскрой менеджер) ─────────────────────────────
+let _rmQr=null, _rmQrActive=false;
+
+window.toggleRMScanner=async function(){
+  const btn=document.getElementById('rm-qr-btn');
+  const reader=document.getElementById('rm-qr-reader');
+  const status=document.getElementById('rm-qr-status');
+  if(_rmQrActive){
+    if(_rmQr) await _rmQr.stop().catch(()=>{});
+    _rmQr=null; _rmQrActive=false;
+    reader.style.display='none'; status.style.display='none';
+    btn.textContent='📷'; btn.style.background='var(--dark)';
+    return;
+  }
+  _rmQrActive=true;
+  btn.textContent='⏹'; btn.style.background='var(--red)';
+  reader.style.display='block'; status.style.display='block';
+  _rmQr=new Html5Qrcode('rm-qr-reader');
+  try{
+    await _rmQr.start(
+      {facingMode:'environment'},
+      {fps:10,qrbox:{width:200,height:200}},
+      async(text)=>{
+        let orderNum='';
+        if(text.includes('worker_task.html')){
+          const u=new URL(text); orderNum=u.searchParams.get('order')||'';
+        } else if(/RSK-[A-Z0-9]+/.test(text)){
+          orderNum=text.match(/RSK-[A-Z0-9]+/)[0];
+        }
+        if(!orderNum) return;
+        // Scanner kapat
+        await toggleRMScanner();
+        // Arama kutusuna yaz ve filtrele
+        const inp=document.getElementById('searchInp');
+        inp.value=orderNum;
+        filterOrders();
+        // Direkt sipariş varsa aç
+        const found=orders.find(o=>o.id===orderNum);
+        if(found) selectOrder(found.id);
+        if(navigator.vibrate) navigator.vibrate([100,50,100]);
+      },
+      ()=>{}
+    );
+  }catch(e){
+    _rmQrActive=false;
+    reader.style.display='none'; status.style.display='none';
+    btn.textContent='📷'; btn.style.background='var(--dark)';
+    if(e.toString().includes('permission')) alert('Камераға рұқсат беріңіз!');
+  }
+};
+
+function renderCutList(L){
+  const wrap=document.getElementById('cutListWrap');
+  if(!wrap)return;
+  const o=currentOrder||{};
+  const orderNum=o.id||'RSK';
+  const customer=o.customer||'';
+  const orderDate=o.createdAt?new Date(o.createdAt).toLocaleDateString('ru-RU'):'';
+  const hdrEl=document.getElementById('hdr-name');
+  const managerName=hdrEl?hdrEl.textContent.split('—')[1]||'Мастер':'Мастер';
+  const edgeMm=o.pvc||0.4;
+
+  const groups=L.groups||{repFor:L.sheets.map((_,i)=>i),counts:{}};
+  const placed=[];
+  L.sheets.forEach((sheet,si)=>{
+    const rep=groups.repFor[si];
+    if(rep!==si)return;
+    const copies=groups.counts[si]||1;
+    sheet.parts.forEach(pt=>{
+      for(let c=0;c<copies;c++){
+        const orig=parts.find(p=>p.id===pt.pid)||{};
+        placed.push({
+          name:pt.name||orig.name||'—',
+          w:Math.round(pt.rot?pt.h:pt.w),
+          h:Math.round(pt.rot?pt.w:pt.h),
+          e:orig.e||{t:false,b:false,l:false,r:false},
+          sheet:si+1,
+          totalSheets:L.sheets.filter((_,i)=>groups.repFor[i]===i).length,
+          pid:pt.pid
+        });
+      }
+    });
+  });
+
+  function bandText(e){
+    const s=[];if(e.t)s.push('В');if(e.b)s.push('Н');if(e.l)s.push('Л');if(e.r)s.push('П');
+    return s.join('+')||'—';
+  }
+
+  function dimHtml(val,bands){
+    if(bands===0)return `<span style="font-weight:700">${val}</span>`;
+    if(bands===1)return `<span style="font-weight:700;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px;text-decoration-color:#f97316">${val}</span>`;
+    return `<span style="font-weight:700;border-bottom:2.5px solid #f97316;padding-bottom:2px;position:relative;display:inline-block">${val}<span style="position:absolute;bottom:-5px;left:0;right:0;height:2.5px;background:#f97316;display:block"></span></span>`;
+  }
+
+  const rows=placed.map((pt,idx)=>{
+    const wB=(pt.e.t?1:0)+(pt.e.b?1:0);
+    const hB=(pt.e.l?1:0)+(pt.e.r?1:0);
+    return `<tr style="border-bottom:0.5px solid #334155">
+      <td style="padding:6px 4px;color:#94a3b8;font-size:11px;text-align:center">${idx+1}</td>
+      <td style="padding:6px 8px;font-size:12px">${pt.name}</td>
+      <td style="padding:6px 8px;font-size:12px;white-space:nowrap">${dimHtml(pt.w,wB)} × ${dimHtml(pt.h,hB)}</td>
+      <td style="padding:6px 8px;font-size:11px;color:#f97316;font-weight:700">${bandText(pt.e)}</td>
+      <td style="padding:6px 4px;text-align:center;font-size:11px;color:#64748b">Л${pt.sheet}</td>
+      <td style="padding:4px;text-align:center">
+        <button onclick="printOnePart(${JSON.stringify({name:pt.name,w:pt.w,h:pt.h,e:pt.e,sheet:pt.sheet,totalSheets:pt.totalSheets,idx:idx+1,total:placed.length,orderNum:'${orderNum}',customer:'${customer}',orderDate:'${orderDate}',managerName:'${managerName.trim()}',edgeMm:'${edgeMm}'})})"
+          style="padding:4px 8px;background:#059669;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700">🖨️</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.style.display='';
+  wrap.innerHTML=`
+    <div style="background:#0f172a;border-radius:10px;padding:12px;color:#fff">
+      <div style="font-size:12px;font-weight:700;color:#94a3b8;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+        <span>✂️ КЕСУ ТІЗІМІ (${placed.length} бөлшек)</span>
+        <button onclick="printLabels()" style="padding:4px 10px;background:#f97316;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700">🖨️ Барлығы</button>
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="border-bottom:1px solid #334155;color:#64748b;font-size:10px">
+          <th style="padding:4px;text-align:center">№</th>
+          <th style="padding:4px;text-align:left">Атауы</th>
+          <th style="padding:4px;text-align:left">Өлшем</th>
+          <th style="padding:4px;text-align:left">Жиек</th>
+          <th style="padding:4px">Лист</th>
+          <th style="padding:4px">Бас.</th>
+        </tr></thead>
+        <tbody style="color:#e2e8f0">${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+window.printOnePart=function(pt){
+  function dimSpan(val,bands){
+    if(bands===0)return `<span class="dim">${val}</span>`;
+    if(bands===1)return `<span class="dim" style="text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2.5px;text-decoration-color:#f97316">${val}</span>`;
+    return `<span class="dim" style="border-bottom:2.5px solid #f97316;padding-bottom:2px;position:relative">${val}<span style="position:absolute;bottom:-5px;left:0;right:0;height:2.5px;background:#f97316;display:block"></span></span>`;
+  }
+  function bandText(e){
+    const s=[];if(e.t)s.push('Верх');if(e.b)s.push('Низ');if(e.l)s.push('Лево');if(e.r)s.push('Право');
+    return s.length?s.join(' + ')+' '+pt.edgeMm+'мм':'—';
+  }
+  const wB=(pt.e.t?1:0)+(pt.e.b?1:0);
+  const hB=(pt.e.l?1:0)+(pt.e.r?1:0);
+  const hasBand=wB>0||hB>0;
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Этикетка ${pt.orderNum} — ${pt.idx}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:10mm;background:#fff}
+    .label{border:2px solid #333;border-radius:8px;padding:12px 14px;width:90mm}
+    .label-top{display:flex;justify-content:space-between;margin-bottom:6px}
+    .onum{font-size:11px;color:#666}.pidx{font-size:11px;background:#f0f0f0;padding:2px 6px;border-radius:3px;font-weight:700}
+    .pname{font-size:12px;color:#555;margin-bottom:4px}
+    .srow{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+    .dim{font-size:24px;font-weight:700;display:inline-block;position:relative;line-height:1.4}
+    .sep{font-size:22px;color:#bbb}.unit{font-size:12px;color:#999;align-self:flex-end;padding-bottom:3px}
+    .irow{font-size:11px;color:#555;margin-bottom:3px}
+    .div{border:none;border-top:1px solid #eee;margin:8px 0}
+    .prow{display:flex;gap:8px;align-items:center}
+    .plbl{font-size:10px;color:#999;font-weight:700}
+    .pval{font-size:11px;font-weight:700;color:${hasBand?'#f97316':'#999'}}
+    .sbadge{font-size:10px;color:#999;text-align:right;margin-top:6px}
+    .print-btn{display:block;margin:10mm auto 0;padding:10px 24px;background:#f97316;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:700}
+    @media print{.print-btn{display:none}body{padding:5mm}}
+  </style></head><body>
+  <div>
+    <div class="label">
+      <div class="label-top"><span class="onum">${pt.orderNum}</span><span class="pidx">${pt.idx} / ${pt.total}</span></div>
+      <div class="pname">${pt.name}</div>
+      <div class="srow">${dimSpan(pt.w,wB)}<span class="sep">×</span>${dimSpan(pt.h,hB)}<span class="unit">mm</span></div>
+      <div class="irow">&#128100; ${pt.customer}</div>
+      <div class="irow">&#128197; ${pt.orderDate}</div>
+      <div class="irow">&#128295; ${pt.managerName}</div>
+      <hr class="div">
+      <div class="prow"><span class="plbl">PVC КРОМКА</span><span class="pval">${bandText(pt.e)}</span></div>
+      <div class="sbadge">Лист ${pt.sheet}/${pt.totalSheets}</div>
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨️ Распечатать</button>
+  </div>
+  </body></html>`;
+  const w=window.open('','_blank','width=400,height=500');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(()=>w.print(),500);
+};
+
+
+window.printLabels=function(){
+  if(!parts.length){alert('Сначала откройте заказ');return;}
+  const o=currentOrder||{};
+  const orderNum=o.id||'RSK';
+  const customer=o.customer||'';
+  const orderDate=o.createdAt?new Date(o.createdAt).toLocaleDateString('ru-RU'):'';
+  const hdrName=document.getElementById('hdr-name');
+  const managerName=hdrName?hdrName.textContent.split('—')[1]||hdrName.textContent:'Мастер';
+  const edgeMm=o.pvc||0.4;
+
+  // Yerleştirilmiş parçaları lastLayout'tan al
+  const placed=[];
+  if(lastLayout){
+    const groups=lastLayout.groups||{repFor:lastLayout.sheets.map((_,i)=>i),counts:{}};
+    const uniqueSheets=lastLayout.sheets.filter((_,i)=>groups.repFor[i]===i).length;
+    lastLayout.sheets.forEach((sheet,si)=>{
+      const rep=groups.repFor[si];
+      if(rep!==si)return;
+      const copies=groups.counts[si]||1;
+      sheet.parts.forEach(pt=>{
+        for(let c=0;c<copies;c++){
+          const orig=parts.find(p=>p.id===pt.pid)||{};
+          placed.push({
+            name:pt.name||orig.name||'—',
+            w:Math.round(pt.rot?pt.h:pt.w),
+            h:Math.round(pt.rot?pt.w:pt.h),
+            e:orig.e||{t:false,b:false,l:false,r:false},
+            sheet:si+1,
+            totalSheets:uniqueSheets
+          });
+        }
+      });
+    });
+  } else {
+    parts.forEach(p=>{
+      for(let i=0;i<(p.qty||1);i++){
+        placed.push({name:p.name||'—',w:p.w,h:p.h,e:p.e||{t:false,b:false,l:false,r:false},sheet:'?',totalSheets:'?'});
+      }
+    });
+  }
+
+  const total=placed.length;
+
+  function dimSpan(val,bands){
+    if(bands===0) return `<span class="dim">${val}</span>`;
+    if(bands===1) return `<span class="dim" style="text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2.5px;text-decoration-color:#f97316">${val}</span>`;
+    return `<span class="dim" style="border-bottom:2.5px solid #f97316;padding-bottom:2px;position:relative">${val}<span style="position:absolute;bottom:-5px;left:0;right:0;height:2.5px;background:#f97316;display:block"></span></span>`;
+  }
+
+  function bandText(e){
+    const s=[];
+    if(e.t)s.push('Верх');if(e.b)s.push('Низ');if(e.l)s.push('Лево');if(e.r)s.push('Право');
+    return s.length?s.join(' + ')+' '+edgeMm+'мм':'—';
+  }
+
+  const labels=placed.map((pt,idx)=>{
+    const wB=(pt.e.t?1:0)+(pt.e.b?1:0);
+    const hB=(pt.e.l?1:0)+(pt.e.r?1:0);
+    const hasBand=wB>0||hB>0;
+    return `<div class="label">
+      <div class="label-top"><span class="onum">${orderNum}</span><span class="pidx">${idx+1} / ${total}</span></div>
+      <div class="pname">${pt.name}</div>
+      <div class="srow">${dimSpan(pt.w,wB)}<span class="sep">×</span>${dimSpan(pt.h,hB)}<span class="unit">mm</span></div>
+      <div class="irow">&#128100; ${customer}</div>
+      <div class="irow">&#128197; ${orderDate}</div>
+      <div class="irow">&#128295; ${managerName.trim()}</div>
+      <hr class="div">
+      <div class="prow"><span class="plbl">PVC</span><span class="pval" style="color:${hasBand?'#f97316':'#999'}">${bandText(pt.e)}</span></div>
+      <div class="sbadge">Лист ${pt.sheet}/${pt.totalSheets}</div>
+    </div>`;
+  }).join('');
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Этикетки — ${orderNum}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#fff;padding:8mm}
+    .toolbar{margin-bottom:8mm;display:flex;gap:10px;align-items:center}
+    .toolbar button{padding:8px 18px;background:#f97316;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:700}
+    .toolbar span{font-size:12px;color:#666}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm}
+    .label{border:1.5px solid #333;border-radius:6px;padding:8px 10px;break-inside:avoid;page-break-inside:avoid}
+    .label-top{display:flex;justify-content:space-between;margin-bottom:4px}
+    .onum{font-size:10px;color:#666}.pidx{font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:3px}
+    .pname{font-size:11px;color:#555;margin-bottom:3px}
+    .srow{display:flex;align-items:center;gap:5px;margin-bottom:7px}
+    .dim{font-size:20px;font-weight:700;display:inline-block;position:relative;line-height:1.4}
+    .sep{font-size:18px;color:#bbb}.unit{font-size:11px;color:#999;align-self:flex-end;padding-bottom:2px}
+    .irow{font-size:10px;color:#555;margin-bottom:2px}
+    .div{border:none;border-top:1px solid #eee;margin:6px 0}
+    .prow{display:flex;gap:6px;align-items:center}
+    .plbl{font-size:9px;color:#999;font-weight:700;white-space:nowrap}
+    .pval{font-size:10px;font-weight:700}
+    .sbadge{font-size:9px;color:#999;text-align:right;margin-top:5px}
+    @media print{.toolbar{display:none}body{padding:5mm}.grid{gap:3mm}}
+  </style></head><body>
+  <div class="toolbar">
+    <button onclick="window.print()">🖨️ Распечатать</button>
+    <span>${total} этикеток · ${orderNum} · ${customer}</span>
+  </div>
+  <div class="grid">${labels}</div>
+  </body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+};
+
 window.exportKdtXml=function(){
   if(!parts.length){alert('Сначала откройте заказ');return;}
   const o=currentOrder||{};
