@@ -592,13 +592,41 @@ async function loadSupabaseProducts() {
     const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
     const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Store tespiti: subdomain önce, sonra ?store= parametresi
+    let _storeId = null;
+    let _storeName = null;
+    try{
+      const { getCurrentStore } = await import('./supabase_client.js');
+      const _cs = await getCurrentStore();
+      if(_cs){ _storeId = _cs.id; _storeName = _cs.name; }
+    }catch(e){}
+    if(!_storeId){
+      const storeParam = new URLSearchParams(location.search).get('store');
+      if(storeParam){
+        // storeParam UUID değilse slug olabilir → ID'ye çevir
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/.test(storeParam);
+        if(isUuid){
+          _storeId = storeParam;
+        } else {
+          const {data:st} = await sb.from('stores').select('id,name').eq('slug',storeParam).maybeSingle();
+          if(st){ _storeId = st.id; _storeName = st.name; }
+        }
+      }
+    }
+    // DEBUG: hangi dükkan algılandı göster (sorun teşhisi için)
+    console.log('🏪 CATALOG STORE:', _storeName||'YOK', '| ID:', _storeId||'YOK', '| host:', location.hostname);
+    const _dbgEl = document.getElementById('b-sub');
+    if(_dbgEl && !_storeId){
+      // Subdomain yok → uyarı göster
+      console.warn('⚠️ Dükkan tespit edilemedi — TÜM ürünler gösterilecek!');
+    }
+
     let query = sb
       .from('products')
       .select('*, categories(name_ru, name_kk), stores(name, whatsapp, work_hours, work_days)')
       .eq('is_active', true);
-    // Dükkan sayfasıysa sadece o dükkanın ürünleri
-    const storeParam = new URLSearchParams(location.search).get('store');
-    if(storeParam) query = query.eq('store_id', storeParam);
+    // Sadece bu dükkanın ürünleri
+    if(_storeId) query = query.eq('store_id', _storeId);
     const {data:products, error} = await query.order('created_at', {ascending: false});
 
     if(error || !products || products.length === 0) {

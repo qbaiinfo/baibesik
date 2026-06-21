@@ -728,10 +728,15 @@ async function saveProduct(){
     const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
     const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
     
-    // Session'dan store_id al
+    // Store tespiti — subdomain öncelikli (BMT'de eklenen ürün BMT'ye gider)
     const {data:{session}} = await sb.auth.getSession();
     let storeId = null;
-    if(session) {
+    try{
+      const { getCurrentStore } = await import('./supabase_client.js');
+      const _cs = await getCurrentStore();
+      if(_cs) storeId = _cs.id;
+    }catch(e){}
+    if(!storeId && session) {
       const {data:members} = await sb.from('store_members')
         .select('store_id').eq('user_id', session.user.id);
       if(members && members.length) storeId = members[0].store_id;

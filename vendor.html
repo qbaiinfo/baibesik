@@ -974,18 +974,23 @@ async function loadStoreProductsStandalone() {
     const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
     const {data:{session}} = await sb.auth.getSession();
     if(!session) return;
-    // store_members'tan store_id al
-    const {data:members} = await sb.from('store_members')
-      .select('store_id').eq('user_id', session.user.id);
-    if(!members || !members.length) {
-      // store_members yoksa ilk mağazadan dene
-      const {data:stores} = await sb.from('stores').select('id').limit(1);
-      if(stores && stores.length) {
-        await loadStoreProducts(sb, stores[0].id);
-      }
-      return;
+    // Subdomain öncelikli store tespiti
+    let _sid = null;
+    try{
+      const { getCurrentStore } = await import('./supabase_client.js');
+      const _cs = await getCurrentStore();
+      if(_cs) _sid = _cs.id;
+    }catch(e){}
+    if(!_sid){
+      const {data:members} = await sb.from('store_members')
+        .select('store_id').eq('user_id', session.user.id);
+      if(members && members.length) _sid = members[0].store_id;
     }
-    await loadStoreProducts(sb, members[0].store_id);
+    if(!_sid){
+      const {data:stores} = await sb.from('stores').select('id').limit(1);
+      if(stores && stores.length) _sid = stores[0].id;
+    }
+    if(_sid) await loadStoreProducts(sb, _sid);
   } catch(e) { console.log('loadStoreProductsStandalone:', e.message); }
 }
 
@@ -1148,9 +1153,17 @@ async function confirmStockIncrease() {
     const {data:{session}} = await sb.auth.getSession();
     if(!session) throw new Error('No session');
 
-    // Store ID al
-    const {data:members} = await sb.from('store_members').select('store_id').eq('user_id', session.user.id);
-    const storeId = members && members.length ? members[0].store_id : null;
+    // Store ID — subdomain öncelikli
+    let storeId = null;
+    try{
+      const { getCurrentStore } = await import('./supabase_client.js');
+      const _cs = await getCurrentStore();
+      if(_cs) storeId = _cs.id;
+    }catch(e){}
+    if(!storeId){
+      const {data:members} = await sb.from('store_members').select('store_id').eq('user_id', session.user.id);
+      storeId = members && members.length ? members[0].store_id : null;
+    }
 
     // Atomik stok güncelle + log yaz (RPC fonksiyonu)
     const {data, error} = await sb.rpc('increase_product_stock', {
