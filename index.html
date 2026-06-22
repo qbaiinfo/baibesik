@@ -158,6 +158,55 @@ footer { background: var(--dark); color: #94a3b8; padding: 48px 20px 24px; }
   .promo-inner { grid-template-columns: 1fr; }
   .footer-inner { grid-template-columns: 1fr 1fr; }
   .header-inner { flex-wrap: wrap; }
+}
+/* ── MOBİL ALT NAVIGATION BAR ── */
+.mobile-bottom-nav { display: none; }
+@media (max-width: 768px) {
+  nav { display: none; } /* üstteki yatay menüyü gizle */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--dark2);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    z-index: 1000;
+    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+    box-shadow: 0 -2px 16px rgba(0,0,0,0.3);
+  }
+  .mbn-item {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 10px; font-weight: 700;
+    padding: 4px 2px;
+    position: relative;
+    transition: color 0.2s;
+  }
+  .mbn-item.active { color: var(--orange); }
+  .mbn-icon { font-size: 20px; line-height: 1; }
+  .mbn-item.center {
+    color: #fff;
+  }
+  .mbn-center-btn {
+    background: linear-gradient(135deg, #FF6B35 0%, #FF9800 100%);
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-top: -20px;
+    box-shadow: 0 4px 12px rgba(249,115,22,0.4);
+    border: 3px solid var(--dark2);
+  }
+  .mbn-badge {
+    position: absolute; top: 0; right: 50%;
+    transform: translateX(14px);
+    background: var(--orange); color: #fff;
+    border-radius: 50%; min-width: 16px; height: 16px;
+    font-size: 9px; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+  }
+  body { padding-bottom: 70px; } /* alt bar için boşluk */
   .search-bar { order: 3; width: 100%; }
 }
 @media (max-width: 480px) {
@@ -166,6 +215,30 @@ footer { background: var(--dark); color: #94a3b8; padding: 48px 20px 24px; }
   .footer-inner { grid-template-columns: 1fr; }
 }
 </style>
+<!-- MOBİL ALT NAVIGATION -->
+<nav class="mobile-bottom-nav">
+  <a href="catalog.html" class="mbn-item active">
+    <span class="mbn-icon">🏠</span>
+    <span>Каталог</span>
+  </a>
+  <a href="magazalar.html" class="mbn-item">
+    <span class="mbn-icon">🏪</span>
+    <span>Магазины</span>
+  </a>
+  <a href="raskroi.html" class="mbn-item center" onclick="return goCutting(event,this)">
+    <span class="mbn-center-btn">✂️</span>
+    <span>Раскрой</span>
+  </a>
+  <a href="#" class="mbn-item" onclick="goCart();return false;">
+    <span class="mbn-icon">🛒<span class="mbn-badge" id="mbn-cart-count" style="display:none">0</span></span>
+    <span>Корзина</span>
+  </a>
+  <a href="#" class="mbn-item" onclick="goProfile();return false;">
+    <span class="mbn-icon">👤</span>
+    <span>Кабинет</span>
+  </a>
+</nav>
+
 <script src="cart.js"></script>
 
 <style>
@@ -604,7 +677,7 @@ function showUserBadge(name, role){
   const roleLabels = {super_admin:'Супер-админ',store_owner:'Владелец',manager:'Менеджер',warehouse:'Склад',wholesale:'Оптовик',customer:'Клиент'};
   const roleColors = {super_admin:'#7c3aed',store_owner:'#f97316',manager:'#3b82f6',warehouse:'#10b981',wholesale:'#0891b2',customer:'#64748b'};
   const rc = roleColors[role]||'#64748b';
-  const panelRoutes = {super_admin:'admin.html',store_owner:'store_owner.html',manager:'vendor.html',warehouse:'depo_panel.html',wholesale:'toptanci_dashboard.html',customer:'musteri_dashboard.html',raskroi_manager:'raskroi_manager.html',raskroi_worker:'raskroi_manager.html',cutting_worker:'raskroi_manager.html',pvc_worker:'raskroi_manager.html'};
+  const panelRoutes = {super_admin:'admin.html',store_owner:'store_owner.html',manager:'vendor.html',warehouse:'depo_panel.html',wholesale:'toptanci_dashboard.html',customer:'musteri_dashboard.html',raskroi_manager:'raskroi_manager.html',raskroi_worker:'raskroi_manager.html',cutting_worker:'worker_task.html',pvc_worker:'worker_task.html'};
   const panel = panelRoutes[role]||'musteri_dashboard.html';
   // Header buton alanını bul (sayfaya göre farklı class)
   const cont = document.querySelector('.header-actions, .hr, .lang-btns, .htitle')?.parentElement
@@ -631,7 +704,6 @@ async function goCart(){
     const sb = createClient(SUPABASE_URL_BADGE, SUPABASE_KEY_BADGE);
     const {data:{session}} = await sb.auth.getSession();
     if(!session){
-      // Giriş yok → login'e, dönüşte checkout'a gelsin
       window.location.href = 'login.html?next=checkout_and_orders.html';
       return;
     }
@@ -640,6 +712,41 @@ async function goCart(){
     window.location.href = 'login.html?next=checkout_and_orders.html';
   }
 }
+
+// Mobil alt bar — Kabinet (profil) butonu
+async function goProfile(){
+  try {
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL_BADGE, SUPABASE_KEY_BADGE);
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session){
+      window.location.href = 'login.html';
+      return;
+    }
+    // Role'e göre panele yönlendir
+    const {data:u} = await sb.from('users').select('role').eq('id',session.user.id).single();
+    const role = u?.role || 'customer';
+    const panelRoutes = {super_admin:'admin.html',store_owner:'store_owner.html',manager:'vendor.html',warehouse:'depo_panel.html',wholesale:'toptanci_dashboard.html',customer:'musteri_dashboard.html',raskroi_manager:'raskroi_manager.html',raskroi_worker:'raskroi_manager.html',cutting_worker:'worker_task.html',pvc_worker:'worker_task.html'};
+    window.location.href = panelRoutes[role] || 'musteri_dashboard.html';
+  } catch(e){
+    window.location.href = 'login.html';
+  }
+}
+
+// Cart badge senkronizasyonu (alt bar)
+function syncMobileCartBadge(){
+  try{
+    const items = JSON.parse(localStorage.getItem('baibesik_cart')||'[]');
+    const count = items.reduce((s,i)=>s+(i.qty||1),0);
+    const badge = document.getElementById('mbn-cart-count');
+    if(badge){
+      if(count>0){ badge.textContent=count; badge.style.display='flex'; }
+      else { badge.style.display='none'; }
+    }
+  }catch(e){}
+}
+syncMobileCartBadge();
+setInterval(syncMobileCartBadge, 1500);
 
 async function badgeLogout(){
   try {
