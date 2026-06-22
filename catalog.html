@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Baibesik.kz — Каталог BMT</title>
+<title>Baibesik.kz — Каталог</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -87,7 +87,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 .banner-right{text-align:right;flex-shrink:0}
 .banner-cnt{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--orange);display:block}
 .banner-cnt-lbl{font-size:11px;color:#64748b}
-/* BMT badge */
+/* store badge */
 .bmt-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);color:var(--orange);font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;margin-left:10px;vertical-align:middle}
 
 /* TOOLBAR */
@@ -198,7 +198,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
   <div class="bc-inner">
     <a href="index.html" id="bc-home">Главная</a>
     <span class="bc-sep">›</span>
-    <span class="bc-cur" id="bc-cat">Каталог BMT</span>
+    <span class="bc-cur" id="bc-cat">Каталог</span>
     <span class="bc-sep" id="bc-sep2" style="display:none">›</span>
     <span class="bc-cur" id="bc-sub" style="display:none"></span>
   </div>
@@ -247,7 +247,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
     <div class="banner">
       <div class="banner-icon" id="b-icon">📦</div>
       <div class="banner-info">
-        <div class="banner-title" id="b-title">ВСЕ ТОВАРЫ<span class="bmt-badge">BMT Апрель 2026</span></div>
+        <div class="banner-title" id="b-title">ВСЕ ТОВАРЫ</div>
         <div class="banner-sub" id="b-sub">Реальные цены из прайс-листа — 18 категорий, 150+ позиций</div>
       </div>
       <div class="banner-right">
@@ -288,7 +288,8 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 2p
 </div>
 
 <script>
-// ─── BMT ДАННЫЕ ─────────────────────────────────────────────────────────────
+// ─── ДАННЫЕ ─────────────────────────────────────────────────────────────
+let STORE_NAME = ''; // dükkan adı (subdomain'den)
 const CATS = [
   {id:0, icon:'🗂️', ru:'Все товары', kk:'Барлық тауарлар'},
   {id:1, icon:'<img src="data:image/png;base64,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" style="width:26px;height:26px;border-radius:50%;object-fit:cover">', ru:'Направляющие', kk:'Бағыттаушылар'},
@@ -323,12 +324,12 @@ let cartN=Cart ? Cart.count() : 0;
 // ─── TRANSLATIONS ────────────────────────────────────────────────────────────
 const T={
 ru:{
-  'back-lnk':'← Главная','bc-home':'Главная','bc-cat':'Каталог BMT',
+  'back-lnk':'← Главная','bc-home':'Главная','bc-cat':'Каталог',
   'sb-cats':'Категории','sb-fil':'Фильтры',
   'f-type':'Тип покупателя','chip-ret':'Розница','chip-ws':'Оптом −20%',
   'f-heavy':'Товары','chip-all':'Все','chip-normal':'Обычные','chip-heavy':'Самовывоз',
   'f-price':'Цена за шт (₸)','btn-apply':'Применить',
-  'b-sub':'Реальные цены BMT — 18 категорий, 150+ позиций',
+  'b-sub':'18 категорий, 150+ позиций',
   'b-cnt-lbl':'товаров','res-cnt_pre':'Найдено:',
   'tb-ret':'Розница','tb-ws':'Опт −20%',
   's-def':'По умолчанию','s-asc':'Цена ↑','s-desc':'Цена ↓','s-name':'По названию',
@@ -336,12 +337,12 @@ ru:{
   all_title:'ВСЕ ТОВАРЫ',
 },
 kk:{
-  'back-lnk':'← Басты бет','bc-home':'Басты бет','bc-cat':'BMT Каталогы',
+  'back-lnk':'← Басты бет','bc-home':'Басты бет','bc-cat':'Каталогы',
   'sb-cats':'Санаттар','sb-fil':'Сүзгілер',
   'f-type':'Сатып алушы түрі','chip-ret':'Бөлшек','chip-ws':'Көтерме −20%',
   'f-heavy':'Тауарлар','chip-all':'Барлығы','chip-normal':'Қалыпты','chip-heavy':'Тек өзі алады',
   'f-price':'Баға (₸)','btn-apply':'Қолдану',
-  'b-sub':'BMT нақты бағалары — 18 санат, 150+ позиция',
+  'b-sub':'18 санат, 150+ позиция',
   'b-cnt-lbl':'тауар','res-cnt_pre':'Табылды:',
   'tb-ret':'Бөлшек','tb-ws':'Көтерме −20%',
   's-def':'Әдепкі','s-asc':'Баға ↑','s-desc':'Баға ↓','s-name':'Атауы бойынша',
@@ -389,13 +390,14 @@ function selCat(id){
 }
 function updateBanner(){
   const d=T[lang];
+  const badge = STORE_NAME ? `<span class="bmt-badge">${STORE_NAME}</span>` : '';
   if(activeCat===0){
     document.getElementById('b-icon').textContent='📦';
-    document.getElementById('b-title').innerHTML=`${d.all_title}<span class="bmt-badge">BMT Апрель 2026</span>`;
+    document.getElementById('b-title').innerHTML=`${d.all_title}${badge}`;
   } else {
     const cat=CATS.find(c=>c.id===activeCat);
     document.getElementById('b-icon').innerHTML=cat.icon;
-    document.getElementById('b-title').innerHTML=`${(lang==='ru'?cat.ru:cat.kk).toUpperCase()}<span class="bmt-badge">BMT 2026</span>`;
+    document.getElementById('b-title').innerHTML=`${(lang==='ru'?cat.ru:cat.kk).toUpperCase()}${badge}`;
   }
 }
 
@@ -598,7 +600,13 @@ async function loadSupabaseProducts() {
     try{
       const { getCurrentStore } = await import('./supabase_client.js');
       const _cs = await getCurrentStore();
-      if(_cs){ _storeId = _cs.id; _storeName = _cs.name; }
+      if(_cs){ _storeId = _cs.id; _storeName = _cs.name; STORE_NAME = _cs.name; }
+      // Sayfa başlığı ve breadcrumb güncelle
+      if(STORE_NAME){
+        document.title = 'Baibesik.kz — ' + (lang==='ru'?'Каталог':'Каталогы') + ' ' + STORE_NAME;
+        const bcCat = document.getElementById('bc-cat');
+        if(bcCat) bcCat.textContent = (lang==='ru'?'Каталог':'Каталогы') + ' ' + STORE_NAME;
+      }
     }catch(e){}
     if(!_storeId){
       const storeParam = new URLSearchParams(location.search).get('store');
@@ -609,7 +617,7 @@ async function loadSupabaseProducts() {
           _storeId = storeParam;
         } else {
           const {data:st} = await sb.from('stores').select('id,name').eq('slug',storeParam).maybeSingle();
-          if(st){ _storeId = st.id; _storeName = st.name; }
+          if(st){ _storeId = st.id; _storeName = st.name; STORE_NAME = st.name; }
         }
       }
     }
@@ -681,7 +689,7 @@ async function loadSupabaseProducts() {
 
     // Banner güncelle
     document.getElementById('b-sub').textContent =
-      `${lang==='ru'?'Реальные товары BMT + магазинов':'BMT нақты тауарлары'} — ${PRODS.length} ${lang==='ru'?'позиций':'позиция'}`;
+      `${STORE_NAME ? STORE_NAME+' — ' : ''}${PRODS.length} ${lang==='ru'?'позиций':'позиция'}`;
 
     console.log(`✅ ${dbProds.length} ürün Supabase'den yüklendi`);
 
