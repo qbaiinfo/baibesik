@@ -219,8 +219,8 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
       <div class="panel">
         <h3 class="panel-title" data-i18n="sheetParams">📐 Параметры листа</h3>
         <div class="params">
-          <div class="ig"><label data-i18n="width">Ширина X (mm)</label><input type="number" id="sheetW" value="2800" min="100"></div>
-          <div class="ig"><label data-i18n="height">Высота Y (mm)</label><input type="number" id="sheetH" value="2070" min="100"></div>
+          <div class="ig"><label data-i18n="width">Ширина X (mm)</label><input type="number" id="sheetW" value="2750" min="100"></div>
+          <div class="ig"><label data-i18n="height">Высота Y (mm)</label><input type="number" id="sheetH" value="1830" min="100"></div>
           <div class="ig"><label data-i18n="material">Материал</label>
             <select id="matType" onchange="onMatTypeChange()">
               <option value="ldsp16">ЛДСП 16мм</option>
@@ -1341,8 +1341,8 @@ function nestCore(parts, SW, SH, kerf, trim, grain){
 }
 
 function nest(){
-  const SW=parseFloat(document.getElementById('sheetW').value)||2800;
-  const SH=parseFloat(document.getElementById('sheetH').value)||2070;
+  const SW=parseFloat(document.getElementById('sheetW').value)||2750;
+  const SH=parseFloat(document.getElementById('sheetH').value)||1830;
   const kerf=parseFloat(document.getElementById('kerf').value)||4;
   const trim=parseFloat(document.getElementById('trim').value)||10;
   const grain=document.getElementById('grainDir').value;
@@ -1435,8 +1435,8 @@ function findMaxEmptyRect(parts, X0, Y0, W, H){
 
 async function nestRemote(){
   try{
-    const SW=parseFloat(document.getElementById('sheetW').value)||2800;
-    const SH=parseFloat(document.getElementById('sheetH').value)||2070;
+    const SW=parseFloat(document.getElementById('sheetW').value)||2750;
+    const SH=parseFloat(document.getElementById('sheetH').value)||1830;
     const kerf=parseFloat(document.getElementById('kerf').value)||4;
     const trim=parseFloat(document.getElementById('trim').value)||10;
     const grain=document.getElementById('grainDir').value;

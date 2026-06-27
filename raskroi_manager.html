@@ -175,11 +175,11 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
             </div>
             <div>
               <label style="font-size:10px;font-weight:700;color:#64748b">ЛИСТ Ш мм</label>
-              <input type="number" id="matW" value="2800" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
+              <input type="number" id="matW" value="2750" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
             </div>
             <div>
               <label style="font-size:10px;font-weight:700;color:#64748b">ЛИСТ В мм</label>
-              <input type="number" id="matH" value="2070" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
+              <input type="number" id="matH" value="1830" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;margin-top:2px">
             </div>
             <div>
               <label style="font-size:10px;font-weight:700;color:#64748b">ПРОПИЛ мм</label>
@@ -483,8 +483,8 @@ window.selectOrder=function(oid){
   const hasOpt=[...matSel.options].some(o=>o.value===mat);
   if(hasOpt){matSel.value=mat;matCustom.style.display='none';}
   else{matSel.value='__custom__';matCustom.style.display='block';matCustom.value=mat;}
-  document.getElementById('dSheetW').value=currentOrder.sheetW||2800;
-  document.getElementById('dSheetH').value=currentOrder.sheetH||2070;
+  document.getElementById('dSheetW').value=currentOrder.sheetW||2750;
+  document.getElementById('dSheetH').value=currentOrder.sheetH||1830;
   document.getElementById('dKerf').value=currentOrder.kerf||4;
   document.getElementById('dTrim').value=currentOrder.trim||10;
   const stEl=document.getElementById('dStatus');stEl.textContent=currentOrder.status;stEl.className='st st-'+currentOrder.status;
@@ -1154,8 +1154,8 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
 }
 
 function nest(){
-  const SW=parseFloat(document.getElementById('sheetW').value)||2800;
-  const SH=parseFloat(document.getElementById('sheetH').value)||2070;
+  const SW=parseFloat(document.getElementById('sheetW').value)||2750;
+  const SH=parseFloat(document.getElementById('sheetH').value)||1830;
   const kerf=parseFloat(document.getElementById('kerf').value)||4;
   const trim=parseFloat(document.getElementById('trim').value)||10;
   const grain=document.getElementById('grainDir').value;
@@ -1270,7 +1270,7 @@ async function nestRemote(SW,SH,kerf,trim,grain){
 
 window.calcNest=async function(){
   if(!parts.length)return;
-  const SW=parseFloat(currentOrder?.sheetW)||2800, SH=parseFloat(currentOrder?.sheetH)||2070;
+  const SW=parseFloat(currentOrder?.sheetW)||2750, SH=parseFloat(currentOrder?.sheetH)||1830;
   const kerf=parseFloat(currentOrder?.kerf)||4, trim=parseFloat(currentOrder?.trim)||10;
   const grain=currentOrder?.grain||'none';
   const btn=document.getElementById('cSheets');
@@ -1445,8 +1445,8 @@ window.matCustomChanged=function(){
 };
 window.sheetChanged=function(){
   if(!currentOrder)return;
-  currentOrder.sheetW=parseFloat(document.getElementById('dSheetW').value)||2800;
-  currentOrder.sheetH=parseFloat(document.getElementById('dSheetH').value)||2070;
+  currentOrder.sheetW=parseFloat(document.getElementById('dSheetW').value)||2750;
+  currentOrder.sheetH=parseFloat(document.getElementById('dSheetH').value)||1830;
   saveOrder();
   if(lastLayout)window.calcNest();
 };
@@ -1528,8 +1528,8 @@ window.saveMaterial=async function(){
       store_id:store.id,name,
       thickness_mm:parseInt(document.getElementById('matThick').value)||16,
       edge_band_mm:parseFloat(document.getElementById('matEdge').value)||0.4,
-      sheet_w:parseInt(document.getElementById('matW').value)||2800,
-      sheet_h:parseInt(document.getElementById('matH').value)||2070,
+      sheet_w:parseInt(document.getElementById('matW').value)||2750,
+      sheet_h:parseInt(document.getElementById('matH').value)||1830,
       kerf_mm:parseInt(document.getElementById('matKerf').value)||4,
       trim_mm:parseInt(document.getElementById('matTrim').value)||10,
     });
@@ -2257,7 +2257,7 @@ window.printLabels=function(){
 window.exportKdtXml=function(){
   if(!lastLayout || !lastLayout.sheets || !lastLayout.sheets.length){alert('Сначала рассчитайте раскрой');return;}
   const o=currentOrder||{};
-  const SW=o.sheetW||2800, SH=o.sheetH||2070;
+  const SW=o.sheetW||2750, SH=o.sheetH||1830;
   const mat=o.material||'ЛДСП';
   const KERF=o.kerf||4, TRIM=o.trim||10;
   const esc=s=>(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
