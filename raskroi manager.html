@@ -110,6 +110,15 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 .price-input input{padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none}
 .hidden{display:none}
 @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
+@media(max-width:768px){
+  header{padding:10px 12px;gap:8px;flex-wrap:nowrap}
+  .logo{font-size:17px;letter-spacing:1px;flex-shrink:0}
+  .hdr-user{display:none}
+  header .badge{display:none}
+  .hdr-logout{font-size:12px;padding:6px 10px;flex-shrink:0;white-space:nowrap}
+  .content{padding:10px}
+  .panel{padding:14px;margin-bottom:12px}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
