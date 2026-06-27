@@ -1432,15 +1432,14 @@ window.calculate=async function(){
   document.getElementById('rCut').textContent=(cutLen/1000).toFixed(1)+' м';
   const pvcM = selectedPVC==='0'?0:(pvcLen/1000*1.05);
   document.getElementById('rPvc').textContent=pvcM.toFixed(1)+' м';
-  // Kerf Optimization sonuçları
+  // Kerf Optimization sonuçları (elemanlar varsa)
+  const _kr=document.getElementById('rKerfRow'), _gr=document.getElementById('rGangRow');
   if(L.kerfSaved>0){
-    document.getElementById('rKerfRow').style.display='';
-    document.getElementById('rKerfSaved').textContent=L.kerfSaved+' мм → '+(L.kerfSaved/1000*sheetArea/1e6).toFixed(3)+' м²';
-    document.getElementById('rGangRow').style.display='';
-    document.getElementById('rGangCuts').textContent=L.gangCuts+' gang cut';
+    if(_kr){_kr.style.display='';const _ks=document.getElementById('rKerfSaved');if(_ks)_ks.textContent=L.kerfSaved+' мм → '+(L.kerfSaved/1000*sheetArea/1e6).toFixed(3)+' м²';}
+    if(_gr){_gr.style.display='';const _gc=document.getElementById('rGangCuts');if(_gc)_gc.textContent=L.gangCuts+' gang cut';}
   } else {
-    document.getElementById('rKerfRow').style.display='none';
-    document.getElementById('rGangRow').style.display='none';
+    if(_kr)_kr.style.display='none';
+    if(_gr)_gr.style.display='none';
   }
   document.getElementById('planInfo').textContent=`${L.SW}×${L.SH}mm · ${nSheets} ${lang==='kk'?'парақ':'лист'}`;
   drawSheets(L);
