@@ -1164,6 +1164,39 @@ function nest(){
 
 // Edge Function üzerinden hesapla; başarısız olursa lokal nestCore'a düş
 // (raskroi.html ile birebir aynı algoritma/davranış)
+
+// ════ BOŞ ALANA SIĞABİLECEK EN BÜYÜK DİKDÖRTGEN (ОСТАТОК) ════
+function findMaxEmptyRect(parts, X0, Y0, W, H){
+  if(!parts.length) return {x:X0,y:Y0,w:W,h:H};
+  const xs=new Set([X0,X0+W]), ys=new Set([Y0,Y0+H]);
+  parts.forEach(p=>{ xs.add(p.px); xs.add(p.px+p.w); ys.add(p.py); ys.add(p.py+p.h); });
+  const xa=Array.from(xs).filter(x=>x>=X0-0.5&&x<=X0+W+0.5).sort((a,b)=>a-b);
+  const ya=Array.from(ys).filter(y=>y>=Y0-0.5&&y<=Y0+H+0.5).sort((a,b)=>a-b);
+  function isFree(x1,y1,x2,y2){
+    for(const p of parts){
+      if(p.px < x2-0.5 && p.px+p.w > x1+0.5 && p.py < y2-0.5 && p.py+p.h > y1+0.5) return false;
+    }
+    return true;
+  }
+  let best=null, bestArea=0;
+  for(let i=0;i<xa.length-1;i++){
+    for(let j=i+1;j<xa.length;j++){
+      const x1=xa[i], x2=xa[j], rw=x2-x1;
+      if(rw<100) continue;
+      for(let k=0;k<ya.length-1;k++){
+        for(let l=k+1;l<ya.length;l++){
+          const y1=ya[k], y2=ya[l], rh=y2-y1;
+          if(rh<100) continue;
+          const area=rw*rh;
+          if(area<=bestArea) continue;
+          if(isFree(x1,y1,x2,y2)){ bestArea=area; best={x:x1,y:y1,w:rw,h:rh}; }
+        }
+      }
+    }
+  }
+  return best;
+}
+
 async function nestRemote(SW,SH,kerf,trim,grain){
   // Block Grouping: aynı boyutları grupla
   const useBlock = document.getElementById('opt-block')?.checked !== false;
@@ -1249,24 +1282,22 @@ window.calcNest=async function(){
   const cut=L.cutLen||0;
   const n=L.sheets.length;
   const effReal=n?pa/(sheetArea*n)*100:0;
-  // ОСТАТОК: her levhada SADECE EN BÜYÜK tek dikdörtgen kalan
-  // (suntacı bütün olarak alır, küçük fireleri yerinde bırakmaz)
+  // ОСТАТОК: boş alana SIĞABİLECEK en büyük tek dikdörtgen
+  // (suntacı bu boyutta stok parça keser, müşteri ile AYNI hesap)
   const OSTATOK_MIN=100;
   let ostatokArea=0;
   L.sheets.forEach((sheet,si)=>{
     const rep=L.groups?L.groups.repFor[si]:si;
-    if(L.groups&&rep!==si)return;
+    if(L.groups&&rep!==si){ sheet._ostatok=null; return; }
     const copies=(L.groups&&rep===si)?(L.groups.counts[si]||1):1;
-    // En büyük tek remnant'ı bul (alan bazında)
-    let biggest=null;
-    (sheet.remnants||[]).forEach(r=>{
-      if(r.w>=OSTATOK_MIN&&r.h>=OSTATOK_MIN){
-        if(!biggest||r.w*r.h>biggest.w*biggest.h) biggest=r;
-      }
-    });
-    // Her remnant'ı işaretle: en büyük = ostatok, diğerleri = fire
-    (sheet.remnants||[]).forEach(r=>{ r.isOstatok = (r===biggest); });
-    if(biggest) ostatokArea+=biggest.w*biggest.h*copies;
+    const placed=(sheet.parts||[]).map(p=>({px:p.px,py:p.py,w:p.w,h:p.h}));
+    const maxRect=findMaxEmptyRect(placed, L.trim, L.trim, L.usableW, L.usableH);
+    if(maxRect && maxRect.w>=OSTATOK_MIN && maxRect.h>=OSTATOK_MIN){
+      sheet._ostatok={x:maxRect.x,y:maxRect.y,w:maxRect.w,h:maxRect.h};
+      ostatokArea+=maxRect.w*maxRect.h*copies;
+    } else {
+      sheet._ostatok=null;
+    }
   });
   const effWithOstatok=n?Math.min(99.9,((pa+ostatokArea)/(sheetArea*n))*100):0;
   L.ostatokArea=ostatokArea; L.effReal=effReal; L.effWithOstatok=effWithOstatok;
@@ -1331,44 +1362,44 @@ function drawSheets(L, wrapEl, pxScale){
     const cv=document.createElement('canvas');const sc=Math.min(560/L.SW,360/L.SH)*pxScale;cv.width=L.SW*sc;cv.height=L.SH*sc;
     const ctx=cv.getContext('2d');ctx.fillStyle='#f1f5f9';ctx.fillRect(0,0,cv.width,cv.height);
     ctx.strokeStyle='#cbd5e1';ctx.setLineDash([4*pxScale,3*pxScale]);ctx.strokeRect(L.trim*sc,L.trim*sc,L.usableW*sc,L.usableH*sc);ctx.setLineDash([]);
-    // KALANLAR — büyük olanlar ОСТАТОК (yeşil, kullanılabilir stok), küçükler fire (gri)
+    // 1) Tüm kalanları GRİ fire olarak çiz
     (sheet.remnants||[]).forEach(r=>{
       const x=r.x*sc,y=r.y*sc,w=r.w*sc,h=r.h*sc;
-      const isOstatok = !!r.isOstatok; // sadece en büyük tek parça ostatok
       ctx.save();
-      if(isOstatok){
-        // ОСТАТОК — yeşil dolgu (stok parçası)
-        ctx.fillStyle='rgba(16,185,129,.15)';ctx.fillRect(x,y,w,h);
-        ctx.strokeStyle='#10b981';ctx.lineWidth=.7*pxScale;
-        ctx.beginPath();
-        for(let d=-h;d<w;d+=10*pxScale){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
-        ctx.rect(x,y,w,h);ctx.clip();ctx.stroke();
-      }else{
-        // Fire — gri taralı
-        ctx.fillStyle='#e2e8f0';ctx.fillRect(x,y,w,h);
-        ctx.strokeStyle='#94a3b8';ctx.lineWidth=.6*pxScale;
-        ctx.beginPath();
-        for(let d=-h;d<w;d+=8*pxScale){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
-        ctx.rect(x,y,w,h);ctx.clip();ctx.stroke();
-      }
+      ctx.fillStyle='#e2e8f0';ctx.fillRect(x,y,w,h);
+      ctx.strokeStyle='#94a3b8';ctx.lineWidth=.6*pxScale;
+      ctx.beginPath();
+      for(let d=-h;d<w;d+=8*pxScale){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+      ctx.rect(x,y,w,h);ctx.clip();ctx.stroke();
       ctx.restore();
-      ctx.strokeStyle=isOstatok?'#10b981':'#94a3b8';ctx.lineWidth=(isOstatok?1.5:1)*pxScale;ctx.setLineDash([3*pxScale,3*pxScale]);
+      ctx.strokeStyle='#94a3b8';ctx.lineWidth=1*pxScale;ctx.setLineDash([3*pxScale,3*pxScale]);
       ctx.strokeRect(x,y,w,h);ctx.setLineDash([]);
       if(w>40*pxScale&&h>14*pxScale){
-        ctx.fillStyle=isOstatok?'#059669':'#64748b';
-        ctx.textAlign='center';ctx.textBaseline='middle';
-        if(isOstatok && w>60*pxScale && h>30*pxScale){
-          // ОСТАТОК etiketi + boyut
-          ctx.font=`bold ${Math.round(9*pxScale)}px monospace`;
-          ctx.fillText('ОСТАТОК',x+w/2,y+h/2-5*pxScale);
-          ctx.font=`${Math.round(8*pxScale)}px monospace`;
-          ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2+6*pxScale);
-        }else{
-          ctx.font=`bold ${Math.round(9*pxScale)}px monospace`;
-          ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
-        }
+        ctx.fillStyle='#64748b';ctx.font=`bold ${Math.round(9*pxScale)}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
       }
     });
+    // 2) ОСТАТОК — boşluğa sığan en büyük dikdörtgen (YEŞİL, üstte)
+    if(sheet._ostatok){
+      const o=sheet._ostatok;
+      const x=o.x*sc,y=o.y*sc,w=o.w*sc,h=o.h*sc;
+      ctx.save();
+      ctx.fillStyle='rgba(16,185,129,.22)';ctx.fillRect(x,y,w,h);
+      ctx.strokeStyle='#10b981';ctx.lineWidth=.8*pxScale;
+      ctx.beginPath();
+      for(let d=-h;d<w;d+=10*pxScale){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+      ctx.rect(x,y,w,h);ctx.clip();ctx.stroke();
+      ctx.restore();
+      ctx.strokeStyle='#10b981';ctx.lineWidth=2*pxScale;ctx.setLineDash([4*pxScale,3*pxScale]);
+      ctx.strokeRect(x,y,w,h);ctx.setLineDash([]);
+      if(w>60*pxScale&&h>30*pxScale){
+        ctx.fillStyle='#059669';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.font=`bold ${Math.round(10*pxScale)}px monospace`;
+        ctx.fillText('ОСТАТОК',x+w/2,y+h/2-6*pxScale);
+        ctx.font=`${Math.round(9*pxScale)}px monospace`;
+        ctx.fillText(`${Math.round(o.w)}×${Math.round(o.h)}`,x+w/2,y+h/2+7*pxScale);
+      }
+    }
     sheet.parts.forEach(pt=>{const x=pt.x*sc,y=pt.y*sc,w=pt.w*sc,h=pt.h*sc;
       ctx.fillStyle=cm[pt.name]||'#999';ctx.globalAlpha=.82;ctx.fillRect(x,y,w,h);ctx.globalAlpha=1;
       ctx.strokeStyle='#1e293b';ctx.lineWidth=1*pxScale;ctx.strokeRect(x,y,w,h);
@@ -1987,19 +2018,17 @@ function renderCutList(L){
     </tr>`;
   }).join('');
 
-  // ── ОСТАТКИ (her levhada SADECE en büyük tek parça) ──
-  // isOstatok flag yukarıda set edildi — suntacı bütün olarak alır
+  // ── ОСТАТКИ (boşluğa sığan en büyük dikdörtgen — _ostatok) ──
+  // Suntacı bu boyutta stok parça keser
   const offcuts = [];
   L.sheets.forEach((sheet,si)=>{
     const rep=groups.repFor[si];
     if(rep!==si)return; // kopya levhaları atla
     const copies=groups.counts[si]||1;
-    (sheet.remnants||[]).forEach(r=>{
-      if(r.isOstatok){ // sadece en büyük tek parça
-        const w=Math.round(r.w), h=Math.round(r.h);
-        offcuts.push({w,h,sheet:si+1,copies,area:(w*h/1e6)});
-      }
-    });
+    if(sheet._ostatok){
+      const w=Math.round(sheet._ostatok.w), h=Math.round(sheet._ostatok.h);
+      offcuts.push({w,h,sheet:si+1,copies,area:(w*h/1e6)});
+    }
   });
   // Boyuta göre grupla (aynı ölçü kalanları birleştir)
   const offcutMap=new Map();

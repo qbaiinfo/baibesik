@@ -1378,6 +1378,61 @@ function nest(){
 }
 
 // Edge Function üzerinden hesapla; başarısız olursa lokal nestCore'a düş
+
+// ════ BOŞ ALANA SIĞABİLECEK EN BÜYÜK DİKDÖRTGEN (ОСТАТОК) ════
+// Yerleştirilmiş parçaların etrafındaki boş alanda en büyük tek
+// dikdörtgeni bulur. Suntacı bu boyutta stok parça keser.
+// Yöntem: parça kenarlarını candidate çizgi olarak al, her boş
+// dikdörtgeni dene, en büyüğünü seç.
+function findMaxEmptyRect(parts, X0, Y0, W, H){
+  // parts: [{px,py,w,h}] (mutlak koordinat, kesim alanı içinde)
+  // X0,Y0: kesim alanı başlangıç (trim), W,H: kullanılabilir boyut
+  if(!parts.length) return {x:X0,y:Y0,w:W,h:H};
+
+  // Candidate X ve Y çizgileri (parça kenarları + alan kenarları)
+  const xs=new Set([X0,X0+W]), ys=new Set([Y0,Y0+H]);
+  parts.forEach(p=>{
+    xs.add(p.px); xs.add(p.px+p.w);
+    ys.add(p.py); ys.add(p.py+p.h);
+  });
+  const xa=Array.from(xs).filter(x=>x>=X0-0.5&&x<=X0+W+0.5).sort((a,b)=>a-b);
+  const ya=Array.from(ys).filter(y=>y>=Y0-0.5&&y<=Y0+H+0.5).sort((a,b)=>a-b);
+
+  // Bir dikdörtgen (x1,y1,x2,y2) parçalarla çakışıyor mu?
+  function isFree(x1,y1,x2,y2){
+    for(const p of parts){
+      // çakışma var mı (kenar değme sayılmaz)
+      if(p.px < x2-0.5 && p.px+p.w > x1+0.5 &&
+         p.py < y2-0.5 && p.py+p.h > y1+0.5) return false;
+    }
+    return true;
+  }
+
+  let best=null, bestArea=0;
+  // Tüm x-aralığı × y-aralığı kombinasyonlarını dene
+  for(let i=0;i<xa.length-1;i++){
+    for(let j=i+1;j<xa.length;j++){
+      const x1=xa[i], x2=xa[j];
+      const rw=x2-x1;
+      if(rw<100) continue;
+      for(let k=0;k<ya.length-1;k++){
+        for(let l=k+1;l<ya.length;l++){
+          const y1=ya[k], y2=ya[l];
+          const rh=y2-y1;
+          if(rh<100) continue;
+          const area=rw*rh;
+          if(area<=bestArea) continue;
+          if(isFree(x1,y1,x2,y2)){
+            bestArea=area;
+            best={x:x1,y:y1,w:rw,h:rh};
+          }
+        }
+      }
+    }
+  }
+  return best;
+}
+
 async function nestRemote(){
   try{
     const SW=parseFloat(document.getElementById('sheetW').value)||2800;
@@ -1423,21 +1478,22 @@ window.calculate=async function(){
   // kesim uzunluğu: her parça çevresi/2 yaklaşık (guillotine)
   cutLen=L.cutLen||0;
   const nSheets=L.sheets.length;
-  // ОСТАТОК: her levhada en büyük tek dikdörtgen (manager ile AYNI hesap)
+  // ОСТАТОК: boş alana SIĞABİLECEK en büyük tek dikdörtgen (manager ile AYNI)
   const OSTATOK_MIN=100;
   let ostatokArea=0;
   L.sheets.forEach((sheet,si)=>{
     const rep=L.groups?L.groups.repFor[si]:si;
-    if(L.groups&&rep!==si)return;
+    if(L.groups&&rep!==si){ sheet._ostatok=null; return; }
     const copies=(L.groups&&rep===si)?(L.groups.counts[si]||1):1;
-    let biggest=null;
-    (sheet.remnants||[]).forEach(r=>{
-      if(r.w>=OSTATOK_MIN&&r.h>=OSTATOK_MIN){
-        if(!biggest||r.w*r.h>biggest.w*biggest.h) biggest=r;
-      }
-    });
-    (sheet.remnants||[]).forEach(r=>{ r.isOstatok=(r===biggest); });
-    if(biggest) ostatokArea+=biggest.w*biggest.h*copies;
+    // Yerleştirilmiş parçaların etrafındaki en büyük boş dikdörtgeni bul
+    const placed=(sheet.parts||[]).map(p=>({px:p.px,py:p.py,w:p.w,h:p.h}));
+    const maxRect=findMaxEmptyRect(placed, L.trim, L.trim, L.usableW, L.usableH);
+    if(maxRect && maxRect.w>=OSTATOK_MIN && maxRect.h>=OSTATOK_MIN){
+      sheet._ostatok={x:maxRect.x,y:maxRect.y,w:maxRect.w,h:maxRect.h};
+      ostatokArea+=maxRect.w*maxRect.h*copies;
+    } else {
+      sheet._ostatok=null;
+    }
   });
   L.ostatokArea=ostatokArea;
   // KPD ostatok dahil (müşteri görmese de hesap aynı; layout için kullanılır)
@@ -1512,37 +1568,42 @@ function drawSheets(L){
     ctx.strokeStyle='#cbd5e1'; ctx.setLineDash([4,3]);
     ctx.strokeRect(L.trim*scale,L.trim*scale,L.usableW*scale,L.usableH*scale);
     ctx.setLineDash([]);
-    // KALANLAR — en büyük tek parça ОСТАТОК (yeşil), diğerleri fire (gri)
+    // 1) Tüm kalanları GRİ fire olarak çiz
     (sheet.remnants||[]).forEach(r=>{
       const x=r.x*scale,y=r.y*scale,w=r.w*scale,h=r.h*scale;
-      const isOstatok=!!r.isOstatok;
       ctx.save();
-      if(isOstatok){
-        ctx.fillStyle='rgba(16,185,129,.15)'; ctx.fillRect(x,y,w,h);
-        ctx.strokeStyle='#10b981'; ctx.lineWidth=.7;
-        ctx.beginPath();
-        for(let d=-h;d<w;d+=10){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
-        ctx.rect(x,y,w,h); ctx.clip(); ctx.stroke();
-      }else{
-        ctx.fillStyle='#e2e8f0'; ctx.fillRect(x,y,w,h);
-        ctx.strokeStyle='#94a3b8'; ctx.lineWidth=.6;
-        ctx.beginPath();
-        for(let d=-h;d<w;d+=8){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
-        ctx.rect(x,y,w,h); ctx.clip(); ctx.stroke();
-      }
+      ctx.fillStyle='#e2e8f0'; ctx.fillRect(x,y,w,h);
+      ctx.strokeStyle='#94a3b8'; ctx.lineWidth=.6;
+      ctx.beginPath();
+      for(let d=-h;d<w;d+=8){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+      ctx.rect(x,y,w,h); ctx.clip(); ctx.stroke();
       ctx.restore();
-      ctx.strokeStyle=isOstatok?'#10b981':'#94a3b8'; ctx.lineWidth=isOstatok?1.5:1; ctx.setLineDash([3,3]);
+      ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
       ctx.strokeRect(x,y,w,h); ctx.setLineDash([]);
       if(w>40&&h>14){
-        ctx.fillStyle=isOstatok?'#059669':'#64748b'; ctx.textAlign='center'; ctx.textBaseline='middle';
-        if(isOstatok&&w>60&&h>30){
-          ctx.font='bold 9px monospace'; ctx.fillText('ОСТАТОК',x+w/2,y+h/2-5);
-          ctx.font='8px monospace'; ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2+6);
-        }else{
-          ctx.font='bold 9px monospace'; ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
-        }
+        ctx.fillStyle='#64748b'; ctx.font='bold 9px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
       }
     });
+    // 2) ОСТАТОК — boşluğa sığan en büyük dikdörtgen (YEŞİL, üstte)
+    if(sheet._ostatok){
+      const o=sheet._ostatok;
+      const x=o.x*scale,y=o.y*scale,w=o.w*scale,h=o.h*scale;
+      ctx.save();
+      ctx.fillStyle='rgba(16,185,129,.22)'; ctx.fillRect(x,y,w,h);
+      ctx.strokeStyle='#10b981'; ctx.lineWidth=.8;
+      ctx.beginPath();
+      for(let d=-h;d<w;d+=10){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+      ctx.rect(x,y,w,h); ctx.clip(); ctx.stroke();
+      ctx.restore();
+      ctx.strokeStyle='#10b981'; ctx.lineWidth=2; ctx.setLineDash([4,3]);
+      ctx.strokeRect(x,y,w,h); ctx.setLineDash([]);
+      if(w>60&&h>30){
+        ctx.fillStyle='#059669'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.font='bold 10px monospace'; ctx.fillText('ОСТАТОК',x+w/2,y+h/2-6);
+        ctx.font='9px monospace'; ctx.fillText(`${Math.round(o.w)}×${Math.round(o.h)}`,x+w/2,y+h/2+7);
+      }
+    }
     // parçalar
     sheet.parts.forEach(pt=>{
       const x=pt.x*scale,y=pt.y*scale,w=pt.w*scale,h=pt.h*scale;
