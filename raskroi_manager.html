@@ -110,6 +110,15 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
 .price-input input{padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none}
 .hidden{display:none}
 @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
+@media(max-width:768px){
+  header{padding:10px 12px;gap:8px;flex-wrap:nowrap}
+  .logo{font-size:17px;letter-spacing:1px;flex-shrink:0}
+  .hdr-user{display:none}
+  header .badge{display:none}
+  .hdr-logout{font-size:12px;padding:6px 10px;flex-shrink:0;white-space:nowrap}
+  .content{padding:10px}
+  .panel{padding:14px;margin-bottom:12px}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -295,7 +304,7 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
         <h3 class="panel-title">📊 Раскрой</h3>
         <div class="calc-grid">
           <div class="calc-card"><div class="cv" id="cSheets">0</div><div class="cl">Листов</div></div>
-          <div class="calc-card"><div class="cv" id="cEff">0%</div><div class="cl">КПД</div></div>
+          <div class="calc-card"><div class="cv" id="cEff">0%</div><div class="cl" id="cEffLabel">КПД +остаток</div></div>
           <div class="calc-card"><div class="cv" id="cCut">0м</div><div class="cl">Длина реза</div></div>
           <div class="calc-card"><div class="cv" id="cPvc">0м</div><div class="cl">Кромка PVC</div></div>
           <div class="calc-card" id="cKerfCard" style="display:none;background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.3)"><div class="cv" id="cKerfSaved" style="color:#16a34a;font-size:14px">—</div><div class="cl">✂️ Kerf Saved</div></div>
@@ -765,16 +774,7 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
       let useA;
       if(splitMode==='A')useA=true;
       else if(splitMode==='B')useA=false;
-      else{
-        // Dynamic: her iki split'i dene, daha iyi olanı seç
-        // Kriter: daha büyük rectangle üretmek → sonraki parçalara daha fazla alan
-        const maxA=Math.max(area(A1),area(A2));
-        const maxB=Math.max(area(B1),area(B2));
-        const sumA=area(A1)+area(A2);
-        const sumB=area(B1)+area(B2);
-        // Hem en büyük parça hem toplam alan gözetilir
-        useA=(maxA*0.7+sumA*0.3)>=(maxB*0.7+sumB*0.3);
-      }
+      else useA=Math.max(area(A1),area(A2))>=Math.max(area(B1),area(B2));
       const kids=useA?[A1,A2]:[B1,B2];
       s.free.splice(best.ri,1);
       kids.forEach(k=>{if(k.w>5&&k.h>5)s.free.push(k);});
@@ -793,97 +793,7 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
   }
 
 
-  // ════ STRATEJI: SKYLINE (Ufuk Hattı) ════
-  // Guillotine uyumlu + MaxRects'e yakın KPD.
-  // Ufuk hattının en düşük noktasına parçaları yerleştirir.
-  // KDT makinesi için ideal: yatay şeritler, düz kesimler.
-  function packSkyline(itemsIn){
-    const items=itemsIn.map(it=>Object.assign({},it));
-    const sheets=[];
-    function newSheet(){
-      const s={parts:[],sky:[{x:0,y:0,w:usableW}]};
-      sheets.push(s);return s;
-    }
-    function fitIn(s,it){
-      let best=null;
-      const tryPlace=(pw,ph,rot)=>{
-        if(pw>usableW+0.01||ph>usableH+0.01)return;
-        // Ufuk hattında pw genişliğinde pencere ara
-        for(let si=0;si<s.sky.length;si++){
-          let span=0,maxY=0,startX=s.sky[si].x;
-          for(let sj=si;sj<s.sky.length&&span<pw-0.01;sj++){
-            span+=s.sky[sj].w;
-            maxY=Math.max(maxY,s.sky[sj].y);
-          }
-          if(span<pw-0.01)continue;
-          if(maxY+ph>usableH+0.01)continue;
-          // Boşa giden alan: yerleştirilen yer altında kalan
-          let waste=0;
-          let wspan=0;
-          for(let sj=si;sj<s.sky.length&&wspan<pw-0.01;sj++){
-            const seg=s.sky[sj];
-            const segW=Math.min(seg.w,pw-wspan);
-            waste+=segW*(maxY-seg.y);
-            wspan+=segW;
-          }
-          if(!best||maxY<best.y||(maxY===best.y&&waste<best.waste)){
-            best={si,x:startX,y:maxY,pw,ph,rot,waste};
-          }
-        }
-      };
-      tryPlace(it.pw||it.w,it.ph||it.h,false);
-      if(rotOK(it)&&it.w!==it.h)tryPlace(it.ph||it.h,it.pw||it.w,true);
-      if(!best)return false;
-      // Yerleştir
-      s.parts.push(Object.assign({},it,{
-        w:best.pw,h:best.ph,
-        rot:best.rot?!it.rot:it.rot,
-        px:best.x,py:best.y
-      }));
-      // Ufuk hattını güncelle
-      const newSky=[];
-      let wspan=0,applied=false;
-      for(let sj=0;sj<s.sky.length;sj++){
-        const seg=s.sky[sj];
-        if(seg.x+seg.w<=best.x+0.01||seg.x>=best.x+best.pw-0.01){
-          newSky.push(seg);
-        } else {
-          if(!applied){
-            newSky.push({x:best.x,y:best.y+best.ph,w:best.pw});
-            applied=true;
-          }
-          // Kenar parçaları ekle
-          if(seg.x<best.x-0.01)newSky.push({x:seg.x,y:seg.y,w:best.x-seg.x});
-          if(seg.x+seg.w>best.x+best.pw+0.01)newSky.push({x:best.x+best.pw,y:seg.y,w:(seg.x+seg.w)-(best.x+best.pw)});
-        }
-      }
-      if(!applied)newSky.push({x:best.x,y:best.y+best.ph,w:best.pw});
-      // Aynı Y'deki komşu segmentleri birleştir
-      newSky.sort((a,b)=>a.x-b.x);
-      s.sky=[];
-      for(const seg of newSky){
-        if(s.sky.length&&Math.abs(s.sky[s.sky.length-1].y-seg.y)<0.01&&
-           Math.abs(s.sky[s.sky.length-1].x+s.sky[s.sky.length-1].w-seg.x)<0.01){
-          s.sky[s.sky.length-1].w+=seg.w;
-        } else {
-          s.sky.push({...seg});
-        }
-      }
-      return true;
-    }
-    for(const it of items){
-      let ok=false;
-      for(const s of sheets){if(fitIn(s,it)){ok=true;break;}}
-      if(!ok){const s=newSheet();fitIn(s,it);}
-    }
-    return sheets.map(s=>({
-      parts:s.parts,
-      remnants:s.sky.filter(seg=>seg.w>=MIN_REM&&(usableH-seg.y)>=MIN_REM)
-                    .map(seg=>({px:seg.x,py:seg.y,w:seg.w,h:usableH-seg.y}))
-    }));
-  }
-
-    // ════ STRATEJI: MAXIMAL RECTANGLES (Best Area Fit) ════
+  // ════ STRATEJI: MAXIMAL RECTANGLES (Best Area Fit) ════
   // Guillotine'in aksine free-rect'ler CAKISABILIR — bir kesim sirasinda
   // "kaybedilen" bos alanlar burada korunur, daha sıkı paketleme bulur.
   function packMaxRects(itemsIn){
@@ -1045,21 +955,16 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
       candidates.push({tag:'maxrects-rnd'+t,sheets:finalize(packMaxRects(arr))});
     }
   }
-  // KDT Modu: Skyline + Guillotine kombinasyonu
+  // KDT Modu: şerit bazlı ek guillotine varyantları
   if(_kdtMode){
-    const byH=baseItems.slice().sort((a,b)=>(b.ph||b.h)-(a.ph||a.h));
-    const byW=baseItems.slice().sort((a,b)=>(b.pw||b.w)-(a.pw||a.w));
-    const byA=baseItems.slice().sort(sorts.area);
-    const byP=baseItems.slice().sort((a,b)=>((b.pw||b.w)+(b.ph||b.h))-((a.pw||a.w)+(a.ph||a.h)));
-    // Guillotine dynamic split
-    candidates.push({tag:'kdt-guil-hA',sheets:finalize(packGuillotine(byH,'auto'))});
-    candidates.push({tag:'kdt-guil-wA',sheets:finalize(packGuillotine(byW,'auto'))});
-    candidates.push({tag:'kdt-guil-aA',sheets:finalize(packGuillotine(byA,'auto'))});
-    // Skyline — guillotine uyumlu yüksek KPD
-    candidates.push({tag:'kdt-sky-hgt', sheets:finalize(packSkyline(byH))});
-    candidates.push({tag:'kdt-sky-wid', sheets:finalize(packSkyline(byW))});
-    candidates.push({tag:'kdt-sky-area',sheets:finalize(packSkyline(byA))});
-    candidates.push({tag:'kdt-sky-peri',sheets:finalize(packSkyline(byP))});
+    const byH = baseItems.slice().sort((a,b)=>(b.ph||b.h)-(a.ph||a.h));
+    const byW = baseItems.slice().sort((a,b)=>(b.pw||b.w)-(a.pw||a.w));
+    const byP = baseItems.slice().sort((a,b)=>((b.pw||b.w)+(b.ph||b.h))-((a.pw||a.w)+(a.ph||a.h)));
+    candidates.push({tag:'kdt-hgt-A',sheets:finalize(packGuillotine(byH,'A'))});
+    candidates.push({tag:'kdt-hgt-B',sheets:finalize(packGuillotine(byH,'B'))});
+    candidates.push({tag:'kdt-wid-A',sheets:finalize(packGuillotine(byW,'A'))});
+    candidates.push({tag:'kdt-wid-B',sheets:finalize(packGuillotine(byW,'B'))});
+    candidates.push({tag:'kdt-perim-A',sheets:finalize(packGuillotine(byP,'A'))});
   }
 
   // skor: az levha → son levha az dolu → en buyuk kalan buyuk
@@ -1149,34 +1054,49 @@ function nestCore(parts, SW, SH, kerf, trim, grain, runIdx=0){
     if(!_kdtMode){
       candidates.push({tag:'sa-maxrects',sheets:finalize(simulatedAnnealing(baseItems.slice().sort(sorts.area),packMaxRects,mulberry32(baseItems.length*104723+Math.round(usableH)+17+seedOff)))});
     }
-    // SA — farklı sıralama ve split yönleri (KDT için çok daha fazla)
-    const saConfigs=[
-      {sort:sorts.hgt,  split:'A', seed:65599},
-      {sort:sorts.area, split:'B', seed:31337},
-      {sort:sorts.hgt,  split:'B', seed:73141},
-      {sort:sorts.perim,split:'A', seed:51383},
-      {sort:sorts.area, split:'A', seed:104723},
-    ];
-    const maxSA = _kdtMode ? saConfigs.length : 2;
-    for(let s=0;s<maxSA;s++){
-      const cfg=saConfigs[s];
-      candidates.push({
-        tag:'sa-g'+s+'-r'+runIdx,
-        sheets:finalize(simulatedAnnealing(
-          baseItems.slice().sort(cfg.sort),
-          (arr)=>packGuillotine(arr,cfg.split),
-          mulberry32(baseItems.length*cfg.seed+seedOff+s*7331)
-        ))
-      });
-    }
-    // Rastgele başlangıç SA'ları (KDT: 3 tur, normal: 1 tur)
-    const nRndSA = _kdtMode ? 3 : 1;
-    for(let t=0;t<nRndSA;t++){
-      const rndSeed=mulberry32(baseItems.length*13337+seedOff+t*19973);
+    if(_kdtMode){
+      // KDT: SA sadece packStrips üzerinde çalışır → tam makine uyumlu
+      const stripsPackFn=(arr)=>packStrips(arr,usableW,usableH);
+      const saSeeds=[65599,31337,73141,51383,104723];
+      const saSorts=[sorts.hgt,sorts.area,sorts.perim,sorts.hgt,sorts.area];
+      for(let s=0;s<saSeeds.length;s++){
+        candidates.push({
+          tag:'kdt-sa-strips'+s+'-r'+runIdx,
+          sheets:finalize(simulatedAnnealing(
+            baseItems.slice().sort(saSorts[s]),
+            stripsPackFn,
+            mulberry32(baseItems.length*saSeeds[s]+seedOff+s*7331)
+          ))
+        });
+      }
+      // Rastgele başlangıçlı SA — strips
+      for(let t=0;t<3;t++){
+        const rndSeed=mulberry32(baseItems.length*13337+seedOff+t*19973);
+        const arr=baseItems.slice();
+        for(let i=arr.length-1;i>0;i--){const j=Math.floor(rndSeed()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
+        candidates.push({tag:'kdt-sa-rnd'+t+'-r'+runIdx,sheets:finalize(simulatedAnnealing(arr,stripsPackFn,mulberry32(seedOff+t*77777+44449)))});
+      }
+    } else {
+      // Normal mod: guillotine + maxrects
+      const saConfigs=[
+        {sort:sorts.hgt, split:'A', seed:65599},
+        {sort:sorts.area,split:'B', seed:31337},
+      ];
+      for(let s=0;s<saConfigs.length;s++){
+        const cfg=saConfigs[s];
+        candidates.push({
+          tag:'sa-g'+s+'-r'+runIdx,
+          sheets:finalize(simulatedAnnealing(
+            baseItems.slice().sort(cfg.sort),
+            (arr)=>packGuillotine(arr,cfg.split),
+            mulberry32(baseItems.length*cfg.seed+seedOff+s*7331)
+          ))
+        });
+      }
+      const rndSeed=mulberry32(baseItems.length*13337+seedOff);
       const arr=baseItems.slice();
       for(let i=arr.length-1;i>0;i--){const j=Math.floor(rndSeed()*(i+1));const tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;}
-      const packFn=_kdtMode?(a)=>packGuillotine(a):packMaxRects;
-      candidates.push({tag:'sa-rnd'+t+'-r'+runIdx,sheets:finalize(simulatedAnnealing(arr,packFn,mulberry32(seedOff+t*77777+44449)))});
+      candidates.push({tag:'sa-rnd-r'+runIdx,sheets:finalize(simulatedAnnealing(arr,packMaxRects,mulberry32(seedOff+77777)))});
     }
   }
   let best=null,bestS=null;
@@ -1327,16 +1247,30 @@ window.calcNest=async function(){
   const sheetArea=L.SW*L.SH;let pa=0,pvc=0,tp=0;
   parts.forEach(p=>{pa+=p.w*p.h*p.qty;tp+=p.qty;let per=0;if(p.e.t)per+=p.w;if(p.e.b)per+=p.w;if(p.e.l)per+=p.h;if(p.e.r)per+=p.h;pvc+=per*p.qty;});
   const cut=L.cutLen||0;
-  const n=L.sheets.length,eff=n?pa/(sheetArea*n)*100:0;
+  const n=L.sheets.length;
+  const effReal=n?pa/(sheetArea*n)*100:0;
+  // OSTATOK: kullanılabilir kalanlar (100mm+) KPD'ye dahil
+  const OSTATOK_MIN=100;
+  let ostatokArea=0;
+  L.sheets.forEach((sheet,si)=>{
+    const rep=L.groups?L.groups.repFor[si]:si;
+    if(L.groups&&rep!==si)return;
+    const copies=(L.groups&&rep===si)?(L.groups.counts[si]||1):1;
+    (sheet.remnants||[]).forEach(r=>{
+      if(r.w>=OSTATOK_MIN&&r.h>=OSTATOK_MIN) ostatokArea+=r.w*r.h*copies;
+    });
+  });
+  const effWithOstatok=n?Math.min(99.9,((pa+ostatokArea)/(sheetArea*n))*100):0;
+  L.ostatokArea=ostatokArea; L.effReal=effReal; L.effWithOstatok=effWithOstatok;
+  const eff=effWithOstatok;
   document.getElementById('cSheets').textContent=n;
   document.getElementById('cEff').textContent=eff.toFixed(1)+'%';
   // KDT modu aktif mi göster
   const kdtActive = document.getElementById('opt-kdt')?.checked !== false;
-  const effEl = document.getElementById('cEff');
+    const effEl = document.getElementById('cEff');
   if(effEl){
-    effEl.title = kdtActive
-      ? '🏭 KDT Modu: Guillotine-only (makine uyumlu)'
-      : '📐 Standart: MaxRects+Guillotine (yüksek KPD)';
+    const ostPct=(effWithOstatok-effReal).toFixed(1);
+    effEl.title = 'Детали: '+effReal.toFixed(1)+'% + Остаток: '+ostPct+'% = '+effWithOstatok.toFixed(1)+'%';
     effEl.style.color = eff >= 85 ? '#16a34a' : eff >= 75 ? '#f97316' : '#dc2626';
   }
   document.getElementById('cCut').textContent=(cut/1000).toFixed(1)+'м';
@@ -1389,21 +1323,43 @@ function drawSheets(L, wrapEl, pxScale){
     const cv=document.createElement('canvas');const sc=Math.min(560/L.SW,360/L.SH)*pxScale;cv.width=L.SW*sc;cv.height=L.SH*sc;
     const ctx=cv.getContext('2d');ctx.fillStyle='#f1f5f9';ctx.fillRect(0,0,cv.width,cv.height);
     ctx.strokeStyle='#cbd5e1';ctx.setLineDash([4*pxScale,3*pxScale]);ctx.strokeRect(L.trim*sc,L.trim*sc,L.usableW*sc,L.usableH*sc);ctx.setLineDash([]);
-    // KALANLAR (остатки) — taralı + ölçü
+    // KALANLAR — büyük olanlar ОСТАТОК (yeşil, kullanılabilir stok), küçükler fire (gri)
+    const OST_MIN=100;
     (sheet.remnants||[]).forEach(r=>{
       const x=r.x*sc,y=r.y*sc,w=r.w*sc,h=r.h*sc;
+      const isOstatok = r.w>=OST_MIN && r.h>=OST_MIN; // kullanılabilir mi?
       ctx.save();
-      ctx.fillStyle='#e2e8f0';ctx.fillRect(x,y,w,h);
-      ctx.strokeStyle='#94a3b8';ctx.lineWidth=.6*pxScale;
-      ctx.beginPath();
-      for(let d=-h;d<w;d+=8*pxScale){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
-      ctx.rect(x,y,w,h);ctx.clip();ctx.stroke();
+      if(isOstatok){
+        // ОСТАТОК — yeşil dolgu (stok parçası)
+        ctx.fillStyle='rgba(16,185,129,.15)';ctx.fillRect(x,y,w,h);
+        ctx.strokeStyle='#10b981';ctx.lineWidth=.7*pxScale;
+        ctx.beginPath();
+        for(let d=-h;d<w;d+=10*pxScale){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+        ctx.rect(x,y,w,h);ctx.clip();ctx.stroke();
+      }else{
+        // Fire — gri taralı
+        ctx.fillStyle='#e2e8f0';ctx.fillRect(x,y,w,h);
+        ctx.strokeStyle='#94a3b8';ctx.lineWidth=.6*pxScale;
+        ctx.beginPath();
+        for(let d=-h;d<w;d+=8*pxScale){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+        ctx.rect(x,y,w,h);ctx.clip();ctx.stroke();
+      }
       ctx.restore();
-      ctx.strokeStyle='#94a3b8';ctx.lineWidth=1*pxScale;ctx.setLineDash([3*pxScale,3*pxScale]);
+      ctx.strokeStyle=isOstatok?'#10b981':'#94a3b8';ctx.lineWidth=(isOstatok?1.5:1)*pxScale;ctx.setLineDash([3*pxScale,3*pxScale]);
       ctx.strokeRect(x,y,w,h);ctx.setLineDash([]);
       if(w>40*pxScale&&h>14*pxScale){
-        ctx.fillStyle='#64748b';ctx.font=`bold ${Math.round(9*pxScale)}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
+        ctx.fillStyle=isOstatok?'#059669':'#64748b';
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        if(isOstatok && w>60*pxScale && h>30*pxScale){
+          // ОСТАТОК etiketi + boyut
+          ctx.font=`bold ${Math.round(9*pxScale)}px monospace`;
+          ctx.fillText('ОСТАТОК',x+w/2,y+h/2-5*pxScale);
+          ctx.font=`${Math.round(8*pxScale)}px monospace`;
+          ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2+6*pxScale);
+        }else{
+          ctx.font=`bold ${Math.round(9*pxScale)}px monospace`;
+          ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
+        }
       }
     });
     sheet.parts.forEach(pt=>{const x=pt.x*sc,y=pt.y*sc,w=pt.w*sc,h=pt.h*sc;
@@ -2024,6 +1980,58 @@ function renderCutList(L){
     </tr>`;
   }).join('');
 
+  // ── OFFCUTS (kullanılabilir kalan parçalar) ──
+  // Tüm levhalardan MIN ölçüden büyük kalanları topla
+  const OFFCUT_MIN = 100; // 100mm'den büyük kalanlar kullanılabilir
+  const offcuts = [];
+  L.sheets.forEach((sheet,si)=>{
+    const rep=groups.repFor[si];
+    if(rep!==si)return; // kopya levhaları atla
+    const copies=groups.counts[si]||1;
+    (sheet.remnants||[]).forEach(r=>{
+      const w=Math.round(r.w), h=Math.round(r.h);
+      if(w>=OFFCUT_MIN && h>=OFFCUT_MIN){
+        offcuts.push({w,h,sheet:si+1,copies,area:(w*h/1e6)});
+      }
+    });
+  });
+  // Boyuta göre grupla (aynı ölçü kalanları birleştir)
+  const offcutMap=new Map();
+  offcuts.forEach(o=>{
+    const key=o.w+'x'+o.h;
+    if(!offcutMap.has(key)) offcutMap.set(key,{w:o.w,h:o.h,count:0,area:o.area});
+    offcutMap.get(key).count += o.copies;
+  });
+  const offcutList=Array.from(offcutMap.values()).sort((a,b)=>b.area-a.area);
+  const totalOffcutArea=offcutList.reduce((s,o)=>s+o.area*o.count,0);
+
+  let offcutsHtml='';
+  if(offcutList.length>0){
+    const offcutRows=offcutList.map((o,i)=>`
+      <tr style="border-bottom:0.5px solid #334155">
+        <td style="padding:5px 4px;color:#94a3b8;font-size:11px;text-align:center">${i+1}</td>
+        <td style="padding:5px 8px;font-size:12px;white-space:nowrap">${o.w} × ${o.h}</td>
+        <td style="padding:5px 8px;font-size:12px;text-align:center">${(o.area).toFixed(3)} м²</td>
+        <td style="padding:5px 8px;font-size:12px;text-align:center;color:#10b981;font-weight:700">${o.count} шт</td>
+      </tr>`).join('');
+    offcutsHtml=`
+      <div style="background:#0f172a;border-radius:10px;padding:12px;color:#fff;margin-top:10px">
+        <div style="font-size:12px;font-weight:700;color:#94a3b8;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+          <span>♻️ ОСТАТКИ (${offcutList.length} тип, ${totalOffcutArea.toFixed(2)} м²)</span>
+          <span style="font-size:10px;color:#64748b">для будущих заказов</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="border-bottom:1px solid #334155;color:#64748b;font-size:10px">
+            <th style="padding:4px;text-align:center">№</th>
+            <th style="padding:4px;text-align:left">Размер (мм)</th>
+            <th style="padding:4px;text-align:center">Площадь</th>
+            <th style="padding:4px;text-align:center">Кол-во</th>
+          </tr></thead>
+          <tbody style="color:#e2e8f0">${offcutRows}</tbody>
+        </table>
+      </div>`;
+  }
+
   wrap.style.display='';
   wrap.innerHTML=`
     <div style="background:#0f172a;border-radius:10px;padding:12px;color:#fff">
@@ -2042,7 +2050,8 @@ function renderCutList(L){
         </tr></thead>
         <tbody style="color:#e2e8f0">${rows}</tbody>
       </table>
-    </div>`;
+    </div>
+    ${offcutsHtml}`;
 }
 
 window.printOnePart=function(pt){
@@ -2211,46 +2220,217 @@ window.printLabels=function(){
 };
 
 window.exportKdtXml=function(){
-  if(!parts.length){alert('Сначала откройте заказ');return;}
+  if(!lastLayout || !lastLayout.sheets || !lastLayout.sheets.length){alert('Сначала рассчитайте раскрой');return;}
   const o=currentOrder||{};
   const SW=o.sheetW||2800, SH=o.sheetH||2070;
   const mat=o.material||'ЛДСП';
-  const kerf=o.kerf||4, trim=o.trim||10;
-  const orderDate=o.createdAt?new Date(o.createdAt).toLocaleDateString('ru-RU'):'';
-  const orderId=o.id||'RSK';
-  const customer=o.customer||'';
+  const KERF=o.kerf||4, TRIM=o.trim||10;
   const esc=s=>(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
 
-  let xml='<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml+=`<KDTProject Version="2.0" OrderID="${esc(orderId)}" Customer="${esc(customer)}" Date="${orderDate}">\n`;
-  xml+=`  <Board Width="${SW}" Height="${SH}" Material="${esc(mat)}" Kerf="${kerf}" Trim="${trim}"/>\n`;
-  xml+=`  <Parts Count="${parts.reduce((s,p)=>s+(p.qty||1),0)}">\n`;
-  parts.forEach((p,i)=>{
-    const grain=p.lock?'1':(p.grainMode==='free'?'0':'2');
-    xml+=`    <Part ID="${i+1}" Name="${esc(p.name)}" Length="${p.w}" Width="${p.h}" Quantity="${p.qty||1}" Grain="${grain}">\n`;
-    xml+=`      <EdgeBanding Top="${p.e&&p.e.t?1:0}" Bottom="${p.e&&p.e.b?1:0}" Left="${p.e&&p.e.l?1:0}" Right="${p.e&&p.e.r?1:0}"/>\n`;
-    xml+=`    </Part>\n`;
-  });
-  xml+=`  </Parts>\n`;
-  if(lastLayout){
-    xml+=`  <CuttingPlan Sheets="${lastLayout.sheets.length}">\n`;
-    const groups=lastLayout.groups||{repFor:lastLayout.sheets.map((_,i)=>i),counts:{}};
-    lastLayout.sheets.forEach((sheet,si)=>{
-      const rep=groups.repFor[si];
-      const cnt=groups.counts[si]||1;
-      xml+=`    <Sheet Index="${si+1}" IsUnique="${rep===si?1:0}" Copies="${cnt}">\n`;
-      sheet.parts.forEach((pt,pi)=>{
-        xml+=`      <PlacedPart Index="${pi+1}" Name="${esc(pt.name)}" X="${Math.round(pt.x)}" Y="${Math.round(pt.y)}" W="${Math.round(pt.w)}" H="${Math.round(pt.h)}" Rotated="${pt.rot?1:0}"/>\n`;
-      });
-      xml+=`    </Sheet>\n`;
-    });
-    xml+=`  </CuttingPlan>\n`;
+  // ── Parça koduna eşleme: her benzersiz parça (boyut+isim) bir kod alır ──
+  // type=1 gerçek parça, type=2 ara kesim, type=3 fire
+  const partCodeMap = new Map(); // "WxH" -> code numarası
+  let codeCounter = 1;
+  function getPartCode(w,h){
+    const key=Math.round(w)+'x'+Math.round(h);
+    if(!partCodeMap.has(key)){ partCodeMap.set(key, String(codeCounter++)); }
+    return partCodeMap.get(key);
   }
-  xml+=`</KDTProject>`;
+
+  // ── ID üretici (GibLab gibi artan sayılar) ──
+  let idCounter = 1650219500;
+  const nextId = ()=>String(idCounter++);
+
+  // ════════════════════════════════════════════════════════════
+  // GUILLOTINE KESİM AĞACI KURUCU
+  // Yerleştirilmiş parçaların (px,py,w,h) koordinatlarından
+  // recursive guillotine kesim ağacı kurar.
+  // Tek yön: önce YATAY şeritlere böl (Y'ye göre), sonra her şeridi
+  // DİKEY parçalara böl (X'e göre).
+  // ════════════════════════════════════════════════════════════
+  function buildCutTree(placedParts, regionX, regionY, regionW, regionH, depth){
+    // Bu bölgedeki parçalar
+    const inRegion = placedParts.filter(p=>
+      p.px >= regionX-1 && p.py >= regionY-1 &&
+      p.px+p.w <= regionX+regionW+1 && p.py+p.h <= regionY+regionH+1
+    );
+    if(inRegion.length===0) return null;
+    if(inRegion.length===1){
+      const p=inRegion[0];
+      // Tek parça — tam bu bölgeyi dolduruyor mu kontrol et
+      return { type:'leaf', part:p, x:regionX, y:regionY, w:regionW, h:regionH };
+    }
+
+    // Yatay mı dikey mi böleceğiz? depth çift=yatay, tek=dikey (guillotine ardışık)
+    // Önce yatay kesim hatları bul (parçaların alt-üst sınırları)
+    const horizontal = (depth % 2 === 0);
+
+    if(horizontal){
+      // Y koordinatına göre grupla (yatay şeritler)
+      const yCuts = new Set();
+      inRegion.forEach(p=>{ yCuts.add(Math.round(p.py)); yCuts.add(Math.round(p.py+p.h)); });
+      const ys = Array.from(yCuts).sort((a,b)=>a-b);
+      // Şerit sınırları: ardışık y'ler arası
+      const strips=[];
+      for(let i=0;i<ys.length-1;i++){
+        const y0=ys[i], y1=ys[i+1];
+        const stripParts=inRegion.filter(p=> Math.round(p.py)>=y0-1 && Math.round(p.py+p.h)<=y1+1);
+        if(stripParts.length>0) strips.push({y0,y1,parts:stripParts});
+      }
+      if(strips.length<=1){
+        // Yatay bölünmüyor — dikey dene
+        return buildCutTreeVertical(inRegion, regionX, regionY, regionW, regionH, depth);
+      }
+      const children = strips.map(s=>
+        buildCutTree(s.parts, regionX, s.y0, regionW, s.y1-s.y0, depth+1)
+      ).filter(Boolean);
+      return { type:'hsplit', x:regionX, y:regionY, w:regionW, h:regionH, children, cuts:strips.map(s=>s.y1) };
+    } else {
+      return buildCutTreeVertical(inRegion, regionX, regionY, regionW, regionH, depth);
+    }
+  }
+
+  function buildCutTreeVertical(inRegion, regionX, regionY, regionW, regionH, depth){
+    // X koordinatına göre grupla (dikey parçalar)
+    const xCuts = new Set();
+    inRegion.forEach(p=>{ xCuts.add(Math.round(p.px)); xCuts.add(Math.round(p.px+p.w)); });
+    const xs = Array.from(xCuts).sort((a,b)=>a-b);
+    const cols=[];
+    for(let i=0;i<xs.length-1;i++){
+      const x0=xs[i], x1=xs[i+1];
+      const colParts=inRegion.filter(p=> Math.round(p.px)>=x0-1 && Math.round(p.px+p.w)<=x1+1);
+      if(colParts.length>0) cols.push({x0,x1,parts:colParts});
+    }
+    if(cols.length<=1){
+      // Bölünmüyor — leaf olarak dön (tek parça veya üst üste)
+      if(inRegion.length===1){
+        const p=inRegion[0];
+        return { type:'leaf', part:p, x:regionX, y:regionY, w:regionW, h:regionH };
+      }
+      // Birden fazla parça ama bölünemiyor — yatay dene
+      return buildCutTree(inRegion, regionX, regionY, regionW, regionH, depth+1);
+    }
+    const children = cols.map(c=>
+      buildCutTree(c.parts, c.x0, regionY, c.x1-c.x0, regionH, depth+1)
+    ).filter(Boolean);
+    return { type:'vsplit', x:regionX, y:regionY, w:regionW, h:regionH, children, cuts:cols.map(c=>c.x1) };
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // AĞACI GİBLAB <no.X> BLOKLARINA ÇEVİR
+  // ════════════════════════════════════════════════════════════
+  let noCounter = 1;
+  let xmlBlocks = []; // {noNum, l, w, trim, x, y, layer, id, parts:[{cut,type,id,code}]}
+
+  function emitNode(node, layer, myId, panelL, panelW){
+    if(!node) return;
+    if(node.type==='leaf'){
+      // Yaprak: gerçek parça → kendi no bloğu (içi boş, sadece referans)
+      const p=node.part;
+      return; // leaf'ler ayrı blok olmaz, üst blokta part olarak çıkar
+    }
+    // hsplit veya vsplit → bir <no.X> bloğu üret
+    const noNum = noCounter++;
+    const isH = (node.type==='hsplit');
+    // Blok boyutu: kesim yönüne göre l/w
+    // GibLab: l=uzun kenar (kesim ekseni), w=kısa kenar
+    const blockL = isH ? node.w : node.h;  // yatay kesimde l=genişlik
+    const blockW = isH ? node.h : node.w;
+    const parts = [];
+    const childIds = [];
+
+    node.children.forEach((child,ci)=>{
+      const childId = nextId();
+      childIds.push({child, childId});
+      let cutPos, type, code;
+      if(child.type==='leaf'){
+        // Gerçek parça
+        const p=child.part;
+        cutPos = isH ? p.h : p.w; // kesim pozisyonu
+        type = '1';
+        code = getPartCode(p.w, p.h);
+      } else {
+        // Ara kesim (alt ağaç)
+        cutPos = isH ? child.h : child.w;
+        type = '2';
+        code = '';
+      }
+      parts.push({ cut:Math.round(cutPos*10)/10, type, id:childId, code });
+    });
+
+    xmlBlocks.push({
+      noNum, l:Math.round(blockL*10)/10, w:Math.round(blockW*10)/10,
+      trim: (layer===1?TRIM:0), x:Math.round(node.x*10)/10, y:Math.round(node.y*10)/10,
+      layer, id:myId, parts
+    });
+
+    // Çocukları recursive işle
+    childIds.forEach(({child,childId})=>{
+      if(child.type!=='leaf'){
+        emitNode(child, layer+1, childId, panelL, panelW);
+      }
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // ANA XML ÜRETİMİ
+  // ════════════════════════════════════════════════════════════
+  let xml='<?xml version="1.0" encoding="UTF-8"?>\n<project>\n';
+  const usableW=SW-2*TRIM, usableH=SH-2*TRIM;
+
+  lastLayout.sheets.forEach((sheet,si)=>{
+    noCounter = 1;
+    xmlBlocks = [];
+    // Panel boyutu (tek yön — hep aynı)
+    const panelL=SW, panelW=SH;
+    // Parçaları trim offset'iyle (kesim alanı içinde)
+    const placed = sheet.parts.map(p=>({
+      px:(p.px||0)+TRIM, py:(p.py||0)+TRIM, w:p.w, h:p.h, name:p.name, code:p.code, rot:p.rot
+    }));
+
+    // Kök kesim ağacı (tüm kullanılabilir alan)
+    const tree = buildCutTree(placed, TRIM, TRIM, usableW, usableH, 0);
+
+    // layer=1 kök blok (tüm levha) — manuel oluştur
+    const rootId = '0';
+    if(tree && (tree.type==='hsplit'||tree.type==='vsplit')){
+      emitNode(tree, 1, rootId, panelL, panelW);
+    }
+
+    // Panel başlığı
+    xml+=`<panel${si+1} l="${panelL}" w="${panelW}" material="${esc(mat)}" code="1" thickness="16" saw="${KERF}" num="1">\n`;
+    // Blokları yaz
+    xmlBlocks.forEach(b=>{
+      xml+=`<no.${b.noNum} l="${b.l}" w="${b.w}" trim="${b.trim}" x="${b.x}" y="${b.y}" layer="${b.layer}" id="${b.id}">\n`;
+      b.parts.forEach(p=>{
+        xml+=`<part cut="${p.cut}" type="${p.type}" id="${p.id}" code="${p.code}" />\n`;
+      });
+      xml+=`</no.${b.noNum}>\n`;
+    });
+    xml+=`</panel${si+1}>\n\n`;
+  });
+
+  // ── <parts> listesi: tüm benzersiz parçalar ──
+  xml+='<parts>\n';
+  // Parça sayımı (kaç adet kullanıldı)
+  const partUsage = new Map(); // code -> {l,w,count}
+  lastLayout.sheets.forEach(sheet=>{
+    sheet.parts.forEach(p=>{
+      const code=getPartCode(p.w,p.h);
+      const key=code;
+      if(!partUsage.has(key)) partUsage.set(key,{code,l:Math.round(p.w),w:Math.round(p.h),count:0});
+      partUsage.get(key).count++;
+    });
+  });
+  Array.from(partUsage.values()).sort((a,b)=>parseInt(a.code)-parseInt(b.code)).forEach(p=>{
+    xml+=`<part code="${p.code}" l="${p.l}" w="${p.w}" sq="${p.count}" uc="${p.count}" rc="0" />\n`;
+  });
+  xml+='</parts>\n</project>';
+
   const blob=new Blob([xml],{type:'application/xml;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=(orderId||'raskroi')+'_kdt.xml';
+  a.download=(o.id||'raskroi')+'_kdt.xml';
   a.click();
 };
 
