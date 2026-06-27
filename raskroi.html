@@ -1423,7 +1423,25 @@ window.calculate=async function(){
   // kesim uzunluğu: her parça çevresi/2 yaklaşık (guillotine)
   cutLen=L.cutLen||0;
   const nSheets=L.sheets.length;
-  const eff = nSheets? (totalPartArea/(sheetArea*nSheets)*100):0;
+  // ОСТАТОК: her levhada en büyük tek dikdörtgen (manager ile AYNI hesap)
+  const OSTATOK_MIN=100;
+  let ostatokArea=0;
+  L.sheets.forEach((sheet,si)=>{
+    const rep=L.groups?L.groups.repFor[si]:si;
+    if(L.groups&&rep!==si)return;
+    const copies=(L.groups&&rep===si)?(L.groups.counts[si]||1):1;
+    let biggest=null;
+    (sheet.remnants||[]).forEach(r=>{
+      if(r.w>=OSTATOK_MIN&&r.h>=OSTATOK_MIN){
+        if(!biggest||r.w*r.h>biggest.w*biggest.h) biggest=r;
+      }
+    });
+    (sheet.remnants||[]).forEach(r=>{ r.isOstatok=(r===biggest); });
+    if(biggest) ostatokArea+=biggest.w*biggest.h*copies;
+  });
+  L.ostatokArea=ostatokArea;
+  // KPD ostatok dahil (müşteri görmese de hesap aynı; layout için kullanılır)
+  const eff = nSheets? Math.min(99.9,(totalPartArea+ostatokArea)/(sheetArea*nSheets)*100):0;
 
   document.getElementById('rSheets').textContent=L.groups&&L.groups.uniqueCount<nSheets ? `${nSheets} (${L.groups.uniqueCount} ${lang==='kk'?'үлгі':'план'})` : nSheets;
   document.getElementById('rParts').textContent=totalParts;
@@ -1494,22 +1512,35 @@ function drawSheets(L){
     ctx.strokeStyle='#cbd5e1'; ctx.setLineDash([4,3]);
     ctx.strokeRect(L.trim*scale,L.trim*scale,L.usableW*scale,L.usableH*scale);
     ctx.setLineDash([]);
-    // KALANLAR (остатки) — taralı + ölçü etiketi
+    // KALANLAR — en büyük tek parça ОСТАТОК (yeşil), diğerleri fire (gri)
     (sheet.remnants||[]).forEach(r=>{
       const x=r.x*scale,y=r.y*scale,w=r.w*scale,h=r.h*scale;
+      const isOstatok=!!r.isOstatok;
       ctx.save();
-      ctx.fillStyle='#e2e8f0'; ctx.fillRect(x,y,w,h);
-      // çapraz tarama
-      ctx.strokeStyle='#94a3b8'; ctx.lineWidth=.6;
-      ctx.beginPath();
-      for(let d=-h;d<w;d+=8){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
-      ctx.rect(x,y,w,h); ctx.clip(); ctx.stroke();
+      if(isOstatok){
+        ctx.fillStyle='rgba(16,185,129,.15)'; ctx.fillRect(x,y,w,h);
+        ctx.strokeStyle='#10b981'; ctx.lineWidth=.7;
+        ctx.beginPath();
+        for(let d=-h;d<w;d+=10){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+        ctx.rect(x,y,w,h); ctx.clip(); ctx.stroke();
+      }else{
+        ctx.fillStyle='#e2e8f0'; ctx.fillRect(x,y,w,h);
+        ctx.strokeStyle='#94a3b8'; ctx.lineWidth=.6;
+        ctx.beginPath();
+        for(let d=-h;d<w;d+=8){ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);}
+        ctx.rect(x,y,w,h); ctx.clip(); ctx.stroke();
+      }
       ctx.restore();
-      ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.strokeStyle=isOstatok?'#10b981':'#94a3b8'; ctx.lineWidth=isOstatok?1.5:1; ctx.setLineDash([3,3]);
       ctx.strokeRect(x,y,w,h); ctx.setLineDash([]);
       if(w>40&&h>14){
-        ctx.fillStyle='#64748b'; ctx.font='bold 9px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
+        ctx.fillStyle=isOstatok?'#059669':'#64748b'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        if(isOstatok&&w>60&&h>30){
+          ctx.font='bold 9px monospace'; ctx.fillText('ОСТАТОК',x+w/2,y+h/2-5);
+          ctx.font='8px monospace'; ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2+6);
+        }else{
+          ctx.font='bold 9px monospace'; ctx.fillText(`${Math.round(r.w)}×${Math.round(r.h)}`,x+w/2,y+h/2);
+        }
       }
     });
     // parçalar
