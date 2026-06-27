@@ -2122,46 +2122,217 @@ window.printLabels=function(){
 };
 
 window.exportKdtXml=function(){
-  if(!parts.length){alert('Сначала откройте заказ');return;}
+  if(!lastLayout || !lastLayout.sheets || !lastLayout.sheets.length){alert('Сначала рассчитайте раскрой');return;}
   const o=currentOrder||{};
   const SW=o.sheetW||2800, SH=o.sheetH||2070;
   const mat=o.material||'ЛДСП';
-  const kerf=o.kerf||4, trim=o.trim||10;
-  const orderDate=o.createdAt?new Date(o.createdAt).toLocaleDateString('ru-RU'):'';
-  const orderId=o.id||'RSK';
-  const customer=o.customer||'';
+  const KERF=o.kerf||4, TRIM=o.trim||10;
   const esc=s=>(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
 
-  let xml='<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml+=`<KDTProject Version="2.0" OrderID="${esc(orderId)}" Customer="${esc(customer)}" Date="${orderDate}">\n`;
-  xml+=`  <Board Width="${SW}" Height="${SH}" Material="${esc(mat)}" Kerf="${kerf}" Trim="${trim}"/>\n`;
-  xml+=`  <Parts Count="${parts.reduce((s,p)=>s+(p.qty||1),0)}">\n`;
-  parts.forEach((p,i)=>{
-    const grain=p.lock?'1':(p.grainMode==='free'?'0':'2');
-    xml+=`    <Part ID="${i+1}" Name="${esc(p.name)}" Length="${p.w}" Width="${p.h}" Quantity="${p.qty||1}" Grain="${grain}">\n`;
-    xml+=`      <EdgeBanding Top="${p.e&&p.e.t?1:0}" Bottom="${p.e&&p.e.b?1:0}" Left="${p.e&&p.e.l?1:0}" Right="${p.e&&p.e.r?1:0}"/>\n`;
-    xml+=`    </Part>\n`;
-  });
-  xml+=`  </Parts>\n`;
-  if(lastLayout){
-    xml+=`  <CuttingPlan Sheets="${lastLayout.sheets.length}">\n`;
-    const groups=lastLayout.groups||{repFor:lastLayout.sheets.map((_,i)=>i),counts:{}};
-    lastLayout.sheets.forEach((sheet,si)=>{
-      const rep=groups.repFor[si];
-      const cnt=groups.counts[si]||1;
-      xml+=`    <Sheet Index="${si+1}" IsUnique="${rep===si?1:0}" Copies="${cnt}">\n`;
-      sheet.parts.forEach((pt,pi)=>{
-        xml+=`      <PlacedPart Index="${pi+1}" Name="${esc(pt.name)}" X="${Math.round(pt.x)}" Y="${Math.round(pt.y)}" W="${Math.round(pt.w)}" H="${Math.round(pt.h)}" Rotated="${pt.rot?1:0}"/>\n`;
-      });
-      xml+=`    </Sheet>\n`;
-    });
-    xml+=`  </CuttingPlan>\n`;
+  // ── Parça koduna eşleme: her benzersiz parça (boyut+isim) bir kod alır ──
+  // type=1 gerçek parça, type=2 ara kesim, type=3 fire
+  const partCodeMap = new Map(); // "WxH" -> code numarası
+  let codeCounter = 1;
+  function getPartCode(w,h){
+    const key=Math.round(w)+'x'+Math.round(h);
+    if(!partCodeMap.has(key)){ partCodeMap.set(key, String(codeCounter++)); }
+    return partCodeMap.get(key);
   }
-  xml+=`</KDTProject>`;
+
+  // ── ID üretici (GibLab gibi artan sayılar) ──
+  let idCounter = 1650219500;
+  const nextId = ()=>String(idCounter++);
+
+  // ════════════════════════════════════════════════════════════
+  // GUILLOTINE KESİM AĞACI KURUCU
+  // Yerleştirilmiş parçaların (px,py,w,h) koordinatlarından
+  // recursive guillotine kesim ağacı kurar.
+  // Tek yön: önce YATAY şeritlere böl (Y'ye göre), sonra her şeridi
+  // DİKEY parçalara böl (X'e göre).
+  // ════════════════════════════════════════════════════════════
+  function buildCutTree(placedParts, regionX, regionY, regionW, regionH, depth){
+    // Bu bölgedeki parçalar
+    const inRegion = placedParts.filter(p=>
+      p.px >= regionX-1 && p.py >= regionY-1 &&
+      p.px+p.w <= regionX+regionW+1 && p.py+p.h <= regionY+regionH+1
+    );
+    if(inRegion.length===0) return null;
+    if(inRegion.length===1){
+      const p=inRegion[0];
+      // Tek parça — tam bu bölgeyi dolduruyor mu kontrol et
+      return { type:'leaf', part:p, x:regionX, y:regionY, w:regionW, h:regionH };
+    }
+
+    // Yatay mı dikey mi böleceğiz? depth çift=yatay, tek=dikey (guillotine ardışık)
+    // Önce yatay kesim hatları bul (parçaların alt-üst sınırları)
+    const horizontal = (depth % 2 === 0);
+
+    if(horizontal){
+      // Y koordinatına göre grupla (yatay şeritler)
+      const yCuts = new Set();
+      inRegion.forEach(p=>{ yCuts.add(Math.round(p.py)); yCuts.add(Math.round(p.py+p.h)); });
+      const ys = Array.from(yCuts).sort((a,b)=>a-b);
+      // Şerit sınırları: ardışık y'ler arası
+      const strips=[];
+      for(let i=0;i<ys.length-1;i++){
+        const y0=ys[i], y1=ys[i+1];
+        const stripParts=inRegion.filter(p=> Math.round(p.py)>=y0-1 && Math.round(p.py+p.h)<=y1+1);
+        if(stripParts.length>0) strips.push({y0,y1,parts:stripParts});
+      }
+      if(strips.length<=1){
+        // Yatay bölünmüyor — dikey dene
+        return buildCutTreeVertical(inRegion, regionX, regionY, regionW, regionH, depth);
+      }
+      const children = strips.map(s=>
+        buildCutTree(s.parts, regionX, s.y0, regionW, s.y1-s.y0, depth+1)
+      ).filter(Boolean);
+      return { type:'hsplit', x:regionX, y:regionY, w:regionW, h:regionH, children, cuts:strips.map(s=>s.y1) };
+    } else {
+      return buildCutTreeVertical(inRegion, regionX, regionY, regionW, regionH, depth);
+    }
+  }
+
+  function buildCutTreeVertical(inRegion, regionX, regionY, regionW, regionH, depth){
+    // X koordinatına göre grupla (dikey parçalar)
+    const xCuts = new Set();
+    inRegion.forEach(p=>{ xCuts.add(Math.round(p.px)); xCuts.add(Math.round(p.px+p.w)); });
+    const xs = Array.from(xCuts).sort((a,b)=>a-b);
+    const cols=[];
+    for(let i=0;i<xs.length-1;i++){
+      const x0=xs[i], x1=xs[i+1];
+      const colParts=inRegion.filter(p=> Math.round(p.px)>=x0-1 && Math.round(p.px+p.w)<=x1+1);
+      if(colParts.length>0) cols.push({x0,x1,parts:colParts});
+    }
+    if(cols.length<=1){
+      // Bölünmüyor — leaf olarak dön (tek parça veya üst üste)
+      if(inRegion.length===1){
+        const p=inRegion[0];
+        return { type:'leaf', part:p, x:regionX, y:regionY, w:regionW, h:regionH };
+      }
+      // Birden fazla parça ama bölünemiyor — yatay dene
+      return buildCutTree(inRegion, regionX, regionY, regionW, regionH, depth+1);
+    }
+    const children = cols.map(c=>
+      buildCutTree(c.parts, c.x0, regionY, c.x1-c.x0, regionH, depth+1)
+    ).filter(Boolean);
+    return { type:'vsplit', x:regionX, y:regionY, w:regionW, h:regionH, children, cuts:cols.map(c=>c.x1) };
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // AĞACI GİBLAB <no.X> BLOKLARINA ÇEVİR
+  // ════════════════════════════════════════════════════════════
+  let noCounter = 1;
+  let xmlBlocks = []; // {noNum, l, w, trim, x, y, layer, id, parts:[{cut,type,id,code}]}
+
+  function emitNode(node, layer, myId, panelL, panelW){
+    if(!node) return;
+    if(node.type==='leaf'){
+      // Yaprak: gerçek parça → kendi no bloğu (içi boş, sadece referans)
+      const p=node.part;
+      return; // leaf'ler ayrı blok olmaz, üst blokta part olarak çıkar
+    }
+    // hsplit veya vsplit → bir <no.X> bloğu üret
+    const noNum = noCounter++;
+    const isH = (node.type==='hsplit');
+    // Blok boyutu: kesim yönüne göre l/w
+    // GibLab: l=uzun kenar (kesim ekseni), w=kısa kenar
+    const blockL = isH ? node.w : node.h;  // yatay kesimde l=genişlik
+    const blockW = isH ? node.h : node.w;
+    const parts = [];
+    const childIds = [];
+
+    node.children.forEach((child,ci)=>{
+      const childId = nextId();
+      childIds.push({child, childId});
+      let cutPos, type, code;
+      if(child.type==='leaf'){
+        // Gerçek parça
+        const p=child.part;
+        cutPos = isH ? p.h : p.w; // kesim pozisyonu
+        type = '1';
+        code = getPartCode(p.w, p.h);
+      } else {
+        // Ara kesim (alt ağaç)
+        cutPos = isH ? child.h : child.w;
+        type = '2';
+        code = '';
+      }
+      parts.push({ cut:Math.round(cutPos*10)/10, type, id:childId, code });
+    });
+
+    xmlBlocks.push({
+      noNum, l:Math.round(blockL*10)/10, w:Math.round(blockW*10)/10,
+      trim: (layer===1?TRIM:0), x:Math.round(node.x*10)/10, y:Math.round(node.y*10)/10,
+      layer, id:myId, parts
+    });
+
+    // Çocukları recursive işle
+    childIds.forEach(({child,childId})=>{
+      if(child.type!=='leaf'){
+        emitNode(child, layer+1, childId, panelL, panelW);
+      }
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // ANA XML ÜRETİMİ
+  // ════════════════════════════════════════════════════════════
+  let xml='<?xml version="1.0" encoding="UTF-8"?>\n<project>\n';
+  const usableW=SW-2*TRIM, usableH=SH-2*TRIM;
+
+  lastLayout.sheets.forEach((sheet,si)=>{
+    noCounter = 1;
+    xmlBlocks = [];
+    // Panel boyutu (tek yön — hep aynı)
+    const panelL=SW, panelW=SH;
+    // Parçaları trim offset'iyle (kesim alanı içinde)
+    const placed = sheet.parts.map(p=>({
+      px:(p.px||0)+TRIM, py:(p.py||0)+TRIM, w:p.w, h:p.h, name:p.name, code:p.code, rot:p.rot
+    }));
+
+    // Kök kesim ağacı (tüm kullanılabilir alan)
+    const tree = buildCutTree(placed, TRIM, TRIM, usableW, usableH, 0);
+
+    // layer=1 kök blok (tüm levha) — manuel oluştur
+    const rootId = '0';
+    if(tree && (tree.type==='hsplit'||tree.type==='vsplit')){
+      emitNode(tree, 1, rootId, panelL, panelW);
+    }
+
+    // Panel başlığı
+    xml+=`<panel${si+1} l="${panelL}" w="${panelW}" material="${esc(mat)}" code="1" thickness="16" saw="${KERF}" num="1">\n`;
+    // Blokları yaz
+    xmlBlocks.forEach(b=>{
+      xml+=`<no.${b.noNum} l="${b.l}" w="${b.w}" trim="${b.trim}" x="${b.x}" y="${b.y}" layer="${b.layer}" id="${b.id}">\n`;
+      b.parts.forEach(p=>{
+        xml+=`<part cut="${p.cut}" type="${p.type}" id="${p.id}" code="${p.code}" />\n`;
+      });
+      xml+=`</no.${b.noNum}>\n`;
+    });
+    xml+=`</panel${si+1}>\n\n`;
+  });
+
+  // ── <parts> listesi: tüm benzersiz parçalar ──
+  xml+='<parts>\n';
+  // Parça sayımı (kaç adet kullanıldı)
+  const partUsage = new Map(); // code -> {l,w,count}
+  lastLayout.sheets.forEach(sheet=>{
+    sheet.parts.forEach(p=>{
+      const code=getPartCode(p.w,p.h);
+      const key=code;
+      if(!partUsage.has(key)) partUsage.set(key,{code,l:Math.round(p.w),w:Math.round(p.h),count:0});
+      partUsage.get(key).count++;
+    });
+  });
+  Array.from(partUsage.values()).sort((a,b)=>parseInt(a.code)-parseInt(b.code)).forEach(p=>{
+    xml+=`<part code="${p.code}" l="${p.l}" w="${p.w}" sq="${p.count}" uc="${p.count}" rc="0" />\n`;
+  });
+  xml+='</parts>\n</project>';
+
   const blob=new Blob([xml],{type:'application/xml;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=(orderId||'raskroi')+'_kdt.xml';
+  a.download=(o.id||'raskroi')+'_kdt.xml';
   a.click();
 };
 
