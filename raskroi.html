@@ -58,7 +58,7 @@ header{background:var(--dark2);position:sticky;top:0;z-index:100;box-shadow:0 4p
 .step-line{flex:1;height:2px;background:var(--border)}
 .back-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 16px;font-weight:700;font-size:14px;cursor:pointer;color:var(--dark);margin-bottom:14px}
 .back-btn:hover{border-color:var(--orange);color:var(--orange-dark)}
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
 .stat-box{background:#fff9f0;border:1px solid #fde9d2;border-radius:12px;padding:14px 10px;text-align:center}
 .stat-box .v{font-size:24px;font-weight:900;color:var(--orange-dark);line-height:1}
 .stat-box .l{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-top:5px}
@@ -242,6 +242,16 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
           <div class="ig"><label data-i18n="kerf">Рез / Kesme (mm)</label><input type="number" id="kerf" value="4" min="0" step="0.5"></div>
           <div class="ig"><label data-i18n="trim">Обрезка края (mm)</label><input type="number" id="trim" value="10" min="0"></div>
         </div>
+        <div class="params" style="margin-top:6px">
+          <div class="ig" style="flex-direction:row;align-items:center;gap:8px">
+            <input type="checkbox" id="blockGrouping" checked style="width:16px;height:16px;accent-color:var(--orange);cursor:pointer">
+            <label for="blockGrouping" style="cursor:pointer;font-size:12px;font-weight:700">🧱 Block Grouping</label>
+          </div>
+          <div class="ig" style="flex-direction:row;align-items:center;gap:8px">
+            <input type="checkbox" id="kerfOpt" checked style="width:16px;height:16px;accent-color:var(--orange);cursor:pointer">
+            <label for="kerfOpt" style="cursor:pointer;font-size:12px;font-weight:700">✂️ Kerf Optimization</label>
+          </div>
+        </div>
         <div class="hint" data-i18n="grainHint">⚠️ Если выбрана текстура — детали с «🔒 Текстура» НЕ вращаются (узор сохраняется).</div>
       </div>
 
@@ -315,10 +325,10 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
       <div class="stat-grid">
         <div class="stat-box"><div class="v" id="rSheets">0</div><div class="l" data-i18n="sheetsNeed">Листов</div></div>
         <div class="stat-box"><div class="v" id="rParts">0</div><div class="l" data-i18n="totalParts">Деталей</div></div>
-        <div class="stat-box"><div class="v" id="rEff">0%</div><div class="l" data-i18n="eff">КПД</div></div>
+        <div class="stat-box" id="rEffBox" style="display:none"><div class="v" id="rEff">0%</div><div class="l" data-i18n="eff">КПД</div></div>
       </div>
       <div class="results" style="margin-bottom:16px">
-        <div class="rrow"><span class="lbl" data-i18n="waste">Отходы</span><span class="val" id="rWaste">0%</span></div>
+        <div class="rrow" id="rWasteRow" style="display:none"><span class="lbl" data-i18n="waste">Отходы</span><span class="val" id="rWaste">0%</span></div>
         <div class="rrow"><span class="lbl" data-i18n="cutLen">Длина реза</span><span class="val" id="rCut">0 м</span></div>
         <div class="rrow"><span class="lbl" data-i18n="pvcLen">Кромка PVC</span><span class="val" id="rPvc">0 м</span></div>
       </div>
@@ -337,7 +347,6 @@ canvas{background:#fff;border-radius:4px;max-width:100%;height:auto}
         <div class="dl-grid">
           <button class="dl-btn" onclick="exportPDF()">📄 PDF</button>
           <button class="dl-btn" onclick="exportExcel()">📊 Excel</button>
-          <button class="dl-btn" onclick="exportXML()">📐 XML</button>
           <button class="dl-btn wa" onclick="shareWhatsApp()">📱 WhatsApp</button>
         </div>
       </div>
@@ -819,6 +828,82 @@ window.toggleAllEdges=function(){
 window.selPVC=(t,el)=>{selectedPVC=t;document.querySelectorAll('.pvc-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');};
 
 // ═══════════════════════════════════════════
+
+// ═══ BLOCK GROUPING ═══════════════════════════════════════════
+// Aynı boyuttaki parçaları gruplayıp birbirine yakın yerleştirir.
+// CNC makinesi için kesim sırasını optimize eder — uzun düz kesimler.
+function applyBlockGrouping(items, kerf) {
+  // Key: boyut + grain + edge banding
+  const groups = {};
+  items.forEach(it => {
+    const w = it.pw || it.w, h = it.ph || it.h;
+    // Normalize: küçük kenar önce (rotation bağımsız)
+    const nw = Math.min(w,h), nh = Math.max(w,h);
+    const eKey = it.e ? `${it.e.t?1:0}${it.e.b?1:0}${it.e.l?1:0}${it.e.r?1:0}` : '0000';
+    const key = `${nw}x${nh}:${it.lock?1:0}:${eKey}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(it);
+  });
+
+  // Her grubu büyüklüğe göre sırala (büyük gruplar önce → daha iyi blok oluşumu)
+  const sortedGroups = Object.values(groups).sort((a,b) => b.length - a.length);
+  const result = [];
+  sortedGroups.forEach(g => {
+    // Grubu sırala: önce büyük parçalar
+    g.sort((a,b) => (b.pw||b.w)*(b.ph||b.h) - (a.pw||a.w)*(a.ph||a.h));
+    result.push(...g);
+  });
+  return result;
+}
+
+// ═══ KERF OPTIMIZATION ════════════════════════════════════════
+// Yerleştirilen parçaların kesim sıralarını analiz ederek
+// paylaşılan kesim hatlarını tespit eder → kerf tasarrufu hesaplar.
+function kerfOptimize(sheets, kerf) {
+  let savedKerf = 0;
+  let gangCuts = 0;
+
+  sheets.forEach(sheet => {
+    const parts = sheet.parts || [];
+    if (parts.length < 2) return;
+
+    // Aynı X koordinatındaki parçaları bul (dikey paylaşımlı kesim)
+    const byX = {};
+    parts.forEach(p => {
+      const xKey = Math.round(p.x);
+      if (!byX[xKey]) byX[xKey] = [];
+      byX[xKey].push(p);
+    });
+
+    Object.values(byX).forEach(group => {
+      if (group.length > 1) {
+        // Aynı sütunda birden fazla parça = paylaşımlı dikey kesim
+        const savings = (group.length - 1) * kerf;
+        savedKerf += savings;
+        gangCuts++;
+      }
+    });
+
+    // Aynı Y koordinatındaki parçaları bul (yatay paylaşımlı kesim)
+    const byY = {};
+    parts.forEach(p => {
+      const yKey = Math.round(p.y);
+      if (!byY[yKey]) byY[yKey] = [];
+      byY[yKey].push(p);
+    });
+
+    Object.values(byY).forEach(group => {
+      if (group.length > 1) {
+        const savings = (group.length - 1) * kerf;
+        savedKerf += savings;
+        gangCuts++;
+      }
+    });
+  });
+
+  return { savedKerf: Math.round(savedKerf), gangCuts };
+}
+
 // NESTING ALGORITHM (Shelf/Guillotine + kerf + trim + rotation + grouping)
 // ═══════════════════════════════════════════
 // ════ STRIP BIN PACKING (KDT Makinalar İçin Optimize) ════
@@ -1261,7 +1346,35 @@ function nest(){
   const kerf=parseFloat(document.getElementById('kerf').value)||4;
   const trim=parseFloat(document.getElementById('trim').value)||10;
   const grain=document.getElementById('grainDir').value;
-  return nestCore(parts, SW, SH, kerf, trim, grain);
+  const useBlockGroup=document.getElementById('blockGrouping')?.checked!==false;
+  const useKerfOpt=document.getElementById('kerfOpt')?.checked!==false;
+
+  // Block Grouping: aynı boyut gruplara göre sırala
+  let orderedParts = parts.slice();
+  if(useBlockGroup && orderedParts.length > 1){
+    // flatMap ile qty'yi aç
+    const flat=[];
+    orderedParts.forEach(p=>{for(let i=0;i<(p.qty||1);i++)flat.push({...p,qty:1});});
+    const grouped = applyBlockGrouping(flat, kerf);
+    // Geri grupla: aynı id'lileri birleştir (nestCore qty bekliyor)
+    const byId={};
+    grouped.forEach(p=>{
+      if(!byId[p.id]){byId[p.id]={...p,qty:0};}
+      byId[p.id].qty++;
+    });
+    orderedParts = Object.values(byId);
+  }
+
+  const result = nestCore(orderedParts, SW, SH, kerf, trim, grain);
+
+  // Kerf Optimization: gang cut tasarrufunu hesapla ve result'a ekle
+  if(useKerfOpt && result && result.sheets){
+    const kerfStats = kerfOptimize(result.sheets, kerf);
+    result.kerfSaved = kerfStats.savedKerf;
+    result.gangCuts = kerfStats.gangCuts;
+  }
+
+  return result;
 }
 
 // Edge Function üzerinden hesapla; başarısız olursa lokal nestCore'a düş
@@ -1319,6 +1432,16 @@ window.calculate=async function(){
   document.getElementById('rCut').textContent=(cutLen/1000).toFixed(1)+' м';
   const pvcM = selectedPVC==='0'?0:(pvcLen/1000*1.05);
   document.getElementById('rPvc').textContent=pvcM.toFixed(1)+' м';
+  // Kerf Optimization sonuçları
+  if(L.kerfSaved>0){
+    document.getElementById('rKerfRow').style.display='';
+    document.getElementById('rKerfSaved').textContent=L.kerfSaved+' мм → '+(L.kerfSaved/1000*sheetArea/1e6).toFixed(3)+' м²';
+    document.getElementById('rGangRow').style.display='';
+    document.getElementById('rGangCuts').textContent=L.gangCuts+' gang cut';
+  } else {
+    document.getElementById('rKerfRow').style.display='none';
+    document.getElementById('rGangRow').style.display='none';
+  }
   document.getElementById('planInfo').textContent=`${L.SW}×${L.SH}mm · ${nSheets} ${lang==='kk'?'парақ':'лист'}`;
   drawSheets(L);
   goPlan();
@@ -1605,7 +1728,7 @@ window.exportXML=function(){
 window.shareWhatsApp=function(){
   const s=orderSummary();
   const placed=placedCounts();
-  let txt=`*Baibesik Раскрой*\n📐 Лист: ${s.sw}x${s.sh}mm (${s.mat})\n📦 Деталей: ${parts.reduce((a,p)=>a+p.qty,0)}\n📄 Листов: ${s.nSheets} | КПД ${s.eff}\n\n*Детали (заказ→размещено):*\n`;
+  let txt=`*Baibesik Раскрой*\n📐 Лист: ${s.sw}x${s.sh}mm (${s.mat})\n📦 Деталей: ${parts.reduce((a,p)=>a+p.qty,0)}\n📄 Листов: ${s.nSheets}\n\n*Детали (заказ→размещено):*\n`;
   parts.forEach((p,i)=>{
     const pl=placed[p.id]||{n:0};
     const flag=pl.n>=p.qty?'✅':'⚠️';
